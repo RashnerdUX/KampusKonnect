@@ -6,9 +6,77 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { CssBaseline, Container, Typography, Box } from '@mui/material';
 
 import type { Route } from "./+types/root";
 import "./app.css";
+
+// Create Material-UI theme
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#2563eb', // Blue
+    },
+    secondary: {
+      main: '#16a34a', // Green
+    },
+    background: {
+      default: '#f8fafc',
+      paper: '#ffffff',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontWeight: 700,
+    },
+    h2: {
+      fontWeight: 700,
+    },
+    h3: {
+      fontWeight: 700,
+    },
+    h4: {
+      fontWeight: 600,
+    },
+    h5: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 600,
+    },
+  },
+  shape: {
+    borderRadius: 12,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          textTransform: 'none',
+          fontWeight: 500,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+        },
+      },
+    },
+  },
+});
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -33,7 +101,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          {children}
+        </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -62,14 +133,34 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
-      )}
-    </main>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Container maxWidth="md" sx={{ py: 8 }}>
+        <Box textAlign="center">
+          <Typography variant="h1" component="h1" gutterBottom fontSize="4rem">
+            {message}
+          </Typography>
+          <Typography variant="h6" color="text.secondary" paragraph>
+            {details}
+          </Typography>
+          {stack && (
+            <Box 
+              component="pre" 
+              sx={{ 
+                textAlign: 'left',
+                p: 2, 
+                bgcolor: 'grey.100', 
+                borderRadius: 1, 
+                overflow: 'auto',
+                fontSize: '0.875rem',
+                fontFamily: 'monospace'
+              }}
+            >
+              <code>{stack}</code>
+            </Box>
+          )}
+        </Box>
+      </Container>
+    </ThemeProvider>
   );
 }

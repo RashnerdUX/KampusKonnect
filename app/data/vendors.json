@@ -1,0 +1,57 @@
+[
+  {
+    "id": "v1",
+    "name": "Campus Bites",
+    "university": "University of Lagos (UNILAG)",
+    "category": "food",
+    "whatsApp": "+2348012345678",
+    "cover": "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?q=80&w=1600&auto=format&fit=crop",
+    "items": [
+      { "title": "Jollof + Chicken", "price": 2500 },
+      { "title": "Shawarma", "price": 1800 }
+    ],
+    "ratings": [5, 4, 5, 5, 4],
+    "reviews": [
+      { "name": "Nifemi", "text": "Fast delivery to Moremi!", "stars": 5, "createdAt": "2025-10-15T10:30:00Z" },
+      { "name": "Chuks", "text": "Portions are solid for the price.", "stars": 4, "createdAt": "2025-10-14T15:45:00Z" }
+    ],
+    "createdAt": "2025-10-01T08:00:00Z",
+    "updatedAt": "2025-10-15T10:30:00Z"
+  },
+  {
+    "id": "v2",
+    "name": "Alpha Prints",
+    "university": "University of Nigeria, Nsukka (UNN)",
+    "category": "services",
+    "whatsApp": "+2348090001122",
+    "cover": "https://images.unsplash.com/photo-1504271863819-d23a436266cf?q=80&w=1600&auto=format&fit=crop",
+    "items": [
+      { "title": "Project Spiral Binding", "price": 1200 },
+      { "title": "Colour Print (A4)", "price": 200 }
+    ],
+    "ratings": [4, 4, 5, 3, 5],
+    "reviews": [
+      { "name": "Ada", "text": "Saved me on submission day!", "stars": 5, "createdAt": "2025-10-12T14:20:00Z" }
+    ],
+    "createdAt": "2025-09-25T12:00:00Z",
+    "updatedAt": "2025-10-12T14:20:00Z"
+  },
+  {
+    "id": "v3",
+    "name": "Tech Plug NG",
+    "university": "Ahmadu Bello University (ABU Zaria)",
+    "category": "tech",
+    "whatsApp": "+2348033344556",
+    "cover": "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop",
+    "items": [
+      { "title": "Type-C Cable", "price": 2500 },
+      { "title": "Used HP EliteBook", "price": 185000 }
+    ],
+    "ratings": [5, 5, 5, 4],
+    "reviews": [
+      { "name": "Hassan", "text": "Honest pricing, clean gadgets.", "stars": 5, "createdAt": "2025-10-10T09:15:00Z" }
+    ],
+    "createdAt": "2025-09-20T16:30:00Z",
+    "updatedAt": "2025-10-10T09:15:00Z"
+  }
+]
