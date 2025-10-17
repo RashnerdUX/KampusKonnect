@@ -1,0 +1,9 @@
+[
+  { "key": "food", "label": "Food" },
+  { "key": "books", "label": "Books" },
+  { "key": "tech", "label": "Tech" },
+  { "key": "fashion", "label": "Fashion" },
+  { "key": "housing", "label": "Housing" },
+  { "key": "transport", "label": "Transport" },
+  { "key": "services", "label": "Services" }
+]
