@@ -14,30 +14,26 @@ export async function action({ request} : Route.ActionArgs) {
 
     // Send email to Brevo API
     try {
-        console.log("Sending email to Brevo API:", userEmail);
-        console.log("Using API Key:", import.meta.env.VITE_BREVO_API_KEY
- ? "Provided" : "Not Provided");
-
         const response = await fetch("https://api.brevo.com/v3/contacts", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "api-key": `${import.meta.env.VITE_BREVO_API_KEY}`
+                "api-key": `${process.env.VITE_BREVO_API_KEY}`
             },
             body: JSON.stringify({
                 email: userEmail,
-                listIds: [3],
+                listIds: [Number(process.env.VITE_BREVO_LIST_ID)],
                 updateEnabled: false
             })
         });
 
         if (!response.ok) {
-            console.log("Brevo API response:", await response.text());
+            console.error("Brevo API response:", await response.text());
             return { error: "Failed to join the waitlist. Please try again later.", success: false };
         }
     } catch (err) {
         console.error("Error contacting Brevo API:", err);
-        return { error: err, success: false };
+        return { error: "Failed to join the waitlist. Please try again later.", success: false };
     }
 
     return { message: "Successfully joined the waitlist!", success: true };
