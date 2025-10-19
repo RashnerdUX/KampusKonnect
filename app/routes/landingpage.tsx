@@ -18,11 +18,11 @@ export async function action({ request} : Route.ActionArgs) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "api-key": `${process.env.VITE_BREVO_API_KEY}`
+                "api-key": `${process.env.BREVO_API_KEY}`
             },
             body: JSON.stringify({
                 email: userEmail,
-                listIds: [Number(process.env.VITE_BREVO_LIST_ID)],
+                listIds: [Number(process.env.BREVO_LIST_ID)],
                 updateEnabled: false
             })
         });
