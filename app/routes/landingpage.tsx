@@ -5,7 +5,16 @@ type ActionData =
   | { success: true; message: string }
   | { success?: false; error: string };
 
+export const meta = ({}: Route.MetaArgs) => {
+  return [
+        {title: "Kampus Konnect - Find Campus Vendors Close to You"},
+        {name: "description", content: "Join Kampus Konnect to easily find and connect with campus vendors close to you. Sign up for our waitlist today!",},
+        {name: "keywords", content: "Kampus Konnect, campus vendors, WhatsApp, student marketplace, vendor marketplace, Nigeria, waitlist, connect, sell, grow"}
+    ];
+};
+
 export async function action({ request} : Route.ActionArgs) {
+    // TODO: Implement rate limiting to prevent abuse
     const formData = await request.formData();
     const userEmail = formData.get("email");
     if (typeof userEmail !== "string" || userEmail.length === 0) {
@@ -14,6 +23,11 @@ export async function action({ request} : Route.ActionArgs) {
 
     // Send email to Brevo API
     try {
+        // TODO: Check that env vars are defined 
+        if (!process.env.BREVO_API_KEY || !process.env.BREVO_LIST_ID) {
+            return { error: "Missing environment variables.", success: false };
+        }
+
         const response = await fetch("https://api.brevo.com/v3/contacts", {
             method: "POST",
             headers: {
@@ -41,12 +55,13 @@ export async function action({ request} : Route.ActionArgs) {
 
 export default function LandingPage( { actionData }: Route.ComponentProps) {
   return (
-    <div className="min-h-svh bg-[#0B0C10] flex flex-col">
-        <header className="px-6 py-8 flex justify-center border-b border-[#ffffff1a]">
-            <h1 className="font-[700] text-[#48FF6B] text-2xl">Kampus Konnect</h1>
+    <div className="min-h-dvh bg-[#0B0C10] flex flex-col">
+        <header className="px-4 flex justify-start items-center md:justify-center border-b border-[#ffffff1a]">
+            <img src="/logo/logo.svg" alt="Kampus Konnect Logo" className="h-16 w-16 mr-1" />
+            <h1 className="hidden md:block font-[700] text-[#48FF6B] text-2xl font-[Oswald]">KampusKonnect</h1>
         </header>
 
-        <main className="flex flex-col items-center max-w-[720px] mx-auto px-6 py-20 flex-grow">
+        <main className="flex flex-col items-center max-w-[720px] mx-auto px-6 pt-12 pb-16 md:py-20 flex-grow">
             <h2 className="font-[800] mb-10 lg:mb-14 text-[40px] leading-[1.3] text-white text-center">
                 Find campus vendors you can reach on WhatsApp —{" "}
                 <span className="text-[#48FF6B]">fast.</span>
