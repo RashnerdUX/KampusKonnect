@@ -62,7 +62,7 @@ export default function LandingPage( { actionData }: Route.ComponentProps) {
         </header>
 
         <main className="flex flex-col items-center max-w-[720px] mx-auto px-6 pt-12 pb-16 md:py-20 flex-grow">
-            <h2 className="font-[800] mb-10 lg:mb-14 text-[40px] leading-[1.3] text-white text-center">
+            <h2 className="font-[800] mb-8 lg:mb-10 text-[40px] leading-[1.3] text-white text-center">
                 Find campus vendors you can reach on WhatsApp —{" "}
                 <span className="text-[#48FF6B]">fast.</span>
             </h2>
