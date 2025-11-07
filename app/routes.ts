@@ -9,4 +9,7 @@ export default [
   route("vendor/new", "routes/vendor.new.tsx"),
   route("vendor/:id", "routes/vendor.$id.tsx"),
   route("vendor/:id/review", "routes/vendor.$id.review.tsx"),
+
+  // For testing and experimentation
+  route("playground", "routes/playground.tsx"),
 ] satisfies RouteConfig;

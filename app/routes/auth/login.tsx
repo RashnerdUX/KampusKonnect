@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Route } from './+types/login';
-import { getServerSupabase } from '~/utils/supabase.server';
+import { createSupabaseServerClient } from '~/utils/supabase.server';
 import { redirect, Form } from 'react-router';
 
 export const meta = ({}: Route.MetaArgs) => {
@@ -16,8 +16,7 @@ export async function action({ request} : Route.ActionArgs) {
   const password = formData.get("password");
 
     // Get the supabase client
-    const response = new Response();
-    const supabase = getServerSupabase(request, response);
+    const { supabase, headers } = createSupabaseServerClient(request);
 
     // Perform the login here
     const { data, error} = await supabase.auth.signInWithPassword(
@@ -33,7 +32,7 @@ export async function action({ request} : Route.ActionArgs) {
     }
 
     console.log("Login successful:", data);
-  return redirect("/app");
+  return redirect("/playground", { headers });
 }
 
 export default function Login() {
