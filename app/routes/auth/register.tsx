@@ -1,7 +1,14 @@
 import React from 'react'
 import type { Route } from './+types/register';
-import { Form, redirect } from 'react-router';
-import { getServerSupabase } from '~/utils/supabase.server';
+import { Form, Link, redirect } from 'react-router';
+import { createSupabaseServerClient } from '~/utils/supabase.server';
+
+import AuthFormDivider from '~/components/utility/AuthFormDivider';
+import ImageCarousel from '~/components/auth/ImageCarousel';
+
+// Material UI Component imports
+import TextField from '@mui/material/TextField';
+import GoogleButton from 'react-google-button'
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
@@ -14,12 +21,26 @@ export async function action({ request} : Route.ActionArgs) {
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
+  const confirm_password = formData.get("confirm_password")
+  const surname = formData.get("surname");
+  const first_name = formData.get("first_name");
+  const username = formData.get("username");
+  const agreeToTerms = formData.get("terms")
+
+  // Check to make sure user is entering same password
+  if (password !== confirm_password){
+    return { error: "Passwords must match"}
+  }
+
+  // Check that the user has agreed to the Terms and conditions
+  if (!agreeToTerms) {
+    return { error: "You must agree to the terms and conditions" };
+  }
 
   //Import supabase client
-  const response = new Response();
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   console.log("Service Key:", serviceKey);
-  const supabase = getServerSupabase(request, response, serviceKey);
+  const {supabase} = createSupabaseServerClient(request, serviceKey);
     //   Sign up with Supabase
     console.log("Registering user:", email);
     const { data, error } = await supabase.auth.signUp({ 
@@ -27,9 +48,9 @@ export async function action({ request} : Route.ActionArgs) {
         password: String(password),
         options: {
             data: {
-                username: "Admin Trial",
-                surname: "Akhigbe",
-                first_name: "Adeseye",
+                username: String(username),
+                surname: String(surname),
+                first_name: String(first_name),
             }
         }
     });
@@ -44,14 +65,59 @@ export async function action({ request} : Route.ActionArgs) {
 
 export default function Register({actionData}: Route.ComponentProps){
   return (
-    <div>
-        <Form method='post'>
-            <div>
-                <input type="email" name="email" placeholder="Email" required />
-                <input type="password" name="password" placeholder="Password" required />
-                <button type="submit">Register</button>
+    <div className='relative max-h-dvh flex flex-col md:m-auto items-center justify-center p-4 lg:p-8'>
+      <main className='w-full max-w-6xl'>
+        <div className=''>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 rounded-xl overflow-hidden shadow-lg px-10 py-6">
+              {/* The Image carousel */}
+              <ImageCarousel />
+            <div className='flex flex-col'>
+              {/* The Registration Form */}
+              <div className='flex flex-col items-center justify-center mb-4'>
+                <img src="/logo/logo.svg" alt="Kampus Konnect Logo" className="h-16 w-16 mr-1" />
+                <h1 className='text-3xl font-black lg:text-4xl text-center'>Create Your Account</h1>
+              </div>
+              <div>
+                <Form method='post'>
+                    <div className='flex flex-col'>
+                      {actionData?.error && <p className="text-red-500 text-sm text-center">{actionData.error}</p>}
+                        <div className='flex flex-row gap-2'>
+                          <input type="text" name="surname" placeholder="Surname" required className='input-field'/>
+                          <input type="text" name="first_name" placeholder="First Name" required className='input-field'/>
+                        </div>
+                        <input type="text" name="username" placeholder="Username" required className='input-field'/>
+                        <input type="email" name="email" placeholder="Email" required className='input-field'/>
+                        <input type="password" name="password" placeholder="Password" required className='input-field'/>
+                        <input type="password" name="confirm_password" placeholder="Confirm Password" required className='input-field' />
+
+                        {/* Check Terms & Conditions */}
+                        <div className="flex items-center gap-3 pt-2">
+                          <input className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" id="terms" name='terms' type="checkbox"/>
+                          <label className="text-sm text-gray-600 dark:text-gray-400" htmlFor="terms">I agree with the <a className="font-medium text-gray-900 dark:text-gray-200 hover:underline" href="#">Terms &amp; Condition</a></label>
+                        </div>
+                        <button type="submit" className='auth-button'>Register</button>
+                        <p className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                          Already have an account? 
+                          <Link to="/login" className="ml-1 font-medium text-gray-900 dark:text-gray-200">Login here</Link>
+                        </p>
+                    </div>
+                </Form>
+                <div className="relative my-2 flex items-center">
+                  {/* Divider component */} 
+                  <AuthFormDivider />
+                </div>
+                <div>
+                  {/* The Google Sign In button */}
+                  <button className="social-auth-button">
+                    <img src="/logo/google-logo.svg" alt="Google Logo" className="inline-block h-5 w-5 mr-2"/>
+                    <span>Sign in with Google</span>
+                  </button>
+                </div>
+              </div>
             </div>
-        </Form>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }

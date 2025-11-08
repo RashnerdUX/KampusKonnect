@@ -13,3 +13,23 @@ body {
     color-scheme: dark;
   }
 }
+
+.auth-button{
+  @apply flex h-12 w-full items-center justify-center rounded-md bg-blue-600 text-white font-bold text-base hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 mt-4;
+}
+
+.input-field{
+  @apply w-full h-12 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2;
+}
+
+.social-auth-button{
+  @apply flex h-12 w-full items-center justify-center rounded-md bg-white border border-gray-300 text-gray-700 font-bold text-base hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 mt-4;
+}
+
+.carousel-indicator{
+  @apply h-2 w-2 bg-gray-300 rounded-full mx-1 cursor-pointer;
+}
+
+.active-carousel-indicator{
+  @apply bg-white w-12 h-2 mx-1 cursor-pointer rounded-md;
+}
