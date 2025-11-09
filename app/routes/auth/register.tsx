@@ -1,14 +1,12 @@
-import React from 'react'
+import React, {useState} from 'react'
 import type { Route } from './+types/register';
 import { Form, Link, redirect } from 'react-router';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
 
 import AuthFormDivider from '~/components/utility/AuthFormDivider';
 import ImageCarousel from '~/components/auth/ImageCarousel';
+import { handleGoogleLogin } from '~/utils/social_login';
 
-// Material UI Component imports
-import TextField from '@mui/material/TextField';
-import GoogleButton from 'react-google-button'
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
@@ -64,6 +62,17 @@ export async function action({ request} : Route.ActionArgs) {
 }
 
 export default function Register({actionData}: Route.ComponentProps){
+
+  const [isGoogleSignIn, setIsGoogleSignIn] = useState<Boolean>(false);
+
+  const registerWithGoogle = async () => {
+   const success = await handleGoogleLogin();
+   if(success){
+    setIsGoogleSignIn(success);
+   };
+    console.log("Google registration completed");
+  }
+
   return (
     <div className='relative max-h-dvh flex flex-col md:m-auto items-center justify-center p-4 lg:p-8'>
       <main className='w-full max-w-6xl'>
@@ -108,7 +117,7 @@ export default function Register({actionData}: Route.ComponentProps){
                 </div>
                 <div>
                   {/* The Google Sign In button */}
-                  <button className="social-auth-button">
+                  <button className="social-auth-button" onClick={registerWithGoogle} >
                     <img src="/logo/google-logo.svg" alt="Google Logo" className="inline-block h-5 w-5 mr-2"/>
                     <span>Sign in with Google</span>
                   </button>

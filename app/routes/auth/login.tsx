@@ -6,6 +6,7 @@ import { redirect, Form, Link } from 'react-router';
 // Component imports
 import ImageCarousel from '~/components/auth/ImageCarousel';
 import AuthFormDivider from '~/components/utility/AuthFormDivider';
+import { handleGoogleLogin } from '~/utils/social_login';
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
@@ -40,6 +41,15 @@ export async function action({ request} : Route.ActionArgs) {
 }
 
 export default function Login({actionData}:Route.ComponentProps) {
+
+  const loginWithGoogle = async () => {
+    const success = await handleGoogleLogin();
+
+    if (success) {
+      console.log("Signed In with Google")
+    }
+  }
+
   return (
 <div className='relative min-h-screen flex flex-col md:m-auto items-center justify-center p-4 lg:p-8'>
       <main className='w-full max-w-6xl'>
@@ -79,7 +89,7 @@ export default function Login({actionData}:Route.ComponentProps) {
                 </div>
                 <div>
                   {/* The Google Sign In button */}
-                  <button className="social-auth-button">
+                  <button className="social-auth-button" onClick={loginWithGoogle}>
                     <img src="/logo/google-logo.svg" alt="Google Logo" className="inline-block h-5 w-5 mr-2"/>
                     <span>Sign in with Google</span>
                   </button>
