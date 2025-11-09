@@ -26,8 +26,8 @@ export async function action({ request} : Route.ActionArgs) {
     // Perform the login here
     const { data, error} = await supabase.auth.signInWithPassword(
         { 
-            email: String(email), 
-            password: String(password) 
+            email: email as string, 
+            password: password as string 
         }
     )
 

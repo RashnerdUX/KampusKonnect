@@ -16,6 +16,7 @@ export const handleGoogleLogin = async () => {
 
         if (error) {
             console.error("Error during Google login:", error);
+            return false;
         }
         return true;
     } catch (error) {
