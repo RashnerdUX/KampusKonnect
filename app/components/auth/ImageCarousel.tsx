@@ -15,30 +15,30 @@ interface ImageCarouselProps {
 
 export const ImageCarousel = ({ items }: ImageCarouselProps) => {
 
+    const defaultItems: ImageCarouselItem[] = [
+        { src: '/images/register-illustration.jpg', alt: 'Carousel Image 1', index: 0, text: 'Delicious Meals', caption: 'Tasty and affordable meals from campus vendors.' },
+        { src: '/images/carousel2.jpg', alt: 'Carousel Image 2', index: 1, text: 'Quick Delivery', caption: 'Get your food delivered fast and fresh.' },
+        { src: '/images/carousel3.jpg', alt: 'Carousel Image 3', index: 2, text: 'Variety of Options', caption: 'Choose from a wide range of campus vendors.' },
+    ]
+
     const [selectedIndex, setSelectedIndex] = useState(0);
 
+    const carouselItems = items && items.length > 0 ? items : defaultItems;
     // Run an effect to auto-advance the carousel every 5 seconds
     useEffect(() => {
         const interval = setInterval(() => {
-            setSelectedIndex((prevIndex) => (prevIndex + 1) % 3);
+            setSelectedIndex((prevIndex) => (prevIndex + 1) % carouselItems.length);
         }, 5000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [carouselItems.length]);
 
     const handleUserSelect = (index: number) => {
         setSelectedIndex(index);
     }
 
-    const defaultItems: ImageCarouselItem[] = [
-    { src: '/images/register-illustration.jpg', alt: 'Carousel Image 1', index: 0, text: 'Delicious Meals', caption: 'Tasty and affordable meals from campus vendors.' },
-    { src: '/images/carousel2.jpg', alt: 'Carousel Image 2', index: 1, text: 'Quick Delivery', caption: 'Get your food delivered fast and fresh.' },
-    { src: '/images/carousel3.jpg', alt: 'Carousel Image 3', index: 2, text: 'Variety of Options', caption: 'Choose from a wide range of campus vendors.' },
-    ]
-
-    const carouselItems = items && items.length > 0 ? items : defaultItems;
     const currentItem = carouselItems[selectedIndex];
-    const options = [0, 1, 2];
+    const options = carouselItems.map((_, i) => i);
 
   return (
     <>

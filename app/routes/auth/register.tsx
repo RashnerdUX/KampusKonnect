@@ -31,13 +31,19 @@ export async function action({ request} : Route.ActionArgs) {
   }
 
   // Check that the user has agreed to the Terms and conditions
-  if (!agreeToTerms) {
+  if (agreeToTerms !== "on") {
     return { error: "You must agree to the terms and conditions" };
   }
 
   //Import supabase client
+  // TODO: Try registering without service key and see if it has been fixed on Supabase's end
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  console.log("Service Key:", serviceKey);
+  
+  if (!serviceKey) {
+    console.error("Missing Supabase service role key in environment variables.");
+    return { error: "Internal server error. Please try again later." };
+  }
+
   const {supabase} = createSupabaseServerClient(request, serviceKey);
     //   Sign up with Supabase
     console.log("Registering user:", email);
@@ -119,7 +125,7 @@ export default function Register({actionData}: Route.ComponentProps){
                   {/* The Google Sign In button */}
                   <button className="social-auth-button" onClick={registerWithGoogle} >
                     <img src="/logo/google-logo.svg" alt="Google Logo" className="inline-block h-5 w-5 mr-2"/>
-                    <span>Sign in with Google</span>
+                    <span>Sign up with Google</span>
                   </button>
                 </div>
               </div>
