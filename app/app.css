@@ -79,6 +79,9 @@
 
 html,
 body {
+  @apply min-h-screen w-full bg-background text-foreground;
+  font-family: var(--default-font-family);
+  
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }

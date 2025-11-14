@@ -1,5 +1,5 @@
 import type { Route } from "./+types/landingpage";
-import { Form } from "react-router";
+import { Form, redirect } from "react-router";
 import { ThemeToggle } from "~/components/ThemeToggle";
 
 type ActionData =
@@ -59,7 +59,7 @@ export async function action({ request} : Route.ActionArgs) {
         return { error: "Failed to join the waitlist. Please try again later.", success: false };
     }
 
-    return { message: "Successfully joined the waitlist!", success: true };
+    return redirect("/join-waitlist/success");
 }
 
 export default function LandingPage( { actionData }: Route.ComponentProps) {
@@ -83,7 +83,7 @@ export default function LandingPage( { actionData }: Route.ComponentProps) {
             {/* The form */}
             <Form method="post" className="w-full">
                 {actionData?.success ? (
-                    <p className="text-primary/60 mb-2 text-center text-xs">{actionData.message}</p>
+                    <p className="text-primary mb-2 text-center text-xs">{actionData.message}</p>
                 ) : actionData?.error ? (
                     <p className="text-red-400 mb-2 text-center text-xs">{actionData.error}</p>
                 ) : null}
