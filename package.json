@@ -19,6 +19,7 @@
     "@supabase/supabase-js": "^2.80.0",
     "framer-motion": "^12.23.24",
     "isbot": "^5.1.31",
+    "lucide-react": "^0.553.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-google-button": "^0.8.0",
