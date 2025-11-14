@@ -1,5 +1,6 @@
 import type { Route } from "./+types/landingpage";
 import { Form } from "react-router";
+import { ThemeToggle } from "~/components/ThemeToggle";
 
 type ActionData =
   | { success: true; message: string }
@@ -55,18 +56,18 @@ export async function action({ request} : Route.ActionArgs) {
 
 export default function LandingPage( { actionData }: Route.ComponentProps) {
   return (
-    <div className="min-h-dvh bg-[#0B0C10] flex flex-col">
-        <header className="px-4 flex justify-start items-center md:justify-center border-b border-[#ffffff1a]">
+    <div className="min-h-dvh bg-background flex flex-col">
+        <header className="px-4 flex justify-start items-center md:justify-center border-b border-border">
             <img src="/logo/logo.svg" alt="Kampus Konnect Logo" className="h-16 w-16 mr-1" />
-            <h1 className="hidden md:block font-[700] text-[#48FF6B] text-2xl font-[Oswald]">KampusKonnect</h1>
+            <h1 className="hidden md:block font-[700] text-primary text-2xl font-[Oswald]">KampusKonnect</h1>
         </header>
 
         <main className="flex flex-col items-center max-w-[720px] mx-auto px-6 pt-12 pb-16 md:py-20 flex-grow">
-            <h2 className="font-[800] mb-8 lg:mb-10 text-[40px] leading-[1.3] text-white text-center">
+            <h2 className="font-[800] mb-8 lg:mb-10 text-[40px] leading-[1.3] text-foreground text-center">
                 Find campus vendors you can reach on WhatsApp —{" "}
-                <span className="text-[#48FF6B]">fast.</span>
+                <span className="text-primary">fast.</span>
             </h2>
-            <p className="text-[#ffffffb3] mb-10 text-center">
+            <p className="text-foreground/80 mb-10 text-center">
                 We’re building Nigeria’s first student + vendor marketplace. <br />
                 Join the waitlist and be the first to connect, sell, and grow when we launch.
             </p>
@@ -74,7 +75,7 @@ export default function LandingPage( { actionData }: Route.ComponentProps) {
             {/* The form */}
             <Form method="post" className="w-full">
                 {actionData?.success ? (
-                    <p className="text-green-400 mb-2 text-center text-xs">{actionData.message}</p>
+                    <p className="text-primary/60 mb-2 text-center text-xs">{actionData.message}</p>
                 ) : actionData?.error ? (
                     <p className="text-red-400 mb-2 text-center text-xs">{actionData.error}</p>
                 ) : null}
@@ -83,20 +84,21 @@ export default function LandingPage( { actionData }: Route.ComponentProps) {
                         type="email" 
                         name="email"
                         placeholder="Enter your email" 
-                        className="w-full flex-2 p-4 rounded-md md:rounded-s-md border border-[#ffffff1a] bg-transparent text-white placeholder:text-[#ffffff80]" 
+                        className="w-full flex-2 p-4 rounded-md md:rounded-s-md border border-border bg-transparent text-foreground placeholder:text-foreground/60" 
                         required
                     />
-                    <button type="submit" className="flex-1 w-full lg:px-6 py-3 lg:py-4 bg-[#48FF6B] text-black font-[600] rounded-md md:rounded-e-md hover:bg-[#3eda5c] transition-colors">Join Waitlist</button>
+                    <button type="submit" className="flex-1 w-full lg:px-6 py-3 lg:py-4 bg-primary text-primary-foreground font-[600] rounded-md md:rounded-e-md hover:bg-primary/90 transition-colors">Join Waitlist</button>
                 </div>
             </Form>
 
-            <p className="text-[#ffffff80] mt-2 text-xs">
+            <p className="text-foreground/80 mt-2 text-xs">
                 We respect your privacy. You can unsubscribe at any time
             </p>
         </main>
 
-        <footer className="w-full text-center text-sm border-t border-[#ffffff1a] mt-auto py-4 text-[#ffffff80]">
+        <footer className="w-full text-center text-sm border-t border-border mt-auto py-4 text-foreground/80 flex gap-2 justify-center items-center">
             © 2025 Kampus Konnect · All Rights Reserved
+            <ThemeToggle />
         </footer>
     </div>
   );
