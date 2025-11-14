@@ -53,7 +53,7 @@
     --tertiary: 263 47% 14%; /* Dark Purple */
     --tertiary-foreground: 0 0% 100%; /* White */
     --background: 220 19% 5%; /* Very Dark Blue */
-    --foreground: 220 15% 85%; /* Light text, Light Gray */
+    --foreground: 0 0% 100%; /* White */
     --muted: 220 15% 15%; 
     --muted-foreground: 220 15% 60%;
     --card: 220 15% 25%; /* Darker background for cards */
