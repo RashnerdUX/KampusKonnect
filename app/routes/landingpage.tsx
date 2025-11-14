@@ -16,6 +16,7 @@ export const meta = ({}: Route.MetaArgs) => {
 
 export async function action({ request} : Route.ActionArgs) {
     // TODO: Implement rate limiting to prevent abuse
+
     const formData = await request.formData();
     const userEmail = formData.get("email");
     if (typeof userEmail !== "string" || userEmail.length === 0) {
@@ -43,6 +44,13 @@ export async function action({ request} : Route.ActionArgs) {
         });
 
         if (!response.ok) {
+            const responseJson = await response.json();
+
+            // If the user is already on the list, treat it as a success and inform them
+            if (responseJson.code === "duplicate_parameter") {
+                return { message: "You are already on the waitlist! Sit back and we'll be in touch", success: true };
+            }
+
             console.error("Brevo API response:", await response.text());
             return { error: "Failed to join the waitlist. Please try again later.", success: false };
         }
