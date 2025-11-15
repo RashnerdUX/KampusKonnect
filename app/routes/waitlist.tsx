@@ -1,4 +1,4 @@
-import type { Route } from "./+types/landingpage";
+import type { Route } from "./+types/waitlist";
 import { Form, redirect } from "react-router";
 import { ThemeToggle } from "~/components/ThemeToggle";
 
