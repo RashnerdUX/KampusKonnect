@@ -5,7 +5,7 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-sans: "Asap Condensed", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif,
+  --font-display: "Playfair Display", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
     /* Color Palette */
@@ -62,9 +62,6 @@
     --shadow: 220 15% 10%;
   }
   
-  body {
-    @apply font-sans;
-  }
 }
 
 @layer utilities {
@@ -112,4 +109,18 @@ body {
 
 .active-carousel-indicator{
   @apply bg-white w-12 h-2 mx-1 cursor-pointer rounded-md;
+}
+
+.navlink {
+  @apply relative inline-flex items-center font-medium text-foreground transition-colors duration-300 pb-1;
+}
+
+.navlink::after {
+  content: "";
+  @apply absolute left-0 bottom-0 h-[4px] w-0 bg-primary transition-all duration-300;
+}
+
+.navlink:hover::after,
+.navlink:focus-visible::after {
+  @apply w-full;
 }
