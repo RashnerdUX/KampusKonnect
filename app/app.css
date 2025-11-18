@@ -23,6 +23,10 @@
   --color-card-foreground: hsl(var(--card-foreground));
   --color-border: hsl(var(--border));
   --color-shadow: hsl(var(--shadow));
+  --color-footer-background: hsl(var(--footer-background));
+  --color-footer-foreground: hsl(var(--footer-foreground));
+  --color-footer-link: hsl(var(--footer-link));
+  --color-footer-link-hover: hsl(var(--footer-link-hover));
 }
 
 @layer base {
@@ -42,6 +46,10 @@
     --card-foreground: 220 15% 20%;
     --border: 220 15% 90%; 
     --shadow: 220 15% 85%;
+    --footer-background: 166 56% 11%; /* Dark Green */
+    --footer-foreground: 162 39% 84%; /* Mint for footer text */
+    --footer-link: 154 67% 80%; /* Bluish Green */
+    --footer-link-hover: 141 91% 62%; /* Brighter Green on hover */
   }
 
   /* Dark Theme */
@@ -60,6 +68,10 @@
     --card-foreground: 220 15% 85%;
     --border: 220 15% 30%;
     --shadow: 220 15% 10%;
+    --footer-background: 196 90% 16%; /* Dark Blue */
+    --footer-foreground: 162 39% 84%; /* Mint for footer text */
+    --footer-link: 167 40% 88%; /* Muted Lapiz Lazuli for footer links */
+    --footer-link-hover: 153 95% 77%; /* Brighter Green on hover */
   }
   
 }
