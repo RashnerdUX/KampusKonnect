@@ -40,6 +40,13 @@ export const Footer = () => {
         { text: "Sitemap", url: "/sitemap" },
     ];
 
+    const userlinks = [
+        { text: "Campex in Your Area", url: "#" },
+        { text: "Student Services", url: "#" },
+        { text: "Community Highlights", url: "#" },
+        { text: "New on Campex", url: "#" },
+    ]
+
   return (
     <div className='relative'>
         <div className='relative w-full mx-auto px-4 sm:px-6 md:px-8 xl:px-24'>
@@ -107,9 +114,9 @@ export const Footer = () => {
 
                     {/* Legal Links */}
                     <div className='flex flex-col gap-4'>
-                        <h3 className='font-semibold text-lg mb-2 text-white'> Legal </h3>
+                        <h3 className='font-semibold text-lg mb-2 text-white'> Campus </h3>
                         <div className='flex flex-col gap-2'>
-                            {legalLinks.map(({ text, url }, index) => (
+                            {userlinks.map(({ text, url }, index) => (
                                 <Link key={index} to={url} className='text-footer-foreground hover:text-footer-link-hover transition-colors duration-300'>
                                     {text}
                                 </Link>
@@ -121,7 +128,21 @@ export const Footer = () => {
             </div>
             <DividerLine />
             <div className='text-footer-foreground text-sm text-center py-4 md:py-6'>
-                &copy; {new Date().getFullYear()} Campex. All rights reserved.
+                <div className='flex flex-col lg:flex-row items-center justify-between'>
+                    <div>
+                        &copy; {new Date().getFullYear()} Campex. All rights reserved.
+                    </div>
+                    <div>
+                        {legalLinks.map(({ text, url }, index) => (
+                            <span key={index}>
+                                <Link to={url} className='text-footer-foreground hover:text-footer-link-hover transition-colors duration-300'>
+                                    {text}
+                                </Link>
+                                {index < legalLinks.length - 1 && <span className='mx-2'>|</span>}
+                            </span>
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
