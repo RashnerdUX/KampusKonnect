@@ -4,6 +4,7 @@ export default [
   // Landing Page
   index("routes/landingpage.tsx"),
   route("join-waitlist/success", "routes/waitlist_success.tsx"),
+
   // The Application Routes
   route("app", "routes/home.tsx"),
 
@@ -12,7 +13,14 @@ export default [
   route("register", "routes/auth/register.tsx"),
   route("auth/callback", "routes/auth/auth.callback.tsx"),
 
-  // 
+  // Onboarding Routes
+
+  // Marketplace Routes
+  route("marketplace", "routes/marketplace/_layout.tsx", [
+    index("routes/marketplace/index.tsx"),
+  ]),
+
+  // Vendor Routes
   route("vendor/new", "routes/vendor.new.tsx"),
   route("vendor/:id", "routes/vendor.$id.tsx"),
   route("vendor/:id/review", "routes/vendor.$id.review.tsx"),

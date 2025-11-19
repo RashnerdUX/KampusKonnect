@@ -1,21 +1,27 @@
-import type { Route } from "./+types/landingpage";
-import { Form, redirect } from "react-router";
-import { ThemeToggle } from "~/components/ThemeToggle";
+import React, {useEffect} from 'react'
+import type { Route } from './+types/landingpage';
+import { FaArrowRightLong } from "react-icons/fa6";
+import { Form, useNavigate } from 'react-router';
 
-type ActionData =
-  | { success: true; message: string }
-  | { success?: false; error: string };
+// Component for the landing page
+import Navbar from '~/components/navbar';
+import WaitlistSuccessCard from '~/components/WaitlistSuccessCard';
+import Footer from '~/components/Footer';
+import BenefitCard from '~/components/landingpage/BenefitCard';
+import { VendorCardIllustration } from '~/components/illustrations/VendorIllustration';
+import FeaturesSection from '~/components/landingpage/FeatureCard';
+import ReviewsCardSection from '~/components/landingpage/ReviewsCard';
 
-export const meta = ({}: Route.MetaArgs) => {
+export const meta = (_args: Route.MetaArgs) => {
   return [
-        {title: "Kampus Konnect - Find Campus Vendors Close to You"},
-        {name: "description", content: "Join Kampus Konnect to easily find and connect with campus vendors close to you. Sign up for our waitlist today!",},
-        {name: "keywords", content: "Kampus Konnect, campus vendors, WhatsApp, student marketplace, vendor marketplace, Nigeria, waitlist, connect, sell, grow"}
-    ];
-};
+    { title: "Campex - Your Campus Marketplace" },
+    { name: "description", content: "Shop smarter with Campex. Discover the best campus deals and connect with trusted vendors on Campex, your ultimate marketplace for student essentials." },
+    { name: "keywords", content: "campus marketplace, student deals, vendor connections, student essentials, campus shopping, student discounts, trusted vendors" },
+  ]
+}
 
-export async function action({ request} : Route.ActionArgs) {
-    // TODO: Implement rate limiting to prevent abuse
+export const action = async ({ request, }: Route.ActionArgs) => {
+  // TODO: Implement rate limiting to prevent abuse
 
     const formData = await request.formData();
     const userEmail = formData.get("email");
@@ -25,7 +31,6 @@ export async function action({ request} : Route.ActionArgs) {
 
     // Send email to Brevo API
     try {
-        // TODO: Check that env vars are defined 
         if (!process.env.BREVO_API_KEY || !process.env.BREVO_LIST_ID) {
             return { error: "Missing environment variables.", success: false };
         }
@@ -51,7 +56,7 @@ export async function action({ request} : Route.ActionArgs) {
                 return { message: "You are already on the waitlist! Sit back and we'll be in touch", success: true };
             }
 
-            console.error("Brevo API response:", await response.text());
+            console.error("Brevo API response:", responseJson);
             return { error: "Failed to join the waitlist. Please try again later.", success: false };
         }
     } catch (err) {
@@ -59,55 +64,178 @@ export async function action({ request} : Route.ActionArgs) {
         return { error: "Failed to join the waitlist. Please try again later.", success: false };
     }
 
-    return redirect("/join-waitlist/success");
+    return { message: "Successfully joined the waitlist!", success: true };
 }
 
-export default function LandingPage( { actionData }: Route.ComponentProps) {
+export const LandingPage = ({actionData}: Route.ComponentProps) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (actionData?.success){
+      requestAnimationFrame(() => {
+        document.getElementById("waitlist")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    }
+  }, []);
+
   return (
-    <div className="min-h-dvh bg-background flex flex-col">
-        <header className="px-4 flex justify-start items-center md:justify-center border-b border-border">
-            <img src="/logo/logo.svg" alt="Kampus Konnect Logo" className="h-16 w-16 mr-1" />
-            <h1 className="hidden md:block font-[700] text-primary text-2xl font-[Oswald]">KampusKonnect</h1>
-        </header>
+    <>
+    {/* Main Content */}
+      <main>
+        {/* Nav bar */}
+        <Navbar />
 
-        <main className="flex flex-col items-center max-w-[720px] mx-auto px-6 pt-12 pb-16 md:py-20 flex-grow">
-            <h2 className="font-[800] mb-8 lg:mb-10 text-[40px] leading-[1.3] text-foreground text-center">
-                Find campus vendors you can reach on WhatsApp —{" "}
-                <span className="text-primary">fast.</span>
-            </h2>
-            <p className="text-foreground/80 mb-10 text-center">
-                We’re building Nigeria’s first student + vendor marketplace. <br />
-                Join the waitlist and be the first to connect, sell, and grow when we launch.
-            </p>
+        <section id='hero' className='relative pt-2 min-h-[55vh] lg:min-h-[70vh] bg-gradient-to-b from-background via-muted to-primary/30 overflow-visible pb-16 -mb-16'>
+          <div className='flex flex-col lg:flex-row'>
+            {/* Hero Content */}
+            <div className='px-6 sm:px-8 md:px-12 lg:px-[96.96px] flex flex-col h-full justify-center items-start space-y-6 lg:space-y-8 my-4 lg:my-20 sm:my-6'>
+              <div className='max-w-full lg:max-w-[646px]'>
+                <h1 className='text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-extrabold leading-tight sm:leading-[1.1] lg:leading-[60px] uppercase font-display'>Shop smarter with Campex</h1>
+              </div>
+              <div className='max-w-full lg:max-w-[546px]'>
+                <p className='text-base sm:text-lg md:text-xl lg:text-2xl text-foreground/70'>Discover the best campus deals and connect with trusted vendors on Campex, your ultimate marketplace for student essentials.</p>
+              </div>
+              <div>
+                <a className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center' href='#waitlist'>
+                  Get Started
+                  <FaArrowRightLong className='inline-block ml-4 text-primary-foreground' />
+                </a>
+              </div>
+            </div>
 
-            {/* The form */}
-            <Form method="post" className="w-full">
-                {actionData?.success ? (
-                    <p className="text-primary mb-2 text-center text-xs">{actionData.message}</p>
-                ) : actionData?.error ? (
-                    <p className="text-red-400 mb-2 text-center text-xs">{actionData.error}</p>
-                ) : null}
-                <div className="flex flex-col lg:flex-row items-center w-full gap-2 lg:gap-0">
-                    <input 
-                        type="email" 
-                        name="email"
-                        placeholder="Enter your email" 
-                        className="w-full flex-2 p-4 rounded-md md:rounded-s-md border border-border bg-transparent text-foreground placeholder:text-foreground/60" 
-                        required
-                    />
-                    <button type="submit" className="flex-1 w-full lg:px-6 py-3 lg:py-4 bg-primary text-primary-foreground font-[600] rounded-md md:rounded-e-md hover:bg-primary/90 transition-colors">Join Waitlist</button>
+            {/* Hero Image */}
+            <div className='mt-12 lg:mt-0 lg:ml-12 flex-1 flex justify-center px-6 sm:px-8 md:px-12 lg:px-0'>
+              <div className='relative flex w-full h-100 sm:h-80 lg:w-[480px] lg:h-[70vh]'>
+                <div className='bg-primary/80 translate-x-2 translate-y-2 rounded-3xl inset-0 absolute'></div>
+                <div className='bg-[url(/images/heroimage.png)] bg-cover bg-center w-full h-full relative rounded-3xl z-10'></div>
+
+                {/* 3d icons */}
+
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <section id='benefits' className='hidden relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden'>
+          <div className='relative'>
+            <div className='mb-4 sm:mb-6 md:mb-8 flex flex-col text-center items-center space-x-4'>
+              {/* Badge */}
+              <div className='inline-block'>
+                <div className='section-badge'>
+                  Benefits
                 </div>
-            </Form>
+              </div>
 
-            <p className="text-foreground/80 mt-2 text-xs">
-                We respect your privacy. You can unsubscribe at any time
-            </p>
-        </main>
+              {/* Section title and subtext */}
+              <h1 className='section-title'> Why Choose Campex? </h1>
+              <p className='section-paragraph'> Campex is designed with students in mind, offering a seamless and secure platform to buy and sell campus essentials. Here’s why you should choose us: </p>
+            </div>
 
-        <footer className="w-full text-center text-sm border-t border-border mt-auto py-4 text-foreground/80 flex gap-2 justify-center items-center">
-            © 2025 Kampus Konnect · All Rights Reserved
-            <ThemeToggle />
-        </footer>
-    </div>
-  );
+            {/* Benefit Cards */}
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12 mt-8 sm:mt-10 md:mt-12'>
+              <BenefitCard
+                title="Faster Campus Deals"
+                subtext="Compare vendors, chat instantly, and place orders without leaving the app."
+                SvgIllustration={VendorCardIllustration}
+              />
+            </div>
+
+          </div>
+
+        </section>
+
+        <section id='features' className='relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden py-4 lg:py-8'>
+          <div className='relative'>
+            <div className='mb-4 sm:mb-6 md:mb-8 flex flex-col text-center items-center space-x-4'>
+              {/* Badge */}
+              <div className='inline-block'>
+                <div className='section-badge'>
+                  Key Features
+                </div>
+              </div>
+
+              {/* Section title and subtext */}
+              <h1 className='section-title'> How Campex Works </h1>
+              <p className='section-paragraph'> Here's how Campex simplifies the process of finding vendors around you on campus. </p>
+            </div>
+
+            <FeaturesSection />
+          </div>
+
+        </section>
+
+        <section id='reviews' className='relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden py-4 lg:py-8'>
+          <div className='relative'>
+            {/* Header */}
+            <div className='mb-4 sm:mb-6 md:mb-8 flex flex-col text-center items-center space-x-4'>
+              {/* Badge */}
+              <div className='inline-block'>
+                <div className='section-badge'>
+                  Experience
+                </div>
+              </div>
+
+              {/* Section title and subtext */}
+              <h1 className='section-title'> What Students Are Saying </h1>
+              <p className='section-paragraph'> Here's what early users of Campex have to say about their experience. </p>
+            </div>
+
+            <ReviewsCardSection />
+          </div>
+        </section>
+
+        <section id="waitlist" className='relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden'>
+
+          {/* Main container */}
+          <div className='relative overflow-hidden backdrop-blur-sm rounded-2xl sm:rounded-3xl md:rounded-4xl py-12 sm:py-14 md:py-16 lg:py-28 px-6 sm:px-8 md:px-12 lg:px-16 bg-gradient-to-b from-footer-background/80 to-footer-background'>
+
+            {/* Background Image */}
+            <img src="null" alt="" className='absolute inset-0 w-full h-full object-cover object-center opacity-20 sm:opacity-30 md:opacity-50 -z-10 bg-transparent' />
+
+            {/* Actual content */}
+            { actionData?.success ? (
+              <div className='relative'>
+                <div className='flex flex-col'>
+                  <WaitlistSuccessCard />
+                </div>
+              </div>
+            ) : (<div className='relative mx-auto max-w-xl sm:max-w-2xl md:max-w-3xl space-y-6 sm:space-y-7 md:space-y-8 text-center'>
+              <div className='inline-block'>
+                <div className='bg-primary/20 rounded-full px-4 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 inline-flex items-center space-x-2'>
+                  <span className='text-primary text-base sm:text-lg md:text-xl font-medium'> Waitlist </span>
+                </div>
+              </div>
+              <h2 className='font-display text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold leading-tight'> Join Our Waitlist Today! </h2>
+              <p className='text-footer-foreground'> We’re building Nigeria’s first student + vendor marketplace.
+                  Join the waitlist and be the first to connect, sell, and grow when we launch. </p>
+
+              <Form method='post' preventScrollReset className='max-w-full sm:max-w-lg md:max-w-2xl mx-auto mt-6 sm:mt-8 md:mt-10 transition-all duration-200 ease-in-out'>
+                {/* Swap the container once the user succeeds */}
+                  <div className='relative'>
+                  {actionData?.error && (<p className='text-red-500 text-sm'>{actionData.error}</p>) }
+                  <input type="email" name='email' placeholder='Enter your email address' required className='rounded-full w-full h-12 sm:h-13 md:h-14 lg:h-16 pl-4 sm:pl-5 md:pl-6 pr-28 text-footer-foreground border-2 border-footer-foreground/80 focus:outline-none focus:ring-2 focus:ring-footer-foreground focus:border-transparent transition-all duration-200 ease-in-out'/>
+                  <div className='absolute right-1 top-1/2 transform -translate-y-1/2'>
+                    <button type='submit' className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center'>
+                      Join Waitlist
+                    </button>
+                  </div>
+                </div>
+              </Form>
+            </div>)}
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer id='footer' className='relative py-6 bg-footer-background text-footer-foreground'>
+        <Footer />
+      </footer>
+    </>
+  )
 }
+
+export default LandingPage;

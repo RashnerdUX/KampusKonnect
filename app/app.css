@@ -5,7 +5,7 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-sans: "Asap Condensed", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif,
+  --font-display: "Playfair Display", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
     /* Color Palette */
@@ -23,6 +23,10 @@
   --color-card-foreground: hsl(var(--card-foreground));
   --color-border: hsl(var(--border));
   --color-shadow: hsl(var(--shadow));
+  --color-footer-background: hsl(var(--footer-background));
+  --color-footer-foreground: hsl(var(--footer-foreground));
+  --color-footer-link: hsl(var(--footer-link));
+  --color-footer-link-hover: hsl(var(--footer-link-hover));
 }
 
 @layer base {
@@ -42,6 +46,10 @@
     --card-foreground: 220 15% 20%;
     --border: 220 15% 90%; 
     --shadow: 220 15% 85%;
+    --footer-background: 166 56% 11%; /* Dark Green */
+    --footer-foreground: 162 39% 84%; /* Mint for footer text */
+    --footer-link: 154 67% 80%; /* Bluish Green */
+    --footer-link-hover: 141 91% 62%; /* Brighter Green on hover */
   }
 
   /* Dark Theme */
@@ -60,11 +68,12 @@
     --card-foreground: 220 15% 85%;
     --border: 220 15% 30%;
     --shadow: 220 15% 10%;
+    --footer-background: 196 90% 16%; /* Dark Blue */
+    --footer-foreground: 162 39% 84%; /* Mint for footer text */
+    --footer-link: 167 40% 88%; /* Muted Lapiz Lazuli for footer links */
+    --footer-link-hover: 153 95% 77%; /* Brighter Green on hover */
   }
   
-  body {
-    @apply font-sans;
-  }
 }
 
 @layer utilities {
@@ -112,4 +121,28 @@ body {
 
 .active-carousel-indicator{
   @apply bg-white w-12 h-2 mx-1 cursor-pointer rounded-md;
+}
+
+.navlink {
+  @apply relative inline-flex items-center font-medium text-foreground transition-colors duration-300 pb-1;
+}
+
+.navlink::after {
+  content: "";
+  @apply absolute left-0 bottom-0 h-[4px] w-0 bg-primary transition-all duration-300;
+}
+
+.navlink:hover::after,
+.navlink:focus-visible::after {
+  @apply w-full;
+}
+.section-badge{
+  @apply rounded-full h-6 md:h-8 xl:h-10 px-4 sm:px-6 text-foreground/80 text-xs sm:text-sm md:text-base font-medium flex items-center justify-center mb-4 border-2 border-foreground/30;
+}
+.section-title {
+  @apply text-foreground text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold text-center max-w-full sm:max-w-2xl md:max-w-3xl xl:max-w-[508px] mx-auto mb-3 sm:mb-4 md:mb-6 xl:mb-8;
+}
+
+.section-paragraph {
+  @apply text-foreground/70 text-base md:text-lg lg:text-[24px] font-sans text-center max-w-full sm:max-w-4xl md:max-w-5xl mx-auto mb-6 sm:mb-8 md:mb-10;
 }
