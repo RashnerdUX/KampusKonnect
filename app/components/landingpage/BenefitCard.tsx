@@ -34,8 +34,8 @@ export const BenefitCard = ({title, subtext, SvgIllustration, imageAlt, classNam
       {/* Illustration */}
       <div className='pointer-events-none flex items-end justify-end w-full'>
         <SvgIllustration
-          role='presentation'
-          aria-label={imageAlt ?? title}
+          {...(imageAlt ?? title
+           ? { role: 'img', 'aria-label': imageAlt ?? title } : { 'aria-hidden': true, focusable: false })}
         />
       </div>
     </div>

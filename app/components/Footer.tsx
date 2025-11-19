@@ -14,30 +14,30 @@ export const Footer = () => {
 
     const campexLinks = [
         { text: "Home", url: "/" },
-        { text: "About Us", url: "/about" },
-        { text: "Contact", url: "/contact" },
-        { text: "Blog", url: "/blog" },
+        { text: "About Us", url: "/" },
+        { text: "Contact", url: "/" },
+        { text: "Blog", url: "/" },
     ];
 
     const studentLinks = [
-        { text: "Browse Products", url: "/products" },
-        { text: "How It Works", url: "/how-it-works" },
-        { text: "Student FAQs", url: "/faqs/students" },
-        { text: "Support", url: "/support" },
+        { text: "Browse Products", url: "/" },
+        { text: "How It Works", url: "/" },
+        { text: "Student FAQs", url: "/" },
+        { text: "Support", url: "/" },
     ];
 
     const vendorLinks = [
-        { text: "Vendor Sign Up", url: "/vendor-signup" },
-        { text: "Vendor FAQs", url: "/faqs/vendors" },
-        { text: "Pricing", url: "/pricing" },
-        { text: "Resources", url: "/resources" },
+        { text: "Vendor Sign Up", url: "/" },
+        { text: "Vendor FAQs", url: "/" },
+        { text: "Pricing", url: "/" },
+        { text: "Resources", url: "/" },
     ];
 
     const legalLinks = [
-        { text: "Privacy Policy", url: "/privacy-policy" },
-        { text: "Terms of Service", url: "/terms-of-service" },
-        { text: "Cookie Policy", url: "/cookie-policy" },
-        { text: "Sitemap", url: "/sitemap" },
+        { text: "Privacy Policy", url: "/" },
+        { text: "Terms of Service", url: "/" },
+        { text: "Cookie Policy", url: "/" },
+        { text: "Sitemap", url: "/" },
     ];
 
     const userlinks = [

@@ -12,7 +12,7 @@ import { VendorCardIllustration } from '~/components/illustrations/VendorIllustr
 import FeaturesSection from '~/components/landingpage/FeatureCard';
 import ReviewsCardSection from '~/components/landingpage/ReviewsCard';
 
-export const meta = () => {
+export const meta = (_args: Route.MetaArgs) => {
   return [
     { title: "Campex - Your Campus Marketplace" },
     { name: "description", content: "Shop smarter with Campex. Discover the best campus deals and connect with trusted vendors on Campex, your ultimate marketplace for student essentials." },
@@ -56,7 +56,7 @@ export const action = async ({ request, }: Route.ActionArgs) => {
                 return { message: "You are already on the waitlist! Sit back and we'll be in touch", success: true };
             }
 
-            console.error("Brevo API response:", await response.text());
+            console.error("Brevo API response:", responseJson);
             return { error: "Failed to join the waitlist. Please try again later.", success: false };
         }
     } catch (err) {
@@ -216,7 +216,7 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
               <Form method='post' preventScrollReset className='max-w-full sm:max-w-lg md:max-w-2xl mx-auto mt-6 sm:mt-8 md:mt-10 transition-all duration-200 ease-in-out'>
                 {/* Swap the container once the user succeeds */}
                   <div className='relative'>
-                  {actionData?.error && (<p className='text-red-500 text-sm'>{actionData.message}</p>) }
+                  {actionData?.error && (<p className='text-red-500 text-sm'>{actionData.error}</p>) }
                   <input type="email" name='email' placeholder='Enter your email address' required className='rounded-full w-full h-12 sm:h-13 md:h-14 lg:h-16 pl-4 sm:pl-5 md:pl-6 pr-28 text-footer-foreground border-2 border-footer-foreground/80 focus:outline-none focus:ring-2 focus:ring-footer-foreground focus:border-transparent transition-all duration-200 ease-in-out'/>
                   <div className='absolute right-1 top-1/2 transform -translate-y-1/2'>
                     <button type='submit' className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center'>
