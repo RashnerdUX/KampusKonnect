@@ -19,13 +19,13 @@ export const WaitlistSuccessCard = () => {
             </div>
         
             {/* The header */}
-            <h1 className='font-[800] mb-4 lg:mb-6 text-xl lg:text-3xl leading-[1.3] text-black text-center'>
+            <h1 className='font-[800] mb-4 lg:mb-6 text-xl lg:text-3xl leading-[1.3] text-footer-foreground text-center'>
                 Thank you for joining our 
-                <span className='text-primary'> waitlist!</span>
+                <span className='text-primary/90 font-bold'> waitlist!</span>
             </h1>
         
             {/* The statement */}
-            <p className='text-black/70 mb-10 text-center'>
+            <p className='text-footer-foreground/80 mb-10 text-center'>
                 We’re excited to have you on board. We'll be in touch with updates and launch details soon.
             </p>
         
@@ -42,7 +42,7 @@ export const WaitlistSuccessCard = () => {
                         ))}
                     </div>
                 </div>
-                <p className='text-[8px] lg:text-xs text-center'>You're not alone, <span className='text-primary font-bold'>1,500+</span> people joined! </p>
+                <p className='text-[8px] lg:text-xs text-center text-footer-foreground/80'>You're not alone, <span className='text-primary/90 font-bold'>1,500+</span> people joined! </p>
             </div>
         </div>
     </>

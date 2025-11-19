@@ -48,7 +48,7 @@ export const action = async ({ request, }: Route.ActionArgs) => {
             body: JSON.stringify({
                 email: userEmail,
                 listIds: [Number(process.env.BREVO_LIST_ID)],
-                updateEnabled: false
+                updateEnabled: true
             })
         });
 
@@ -92,10 +92,10 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
                 <p className='text-base sm:text-lg md:text-xl lg:text-2xl text-foreground/70'>Discover the best campus deals and connect with trusted vendors on Campex, your ultimate marketplace for student essentials.</p>
               </div>
               <div>
-                <button className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center' onClick={() => navigate('#waitlist')}>
+                <a className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center' href='#waitlist'>
                   Get Started
                   <FaArrowRightLong className='inline-block ml-4 text-primary-foreground' />
-                </button>
+                </a>
               </div>
             </div>
 
@@ -184,10 +184,10 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
         <section id="waitlist" className='relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden'>
 
           {/* Main container */}
-          <div className='relative overflow-hidden backdrop-blur-sm rounded-2xl sm:rounded-3xl md:rounded-4xl py-12 sm:py-14 md:py-16 lg:py-28 px-6 sm:px-8 md:px-12 lg:px-16 bg-tertiary/20'>
+          <div className='relative overflow-hidden backdrop-blur-sm rounded-2xl sm:rounded-3xl md:rounded-4xl py-12 sm:py-14 md:py-16 lg:py-28 px-6 sm:px-8 md:px-12 lg:px-16 bg-gradient-to-b from-footer-background/80 to-footer-background'>
 
             {/* Background Image */}
-            <img src="null" alt="Waitlist Background" className='absolute inset-0 w-full h-full object-cover object-center opacity-20 sm:opacity-30 md:opacity-50 -z-10 bg-transparent' />
+            <img src="null" alt="" className='absolute inset-0 w-full h-full object-cover object-center opacity-20 sm:opacity-30 md:opacity-50 -z-10 bg-transparent' />
 
             {/* Actual content */}
             { actionData?.success ? (
@@ -202,15 +202,15 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
                   <span className='text-primary text-base sm:text-lg md:text-xl font-medium'> Waitlist </span>
                 </div>
               </div>
-              <h2 className='font-display text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold leading-tight'> Join Our Waitlist Today! </h2>
-              <p className=''> We’re building Nigeria’s first student + vendor marketplace.
+              <h2 className='font-display text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold leading-tight'> Join Our Waitlist Today! </h2>
+              <p className='text-footer-foreground'> We’re building Nigeria’s first student + vendor marketplace.
                   Join the waitlist and be the first to connect, sell, and grow when we launch. </p>
 
               <Form method='post' className='max-w-full sm:max-w-lg md:max-w-2xl mx-auto mt-6 sm:mt-8 md:mt-10 transition-all duration-200 ease-in-out'>
                 {/* Swap the container once the user succeeds */}
                   <div className='relative'>
                   {actionData?.error && (<p className='text-red-500 text-sm'>{actionData.message}</p>) }
-                  <input type="email" name='email' placeholder='Enter your email address' required className='rounded-full w-full h-12 sm:h-13 md:h-14 lg:h-16 pl-4 sm:pl-5 md:pl-6 pr-28 border border-foreground/40 focus:outline-none focus:ring-2 focus:ring-foreground focus:border-transparent transition-all duration-200 ease-in-out'/>
+                  <input type="email" name='email' placeholder='Enter your email address' required className='rounded-full w-full h-12 sm:h-13 md:h-14 lg:h-16 pl-4 sm:pl-5 md:pl-6 pr-28 text-footer-foreground border-2 border-footer-foreground/80 focus:outline-none focus:ring-2 focus:ring-footer-foreground focus:border-transparent transition-all duration-200 ease-in-out'/>
                   <div className='absolute right-1 top-1/2 transform -translate-y-1/2'>
                     <button type='submit' className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center'>
                       Join Waitlist

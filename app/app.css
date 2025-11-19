@@ -137,7 +137,7 @@ body {
   @apply w-full;
 }
 .section-badge{
-  @apply rounded-full h-6 md:h-8 xl:h-10 px-4 sm:px-6 text-foreground/30 text-xs sm:text-sm md:text-base xl:text-[20px] font-medium flex items-center justify-center bg-foreground/5 mb-4;
+  @apply rounded-full h-6 md:h-8 xl:h-10 px-4 sm:px-6 text-foreground/80 text-xs sm:text-sm md:text-base font-medium flex items-center justify-center mb-4 border-2 border-foreground/30;
 }
 .section-title {
   @apply text-foreground text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold text-center max-w-full sm:max-w-2xl md:max-w-3xl xl:max-w-[508px] mx-auto mb-3 sm:mb-4 md:mb-6 xl:mb-8;

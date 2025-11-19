@@ -10,9 +10,9 @@ interface ReviewsCardProps {
 
 const reviews = [
     {
-        name: "Akinrinade Itunuoluwa",
+        name: "Akinyoola Abdullahi Akinwale",
         university: "LAUTECH",
-        reviewText: "The linking up was 100/10. I loved it,it was so fast and quick",
+        reviewText: "Thank you for coming up with this innovative idea. I didn't really think it'd work, I just filled it out just for fun but alas, I got a customer on it within 24 hours. Thank you for putting this up, I am very hopeful it'll serve its purpose efficiently and the rating? It's absolutely 5 of 5",
     },
     {
         name: "Emmanuel Olamide",
@@ -25,10 +25,10 @@ const reviews = [
         reviewText: "I appreciate that I am able to get an online vendor for something I want and I think this is an excellent idea. This vendor has nice and quality bags and shoes. I totally love everything she showed me. I am trying to decide which one to get now.",
     },
     {
-        name: "Akinyoola Abdullahi Akinwale",
+        name: "Akinrinade Itunuoluwa",
         university: "LAUTECH",
-        reviewText: "Thank you for coming up with this innovative idea. I didn't really think it'd work, I just filled it out just for fun but alas, I got a customer on it within 24 hours. Thank you for putting this up, I am very hopeful it'll serve its purpose efficiently and the rating? It's absolutely 5 of 5",
-    }
+        reviewText: "The linking up was 100/10. I loved it,it was so fast and quick",
+    },
 ]
 
 export const ReviewsCard = ({ name, university, reviewText, rating, avatarUrl }: ReviewsCardProps) => {

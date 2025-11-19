@@ -2,12 +2,8 @@ import { type RouteConfig, index, route } from "@react-router/dev/routes";
 
 export default [
   // Landing Page
-  index("routes/waitlist.tsx"),
+  index("routes/landingpage.tsx"),
   route("join-waitlist/success", "routes/waitlist_success.tsx"),
-
-  // Main landing page
-  // TODO: Make this the default route later when we launch
-  route("landing", "routes/landingpage.tsx"),
 
   // The Application Routes
   route("app", "routes/home.tsx"),
