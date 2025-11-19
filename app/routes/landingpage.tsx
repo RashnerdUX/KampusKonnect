@@ -14,6 +14,7 @@ import BenefitCard from '~/components/landingpage/BenefitCard';
 import { CategoryGridIllustration } from '~/components/illustrations/CategoryCard';
 import { VendorCardIllustration } from '~/components/illustrations/VendorIllustration';
 import FeaturesSection from '~/components/landingpage/FeatureCard';
+import ReviewsCardSection from '~/components/landingpage/ReviewsCard';
 
 export const meta = () => {
   return [
@@ -161,7 +162,23 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
         </section>
 
         <section id='reviews' className='relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden py-4 lg:py-8'>
+          <div className='relative'>
+            {/* Header */}
+            <div className='mb-4 sm:mb-6 md:mb-8 flex flex-col text-center items-center space-x-4'>
+              {/* Badge */}
+              <div className='inline-block'>
+                <div className='section-badge'>
+                  Experience
+                </div>
+              </div>
 
+              {/* Section title and subtext */}
+              <h1 className='section-title'> What Students Are Saying </h1>
+              <p className='section-paragraph'> Here's what early users of Campex have to say about their experience. </p>
+            </div>
+
+            <ReviewsCardSection />
+          </div>
         </section>
 
         <section id="waitlist" className='relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden'>
