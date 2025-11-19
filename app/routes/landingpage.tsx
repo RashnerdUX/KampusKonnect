@@ -1,17 +1,13 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import type { Route } from './+types/landingpage';
 import { FaArrowRightLong } from "react-icons/fa6";
 import { Form, useNavigate } from 'react-router';
 
 // Component for the landing page
 import Navbar from '~/components/navbar';
-import { MailMinus } from 'lucide-react';
-import { request } from 'http';
 import WaitlistSuccessCard from '~/components/WaitlistSuccessCard';
 import Footer from '~/components/Footer';
 import BenefitCard from '~/components/landingpage/BenefitCard';
-
-import { CategoryGridIllustration } from '~/components/illustrations/CategoryCard';
 import { VendorCardIllustration } from '~/components/illustrations/VendorIllustration';
 import FeaturesSection from '~/components/landingpage/FeatureCard';
 import ReviewsCardSection from '~/components/landingpage/ReviewsCard';
@@ -48,7 +44,7 @@ export const action = async ({ request, }: Route.ActionArgs) => {
             body: JSON.stringify({
                 email: userEmail,
                 listIds: [Number(process.env.BREVO_LIST_ID)],
-                updateEnabled: true
+                updateEnabled: false
             })
         });
 
@@ -73,6 +69,17 @@ export const action = async ({ request, }: Route.ActionArgs) => {
 
 export const LandingPage = ({actionData}: Route.ComponentProps) => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (actionData?.success){
+      requestAnimationFrame(() => {
+        document.getElementById("waitlist")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -206,7 +213,7 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
               <p className='text-footer-foreground'> We’re building Nigeria’s first student + vendor marketplace.
                   Join the waitlist and be the first to connect, sell, and grow when we launch. </p>
 
-              <Form method='post' className='max-w-full sm:max-w-lg md:max-w-2xl mx-auto mt-6 sm:mt-8 md:mt-10 transition-all duration-200 ease-in-out'>
+              <Form method='post' preventScrollReset className='max-w-full sm:max-w-lg md:max-w-2xl mx-auto mt-6 sm:mt-8 md:mt-10 transition-all duration-200 ease-in-out'>
                 {/* Swap the container once the user succeeds */}
                   <div className='relative'>
                   {actionData?.error && (<p className='text-red-500 text-sm'>{actionData.message}</p>) }

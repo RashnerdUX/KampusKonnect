@@ -21,9 +21,13 @@ export const Navbar = () => {
       <nav className="bg-background px-[35px] lg:px-[99px] py-[30px]">
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex justify-between items-center">
+        <div className="hidden md:flex justify-between items-center align-middle">
           {/* TODO: Ensure you change to index route once the app is deployed */}
-          <div className="text-2xl font-bold" onClick={() => navigate('/landing')}>Campex</div>
+          <Link to={'/'} className="text-2xl font-bold">
+            {/* <img src='/logo/logo-light.svg' alt='Campex Logo' className='block w-full dark:hidden object-cover object-center'/>
+            <img src='/logo/logo-dark.svg' alt='Campex Logo' className='hidden w-full dark:block object-cover object-center'/> */}
+            Campex
+          </Link>
           <div className="space-x-6 flex justify-center items-center">
             <NavLink to="/landing" className="navlink">Home</NavLink>
             <NavLink to="/marketplace" className="navlink">Marketplace</NavLink>
@@ -43,7 +47,7 @@ export const Navbar = () => {
         {/* Mobile Menu */}
         <div className="md:hidden flex justify-between items-center">
           <div className="text-2xl font-bold" onClick={() => navigate('/landing')}>Campex</div>
-          <button onClick={openMobileMenu}>
+          <button type='button' onClick={openMobileMenu}>
             <Menu size={24} />
           </button>
         </div>
@@ -55,7 +59,7 @@ export const Navbar = () => {
             {/* Mobile Menu */}
             <div className={`bg-background w-3/4 max-w-xs h-full p-6 relative flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
               <div className="flex justify-between items-center mb-6">
-                <div className="text-2xl font-bold" onClick={() => {navigate('/landing'); closeMobileMenu();}}>
+                <div className="text-2xl font-bold" onClick={() => {navigate('/'); closeMobileMenu();}}>
                   {/* TODO: Replace with logo */}
                   Campex</div>
                 <button onClick={closeMobileMenu} autoFocus>
@@ -70,12 +74,12 @@ export const Navbar = () => {
                   <NavLink to="/blog" className="navlink" onClick={closeMobileMenu}>Blog</NavLink>
                 </div>
                 <div className='mt-auto w-full flex flex-col space-y-2'>
-                  <button className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors" onClick={() => {navigate('/login'); closeMobileMenu();}}>
+                  <Link to={'/#waitlist'} className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors flex items-center justify-center" onClick={() => {closeMobileMenu();}}>
                     Log In
-                  </button>
-                  <button className="bg-primary text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors" onClick={() => {navigate('/register'); closeMobileMenu();}}>
+                  </Link>
+                  <Link to={'/#waitlist'} className="bg-primary text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors flex items-center justify-center" onClick={() => {closeMobileMenu();}}>
                     Get Started
-                  </button>
+                  </Link>
                 </div>
               </nav>
             </div>
