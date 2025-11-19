@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Route } from './+types/landingpage';
 import { FaArrowRightLong } from "react-icons/fa6";
-import { Form, redirect } from 'react-router';
+import { Form, useNavigate } from 'react-router';
 
 // Component for the landing page
 import Navbar from '~/components/navbar';
@@ -9,6 +9,11 @@ import { MailMinus } from 'lucide-react';
 import { request } from 'http';
 import WaitlistSuccessCard from '~/components/WaitlistSuccessCard';
 import Footer from '~/components/Footer';
+import BenefitCard from '~/components/landingpage/BenefitCard';
+
+import { CategoryGridIllustration } from '~/components/illustrations/CategoryCard';
+import { VendorCardIllustration } from '~/components/illustrations/VendorIllustration';
+import FeaturesSection from '~/components/landingpage/FeatureCard';
 
 export const meta = () => {
   return [
@@ -66,6 +71,8 @@ export const action = async ({ request, }: Route.ActionArgs) => {
 }
 
 export const LandingPage = ({actionData}: Route.ComponentProps) => {
+  const navigate = useNavigate();
+
   return (
     <>
     {/* Main Content */}
@@ -84,7 +91,7 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
                 <p className='text-base sm:text-lg md:text-xl lg:text-2xl text-foreground/70'>Discover the best campus deals and connect with trusted vendors on Campex, your ultimate marketplace for student essentials.</p>
               </div>
               <div>
-                <button className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center' onClick={() => {window.location.href = '#waitlist'}}>
+                <button className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center' onClick={() => navigate('#waitlist')}>
                   Get Started
                   <FaArrowRightLong className='inline-block ml-4 text-primary-foreground' />
                 </button>
@@ -105,13 +112,57 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
 
         </section>
 
-        <section id='features' className='pt-16'>
-          <div>
-            <div className='text-2xl'> Featured Products </div>
+        <section id='benefits' className='hidden relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden'>
+          <div className='relative'>
+            <div className='mb-4 sm:mb-6 md:mb-8 flex flex-col text-center items-center space-x-4'>
+              {/* Badge */}
+              <div className='inline-block'>
+                <div className='section-badge'>
+                  Benefits
+                </div>
+              </div>
+
+              {/* Section title and subtext */}
+              <h1 className='section-title'> Why Choose Campex? </h1>
+              <p className='section-paragraph'> Campex is designed with students in mind, offering a seamless and secure platform to buy and sell campus essentials. Here’s why you should choose us: </p>
+            </div>
+
+            {/* Benefit Cards */}
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12 mt-8 sm:mt-10 md:mt-12'>
+              <BenefitCard
+                title="Faster Campus Deals"
+                subtext="Compare vendors, chat instantly, and place orders without leaving the app."
+                SvgIllustration={VendorCardIllustration}
+              />
+            </div>
+
           </div>
 
         </section>
 
+        <section id='features' className='relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden py-4 lg:py-8'>
+          <div className='relative'>
+            <div className='mb-4 sm:mb-6 md:mb-8 flex flex-col text-center items-center space-x-4'>
+              {/* Badge */}
+              <div className='inline-block'>
+                <div className='section-badge'>
+                  Key Features
+                </div>
+              </div>
+
+              {/* Section title and subtext */}
+              <h1 className='section-title'> How Campex Works </h1>
+              <p className='section-paragraph'> Here's how Campex simplifies the process of finding vendors around you on campus. </p>
+            </div>
+
+            <FeaturesSection />
+          </div>
+
+        </section>
+
+        <section id='reviews' className='relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden py-4 lg:py-8'>
+
+        </section>
 
         <section id="waitlist" className='relative mx-4 sm:mx-6 md:mx-8 lg:mx-12 xl:mx-[102px] my-12 sm:my-16 md:my-20 rounded-2xl overflow-hidden'>
 
@@ -139,7 +190,7 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
                   Join the waitlist and be the first to connect, sell, and grow when we launch. </p>
 
               <Form method='post' className='max-w-full sm:max-w-lg md:max-w-2xl mx-auto mt-6 sm:mt-8 md:mt-10 transition-all duration-200 ease-in-out'>
-                {/* Swap the container once the user succeeds */} (
+                {/* Swap the container once the user succeeds */}
                   <div className='relative'>
                   {actionData?.error && (<p className='text-red-500 text-sm'>{actionData.message}</p>) }
                   <input type="email" name='email' placeholder='Enter your email address' required className='rounded-full w-full h-12 sm:h-13 md:h-14 lg:h-16 pl-4 sm:pl-5 md:pl-6 pr-28 border border-foreground/40 focus:outline-none focus:ring-2 focus:ring-foreground focus:border-transparent transition-all duration-200 ease-in-out'/>
