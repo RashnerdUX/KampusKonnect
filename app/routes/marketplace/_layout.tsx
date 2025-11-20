@@ -10,10 +10,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { user, headers: headers };
 }
 
-export default function MarketplaceLayout() {
+export default function MarketplaceLayout({loaderData}: Route.ComponentProps) {
+
+  const {user, headers} = loaderData;
+  
   return (
     <div className="min-h-screen bg-background">
-      <MarketPlaceNavbar />
+      <MarketPlaceNavbar user={user} />
       <Outlet />
     </div>
   );

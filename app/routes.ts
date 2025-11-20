@@ -16,7 +16,7 @@ export default [
   // Onboarding Routes
 
   // Marketplace Routes
-  route("marketplace", "routes/marketplace/_layout.tsx", [
+  route("marketplace", "routes/marketplace/_layout.tsx", {id: "market-layout"}, [
     index("routes/marketplace/index.tsx"),
   ]),
 
