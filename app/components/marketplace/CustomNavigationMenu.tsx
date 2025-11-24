@@ -1,5 +1,5 @@
 import { NavigationMenu } from "radix-ui";
-import type { desktopLinks } from "./navbar";
+import type { desktopLinks } from "./MarketPlaceNavBar";
 
 import React from 'react'
 
