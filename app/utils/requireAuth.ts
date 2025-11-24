@@ -16,7 +16,7 @@ export async function requireAuth (request: Request) {
     }
 
     // For debugging purposes
-    console.log("Here's the authenticated: ", user);
+    // console.log("Here's the authenticated: ", user);
 
     return { user, headers};
 }

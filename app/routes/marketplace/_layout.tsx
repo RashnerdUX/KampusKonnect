@@ -3,9 +3,10 @@ import type { Route } from "../marketplace/+types/_layout";
 import { Outlet } from "react-router";
 import { MarketPlaceNavbar } from "~/components/marketplace/navbar";
 import { requireAuth } from "~/utils/requireAuth";
+import { getOptionalAuth } from '~/utils/optionalAuth';
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const {user, headers} = await requireAuth(request);
+  const {session, user, headers} = await getOptionalAuth(request);
   
   return { user, headers: headers };
 }

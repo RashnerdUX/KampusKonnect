@@ -14,9 +14,11 @@ export const ProductCategoryCard = ({ name, image, linkpath }: ProductCategoryCa
   return (
     <Link to={linkpath}>
         <div className='relative group'>
-            <div className='relative h-36 w-full bg-cover bg-center rounded-xl overflow-hidden flex items-center justify-center shadow-lg' style={{ backgroundImage: `url(${image})`}}>
+            <div className='relative h-32 w-48 bg-cover bg-center rounded-xl overflow-hidden flex items-center justify-center shadow-lg' style={{ backgroundImage: `url(${image})`}}>
                 <div className='absolute inset-0 bg-black/40 rounded-xl p-4'></div>
-                <h2 className='text-2xl font-semibold text-white group-hover:text-primary z-10'>{name}</h2>
+                <div className='absolute left-2 bottom-2 p-2 rounded-full bg-card'>
+                  <h2 className='text-xs font-semibold text-card-foreground group-hover:text-primary'>{name}</h2>
+                </div>
             </div>
         </div>
     </Link >
