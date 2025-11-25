@@ -5,8 +5,10 @@ import { ProductCategoryCard } from '~/components/marketplace/ProductCategoryCar
 import ProductCard from '~/components/marketplace/ProductCard';
 import Footer from '~/components/Footer';
 import { HomeSectionProductView } from '~/components/marketplace/HomeSectionProductView';
+import { VendorCard } from '~/components/marketplace/VendorCard';
+import { Link } from 'react-router';
 
-import { stockProducts, featuredProducts } from '~/utils/stockdata';
+import { stockProducts, featuredProducts, stockVendors } from '~/utils/stockdata';
 
 
 export const meta = (_args: Route.MetaArgs) => {
@@ -99,7 +101,38 @@ export const IndexPage = () => {
         </section>
 
         <section id='vendors' className='relative mt-6 sm:mt-8 md:mt-10 lg:mt-12'>
-
+            <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4'>
+            <div className='flex justify-between items-baseline mb-8'>
+              <h2 className='text-2xl font-bold'>Top Vendors</h2>
+              <Link to={"/"} >See All</Link>
+            </div>
+            {/* Popular products grid */}
+            <div className='relative'>
+              <div className='-mx-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]'>
+                <div className='mx-4 flex gap-6 snap-x snap-mandatory no-scrollbar-new'>
+                  {stockVendors.map((vendor, index) => (
+                    <div className='snap-start shrink-0 w-64' key={index}>
+                      <Link to={`/vendors/${vendor.id}`}>
+                        <VendorCard
+                          id={vendor.id}
+                          name={vendor.name}
+                          tagline={vendor.tagline}
+                          description={vendor.description}
+                          location={vendor.location}
+                          logoUrl={vendor.logoUrl}
+                          coverUrl={vendor.coverUrl}
+                          rating={vendor.rating}
+                          reviewCount={vendor.reviewCount}
+                          category={vendor.category}
+                          verified={vendor.verified}
+                        />
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
       </main>
 
