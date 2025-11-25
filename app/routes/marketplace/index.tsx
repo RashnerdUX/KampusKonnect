@@ -135,11 +135,6 @@ export const IndexPage = () => {
           </div>
         </section>
       </main>
-
-      <footer id="footer" className='relative py-6 bg-footer-background text-footer-foreground'>
-        {/* Footer content */}
-        <Footer />
-      </footer>
     </>
   )
 }

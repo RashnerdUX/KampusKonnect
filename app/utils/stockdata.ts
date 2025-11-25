@@ -1,5 +1,22 @@
 import type { ProductCardProps } from '~/components/marketplace/ProductCard';
 import type { VendorCardProps } from '~/components/marketplace/VendorCard';
+import type { Database } from "./database.types"
+
+type storeListing = Database['public']['Tables']['store_listings']['Row'];
+
+export const storeListings: storeListing[] = [
+  {
+    id: '1',
+    store_id: 'vendor_1',
+    title: 'Sample Product',
+    description: 'This is a sample product description.',
+    price: 1999,
+    image_url: 'https://example.com/sample-product.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  }
+]
 
 export const stockVendors: VendorCardProps[] = [
   {
