@@ -3,8 +3,8 @@ import React from 'react'
 export interface ProductCardProps { 
   name: string;
   storeName: string;
-  price: number;
-  imageUrl?: string;
+  price: number | null;
+  imageUrl?: string | null;
 }
 
 export const ProductCard = ({ name, storeName, price, imageUrl }: ProductCardProps) => {
@@ -20,7 +20,7 @@ export const ProductCard = ({ name, storeName, price, imageUrl }: ProductCardPro
         <div className='p-4'>
             <h3 className='text-lg font-semibold text-foreground mb-2'>{name}</h3>
             <p className='text-sm text-muted-foreground mb-1'>{storeName}</p>
-            <p className='text-base font-bold text-foreground'>${price.toFixed(2)}</p>
+            <p className='text-base font-bold text-foreground'>${price?.toFixed(2)}</p>
         </div>
     </div>
   )

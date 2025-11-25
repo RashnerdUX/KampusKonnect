@@ -66,7 +66,7 @@ export const MarketPlaceNavbar = ({ user }: MarketPlaceNavbarProps) => {
     
   return (
     <>
-      <nav className="bg-background px-[35px] lg:px-[99px] py-[30px]">
+      <nav className="bg-background px-[35px] lg:px-[99px] py-[30px] border-b border-border">
 
         {/* Desktop Menu */}
         <div className="hidden md:flex justify-between items-center">

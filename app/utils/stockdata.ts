@@ -15,6 +15,105 @@ export const storeListings: storeListing[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     is_active: true
+  },
+  {
+    id: '2',
+    store_id: 'techstore',
+    title: 'Wireless Headphones',
+    description: 'High-quality wireless headphones with noise cancellation.',
+    price: 5999,
+    image_url: 'https://example.com/wireless-headphones.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '3',
+    store_id: 'healthylife',
+    title: 'Organic Green Tea',
+    description: 'Premium organic green tea leaves sourced from Japan.',
+    price: 1249,
+    image_url: 'https://example.com/green-tea.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '4',
+    store_id: 'bookworld',
+    title: 'Classic Novel Set',
+    description: 'A collection of timeless literary classics.',
+    price: 2999,
+    image_url: 'https://example.com/novel-set.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '5',
+    store_id: 'fitgear',
+    title: 'Fitness Tracker',
+    description: 'Advanced fitness tracker with heart rate monitoring.',
+    price: 7999,
+    image_url: 'https://example.com/fitness-tracker.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '6',
+    store_id: 'artisanbites',
+    title: 'Gourmet Chocolate Box',
+    description: 'Hand-crafted artisan chocolates in assorted flavors.',
+    price: 2499,
+    image_url: 'https://example.com/chocolate-box.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '7',
+    store_id: 'greenearth',
+    title: 'Bamboo Utensil Set',
+    description: 'Eco-friendly reusable bamboo utensils for on-the-go meals.',
+    price: 1599,
+    image_url: 'https://example.com/bamboo-utensils.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '8',
+    store_id: 'bytebrew',
+    title: 'Signature Blend Coffee',
+    description: 'Medium roast specialty coffee with notes of caramel and hazelnut.',
+    price: 1899,
+    image_url: 'https://example.com/signature-coffee.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '9',
+    store_id: 'urbanthreads',
+    title: 'Vintage Denim Jacket',
+    description: 'Classic vintage-style denim jacket with modern fit.',
+    price: 8999,
+    image_url: 'https://example.com/denim-jacket.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '10',
+    store_id: 'techstore',
+    title: 'Portable Charger',
+    description: '20000mAh portable power bank with fast charging support.',
+    price: 3499,
+    image_url: 'https://example.com/portable-charger.jpg',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
   }
 ]
 
