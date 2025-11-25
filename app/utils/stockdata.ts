@@ -217,85 +217,99 @@ export const stockVendors: VendorCardProps[] = [
 ];
 
 export const stockProducts: ProductCardProps[] = [
-    {
-      name: 'Wireless Headphones',
-      storeName: 'TechStore',
-      price: 59.99,
-    },
-    {
-      name: 'Organic Green Tea',
-      storeName: 'HealthyLife',
-      price: 12.49,
-    },
-    {
-      name: 'Classic Novel Set',
-      storeName: 'BookWorld',
-      price: 29.99,
-    },
-    {
-      name: 'Fitness Tracker',
-      storeName: 'FitGear',
-      price: 79.99,
-    },
-    {
-      name: 'Wireless Headphones',
-      storeName: 'TechStore',
-      price: 59.99,
-    },
-    {
-      name: 'Organic Green Tea',
-      storeName: 'HealthyLife',
-      price: 12.49,
-    },
-    {
-      name: 'Classic Novel Set',
-      storeName: 'BookWorld',
-      price: 29.99,
-    },
-    {
-      name: 'Fitness Tracker',
-      storeName: 'FitGear',
-      price: 79.99,
-    },
-    {
-      name: 'Wireless Headphones',
-      storeName: 'TechStore',
-      price: 59.99,
-    },
-    {
-      name: 'Organic Green Tea',
-      storeName: 'HealthyLife',
-      price: 12.49,
-    },
-    {
-      name: 'Classic Novel Set',
-      storeName: 'BookWorld',
-      price: 29.99,
-    },
-    {
-      name: 'Fitness Tracker',
-      storeName: 'FitGear',
-      price: 79.99,
-    },
-  ]
+  {
+    id: '2',
+    name: 'Wireless Headphones',
+    storeName: 'TechStore',
+    price: 59.99,
+    imageUrl: 'https://example.com/wireless-headphones.jpg',
+  },
+  {
+    id: '3',
+    name: 'Organic Green Tea',
+    storeName: 'HealthyLife',
+    price: 12.49,
+    imageUrl: 'https://example.com/green-tea.jpg',
+  },
+  {
+    id: '4',
+    name: 'Classic Novel Set',
+    storeName: 'BookWorld',
+    price: 29.99,
+    imageUrl: 'https://example.com/novel-set.jpg',
+  },
+  {
+    id: '5',
+    name: 'Fitness Tracker',
+    storeName: 'FitGear',
+    price: 79.99,
+    imageUrl: 'https://example.com/fitness-tracker.jpg',
+  },
+  {
+    id: '6',
+    name: 'Gourmet Chocolate Box',
+    storeName: 'Artisan Bites',
+    price: 24.99,
+    imageUrl: 'https://example.com/chocolate-box.jpg',
+  },
+  {
+    id: '7',
+    name: 'Bamboo Utensil Set',
+    storeName: 'GreenEarth Goods',
+    price: 15.99,
+    imageUrl: 'https://example.com/bamboo-utensils.jpg',
+  },
+  {
+    id: '8',
+    name: 'Signature Blend Coffee',
+    storeName: 'ByteBrew Coffee',
+    price: 18.99,
+    imageUrl: 'https://example.com/signature-coffee.jpg',
+  },
+  {
+    id: '9',
+    name: 'Vintage Denim Jacket',
+    storeName: 'Urban Threads',
+    price: 89.99,
+    imageUrl: 'https://example.com/denim-jacket.jpg',
+  },
+  {
+    id: '10',
+    name: 'Portable Charger',
+    storeName: 'TechStore',
+    price: 34.99,
+    imageUrl: 'https://example.com/portable-charger.jpg',
+  },
+  {
+    id: '1',
+    name: 'Sample Product',
+    storeName: 'Sample Store',
+    price: 19.99,
+    imageUrl: 'https://example.com/sample-product.jpg',
+  },
+]
 
 export const featuredProducts: ProductCardProps[] = [
     {
+      id: '2',
       name: 'Wireless Headphones',
       storeName: 'TechStore',
       price: 59.99,
     },
     {
+      id: '3',
       name: 'Organic Green Tea',
       storeName: 'HealthyLife',
       price: 12.49,
     },
     {
+      id: '4',
       name: 'Classic Novel Set',
       storeName: 'BookWorld',
       price: 29.99,
     },
     {
+      id: '5',
       name: 'Fitness Tracker',
       storeName: 'FitGear',
       price: 79.99,

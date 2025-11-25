@@ -81,6 +81,7 @@ export const IndexPage = () => {
               {featuredProducts.map((product, index) => (
                 <ProductCard
                   key={index}
+                  id={product.id}
                   name={product.name}
                   storeName={product.storeName}
                   price={product.price}

@@ -279,7 +279,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
                   <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 xl:grid-cols-5 py-4 md:py-6 lg:py-8">
                       {/* product cards */}
                       {products.map((product) => (
-                        <ProductCard key={product.id} name={product.title} storeName={product.store_id} price={product.price} imageUrl={product.image_url} />
+                        <ProductCard key={product.id} id={product.id} name={product.title} storeName={product.store_id} price={product.price} imageUrl={product.image_url} />
                       ))}
                   </div>
 

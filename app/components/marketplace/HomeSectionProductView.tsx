@@ -26,6 +26,7 @@ export const HomeSectionProductView = ({ sectionTitle, seeAllLink, productData }
                     <div className='snap-start shrink-0 w-64' key={index}>
                       <ProductCard
                         key={index}
+                        id={product.id}
                         name={product.name}
                         storeName={product.storeName}
                         price={product.price}
