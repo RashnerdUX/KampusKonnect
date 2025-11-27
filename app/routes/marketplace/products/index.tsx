@@ -230,7 +230,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
   return (
     <section className="py-4 sm:py-4 md:py-6 lg:py-8 min-h-screen">
       <div className="mx-auto flex w-full md:max-w-8xl flex-col gap-6 px-2 sm:px-4 lg:px-8 md:flex-row">
-        <aside className="hidden w-full shrink-0 space-y-6 rounded-2xl bg-white p-4 shadow-sm lg:sticky lg:top-24 md:block md:w-50 lg:w-72">
+        <aside className="hidden w-full shrink-0 space-y-6 rounded-2xl bg-card p-4 shadow-sm lg:sticky lg:top-24 md:block md:w-50 lg:w-72">
           <FilterControls
             filters={filters}
             options={{

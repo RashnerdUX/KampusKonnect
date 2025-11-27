@@ -11,13 +11,13 @@ export interface ProductCardProps {
 
 export const ProductCard = ({ id, name, storeName, price, imageUrl }: ProductCardProps) => {
   return (
-    <Link to={`/products/${id}`} className='block'>
+    <Link to={`/marketplace/products/${id}`} className='block'>
       <div className='border border-border rounded-lg overflow-hidden bg-card hover:shadow-lg transition-shadow duration-200'>
           {imageUrl ? (
               <img src={imageUrl} alt={name} className='w-full h-48 object-cover' />
           ) : (
               <div className='w-full h-48 bg-gray-200 flex items-center justify-center'>
-                  <span className='text-gray-500'>No Image</span>
+                  <span className='text-foreground/50'>No Image</span>
               </div>
           )}
           <div className='p-4'>
