@@ -49,7 +49,7 @@ export const ThemeToggle = () => {
     <div>
         <button 
             onClick={toggleTheme}
-            className="p-2 rounded-md hover:bg-accent/50 transition-colors"
+            className="p-2 rounded-full border border-border hover:bg-background transition-colors"
             aria-label="Toggle Theme"
         >
             { isDarkMode ? (<Sun className='size-4 text-yellow-400' />) : (<Moon className='size-4 text-gray-400'/>) }
