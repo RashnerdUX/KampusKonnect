@@ -1,12 +1,27 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import { useNavigate, NavLink } from 'react-router'
 import { Menu, X } from 'lucide-react'
-import type { Mark } from 'node_modules/@mui/material/esm/Slider/useSlider.types'
+import type { User } from "@supabase/supabase-js";
+
 
 // Navbar Component for the marketplace
+import { IoPersonOutline } from "react-icons/io5";
+import { CustomNavigationMenu } from './CustomNavigationMenu';
 
-export const MarketPlaceNavbar = () => {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<Boolean>(false)
+interface MarketPlaceNavbarProps { 
+  user: User | null; 
+}
+
+export interface desktopLinks {
+      name: string;
+      path?: string;
+      children?: desktopLinks[];
+}
+
+export const MarketPlaceNavbar = ({ user }: MarketPlaceNavbarProps) => {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
+    const [isUserNameAvailable, setIsUserNameAvailable] = useState<boolean>(false)
+    const [username, setUsername] = useState<string | null>(null);
     const navigate = useNavigate()
 
     const openMobileMenu = () => {
@@ -17,28 +32,60 @@ export const MarketPlaceNavbar = () => {
         setIsMobileMenuOpen(false)
     }
 
+    useEffect(() => {
+      if (!user) return;
+      const username = user.user_metadata?.username || null;
+      setUsername(username);
+      setIsUserNameAvailable(!!username);
+    }, [user])
+
+    const desktopLinks: desktopLinks[] = [
+      { name: 'Home', path: '/marketplace' },
+      { name: 'Browse Vendors', path: '/vendors' },
+      { name: 'Categories', path: '/categories', children: [
+        { name: 'Food & Beverages', path: '/categories/food-beverages' },
+        { name: 'Books & Stationery', path: '/categories/books-stationery' },
+        { name: 'Electronics', path: '/categories/electronics' },
+        { name: 'Clothing & Accessories', path: '/categories/clothing-accessories' },
+        { name: 'Health & Wellness', path: '/categories/health-wellness' },
+        { name: 'Services', path: '/categories/services' },
+      ]},
+      { name: 'About', path: '/about' },
+      { name: 'Blog', path: '/blog' },
+    ]
+
+    const categories = [
+      'Food & Beverages',
+      'Books & Stationery',
+      'Electronics',
+      'Clothing & Accessories',
+      'Health & Wellness',
+      'Services',
+    ]
+
     
   return (
     <>
-      <nav className="bg-background px-[35px] lg:px-[99px] py-[30px]">
+      <nav className="bg-background px-[35px] lg:px-[99px] py-[30px] border-b border-border">
 
         {/* Desktop Menu */}
         <div className="hidden md:flex justify-between items-center">
           {/* TODO: Ensure you change to index route once the app is deployed */}
           <div className="text-2xl font-bold" onClick={() => navigate('/landing')}>Campex</div>
-          <div className="space-x-6 flex justify-center items-center">
-            <NavLink to="/landing" className="navlink">Home</NavLink>
-            <NavLink to="/marketplace" className="navlink">Marketplace</NavLink>
-            <NavLink to="/about" className="navlink">About</NavLink>
-            <NavLink to="/blog" className="navlink">Blog</NavLink>
-          </div>
-          <div className="space-x-4 flex justify-center items-center">
-              <button className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 md:w-auto rounded-full transition-colors" onClick={() => {navigate('/login'); closeMobileMenu();}}>
-                Log In
-              </button>
-              <button className="bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors md:w-auto" onClick={() => navigate('/register')}>
-                Get Started
-              </button>
+          <div className='flex space-x-12 items-center justify-center'>
+            <div className="space-x-6 flex justify-center items-center">
+              <CustomNavigationMenu desktopLinks={desktopLinks} />
+            </div>
+            <div className="space-x-4 flex justify-center items-center">
+                  <button type="button" disabled={isUserNameAvailable} className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-6 md:w-auto rounded-full transition-colors" onClick={() => {
+                    if (isUserNameAvailable) return;
+                    console.log('Navigating to login');
+                    navigate('/login');
+                  }}>
+                    <IoPersonOutline className="inline mb-1 mr-2" size={16} />
+                    {isUserNameAvailable ? `Hi, ${username}` : 'Log In/Sign Up'}
+                  </button>
+            </div>
           </div>
         </div>
 
