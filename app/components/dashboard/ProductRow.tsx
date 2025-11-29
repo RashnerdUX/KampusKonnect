@@ -43,7 +43,7 @@ export const ProductRow = ({
       <td className="px-4 py-3">
         <input
           type="checkbox"
-          checked={selected}
+          checked={selected ?? false}
           onChange={(e) => onSelect?.(id, e.target.checked)}
           className="h-4 w-4 rounded border-border"
         />

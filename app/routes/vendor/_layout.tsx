@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Route } from './+types/_layout';
 
-import { Outlet } from 'react-router';
+import { Outlet, data } from 'react-router';
 import SideNavigationBar from '~/components/dashboard/SideNavigationBar';
 import DashboardTopBar from '~/components/dashboard/DashboardTopBar';
 import { redirect } from "react-router";
@@ -33,13 +33,15 @@ export const action = async ({request}: Route.ActionArgs) => {
 
         return redirect("/login", {headers: headers});
     }
+
+    return null;
 }
 
 export const loader =  async ({request}: Route.LoaderArgs) => {
 
     const { user, headers } = await requireAuth(request);
 
-    return { user, headers };
+    return data({ user }, { headers });
 }
 
 export const VendorDashboardLayout = ({loaderData}: Route.ComponentProps) => {

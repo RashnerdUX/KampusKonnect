@@ -32,6 +32,9 @@ export const Products = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
 
+  const totalPages = Math.ceil(sampleProducts.length / perPage)
+  const paginatedProducts = sampleProducts.slice((currentPage - 1) * perPage, currentPage * perPage)
+
   const toggleSelect = (id: string, checked: boolean) => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -111,7 +114,7 @@ export const Products = () => {
             </tr>
           </thead>
           <tbody>
-            {sampleProducts.map((product) => (
+            {paginatedProducts.map((product) => (
               <ProductRow
                 key={product.id}
                 {...product}
@@ -133,7 +136,10 @@ export const Products = () => {
           <span>Show</span>
           <select
             value={perPage}
-            onChange={(e) => setPerPage(Number(e.target.value))}
+            onChange={(e) => {
+              setPerPage(Number(e.target.value))
+              setCurrentPage(1)
+            }}
             className="rounded border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value={10}>10</option>
@@ -143,52 +149,65 @@ export const Products = () => {
           <span>per page</span>
         </div>
 
-        {/* Go to the previous page */}
+        {/* Page navigation */}
         <div className="flex items-center gap-1">
+          {/* Previous button */}
           <button
             type="button"
             className="rounded border border-border p-1.5 transition hover:bg-muted disabled:opacity-50"
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           >
             <FaChevronLeft className="h-3 w-3" />
           </button>
 
-          {[1, 2, 3].map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => setCurrentPage(page)}
-              className={`rounded px-3 py-1 font-medium transition duration-200 ${
-                currentPage === page ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-muted'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-          <span className="px-1">…</span>
-          {[4, 5, 6].map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => setCurrentPage(page)}
-              className={`rounded px-3 py-1 font-medium transition duration-200 ${
-                currentPage === page ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-muted'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+          {/* Dynamic page buttons */}
+          {(() => {
+            const pages: (number | 'ellipsis')[] = []
+            if (totalPages <= 7) {
+              // Show all pages if 7 or fewer
+              for (let i = 1; i <= totalPages; i++) pages.push(i)
+            } else {
+              // Always show first page
+              pages.push(1)
+              if (currentPage > 3) pages.push('ellipsis')
+              // Show pages around current
+              for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                pages.push(i)
+              }
+              if (currentPage < totalPages - 2) pages.push('ellipsis')
+              // Always show last page
+              pages.push(totalPages)
+            }
+            return pages.map((page, idx) =>
+              page === 'ellipsis' ? (
+                <span key={`ellipsis-${idx}`} className="px-1">…</span>
+              ) : (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`rounded px-3 py-1 font-medium transition duration-200 ${
+                    currentPage === page
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border border-border hover:bg-muted'
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            )
+          })()}
 
-          {/* Go to the next page */}
+          {/* Next button */}
           <button
             type="button"
-            className="rounded border border-border p-1.5 transition hover:bg-muted"
-            onClick={() => setCurrentPage((p) => p + 1)}
+            className="rounded border border-border p-1.5 transition hover:bg-muted disabled:opacity-50"
+            disabled={currentPage >= totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
           >
             <FaChevronRight className="h-3 w-3" />
           </button>
-
         </div>
       </div>
     </div>

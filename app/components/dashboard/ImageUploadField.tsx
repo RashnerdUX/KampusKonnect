@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { FaCloudUploadAlt } from 'react-icons/fa'
 
 interface ImageUploadFieldProps {
@@ -19,13 +19,31 @@ export const ImageUploadField = ({
   className,
 }: ImageUploadFieldProps) => {
   const [preview, setPreview] = useState<string | null>(currentImageUrl ?? null)
+  const blobUrlRef = useRef<string | null>(null)
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setPreview(URL.createObjectURL(file))
+      // Revoke the previous blob URL if we created one
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current)
+      }
+
+      const newBlobUrl = URL.createObjectURL(file)
+      blobUrlRef.current = newBlobUrl
+      setPreview(newBlobUrl)
     }
   }
+
+  // Clean up blob URL on unmount or when preview changes externally
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current)
+        blobUrlRef.current = null
+      }
+    }
+  }, [])
 
   const aspectClass = aspectRatio === 'wide' ? 'aspect-[3/1]' : 'aspect-square'
 

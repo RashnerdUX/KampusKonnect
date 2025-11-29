@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react'
+import type { Route } from './+types/profile';
 import { Form, Link } from 'react-router'
 import { FaExternalLinkAlt, FaStar, FaPen, FaTimes, FaCamera, FaUser } from 'react-icons/fa'
 
@@ -70,6 +71,7 @@ export const loader = async () => {
 
 export const action = async () => {
   // TODO: handle profile update
+  // TODO: Ensure you switch the button type on the profile update button and bring the logic from the function into here
   return null
 }
 
@@ -118,9 +120,9 @@ const ReviewCard = ({
   )
 }
 
-export const VendorProfile = () => {
-  const store = sampleStore
-  const reviews = sampleReviews
+export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
+  
+  const { store, reviews } = loaderData;
 
   // Edit states
   const [isEditingAbout, setIsEditingAbout] = useState(false)
@@ -143,6 +145,11 @@ export const VendorProfile = () => {
       setHeaderPreview(url)
       // TODO: upload to Supabase
     }
+
+    // After uploading revoke url
+    if (headerPreview){
+      URL.revokeObjectURL(headerPreview);
+    }
   }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,6 +158,11 @@ export const VendorProfile = () => {
       const url = URL.createObjectURL(file)
       setLogoPreview(url)
       // TODO: upload to Supabase
+    }
+
+    // After uploading revoke url
+    if (logoPreview){
+      URL.revokeObjectURL(logoPreview);
     }
   }
 

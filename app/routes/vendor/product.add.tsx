@@ -21,6 +21,17 @@ export const action = async ({ request }: Route.ActionArgs) => {
   const productPrice = formData.get('productPrice') as string
   const imageFile = formData.get('imageUpload')
 
+  // Safe guards for form fields
+  if (typeof productTitle !== 'string' || productTitle.length === 0) {
+    return { error: 'Product title is required' }
+  }
+  if (typeof productDescription !== 'string' || productDescription.length === 0) {
+    return { error: 'Product description is required' }
+  }
+  if (typeof productPrice !== 'string' || isNaN(parseFloat(productPrice))) {
+    return { error: 'Valid product price is required' }
+  }
+
   // Debug
   console.log("Received form data:", { productTitle, productDescription, productPrice, imageFile });
 
@@ -34,11 +45,11 @@ export const action = async ({ request }: Route.ActionArgs) => {
   const { supabase, headers } = createSupabaseServerClient(request)
 
   // Get the current user's session
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-  if (sessionError || !session) {
+  const { data: { user }, error: sessionError } = await supabase.auth.getUser()
+  if (sessionError || !user) {
+    console.error("The user isn't authenticated")
     return { error: 'Not authenticated' }
   }
-  const user = session.user
 
   // Get the user's store
   const { data: store, error: storeError } = await supabase
@@ -53,7 +64,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
   }
 
   // Build a unique path for the image
-  const fileExt = imageFile.name.split('.').pop()
+  const fileExt = imageFile.name.includes('.') ? imageFile.name.split('.').pop() : '.jpg'
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
   const imagePath = `products/${fileName}`
 
@@ -97,9 +108,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
 }
 
 export const loader = async ({ request, params }: Route.LoaderArgs) => {
-    const { supabase, headers } = createSupabaseServerClient(request);
-
-    return {supabase, headers};
+    return null
 }
 
 export const AddProduct = ({loaderData}: Route.ComponentProps) => {
@@ -113,10 +122,26 @@ export const AddProduct = ({loaderData}: Route.ComponentProps) => {
     const files = event.target.files
     if (files && files.length > 0) {
       const file = files[0]
+
+      // Check to make sure a url doesn't exist already
+      if (imagePreview){
+        URL.revokeObjectURL(imagePreview);
+      }
+
+      // Create a new review URL
       const previewUrl = URL.createObjectURL(file)
       setImagePreview(previewUrl)
     }
   }
+
+  useEffect(() => {
+    return () => {
+      // Remove the Url when unmounting
+      if (imagePreview){
+        URL.revokeObjectURL(imagePreview);
+      }
+    }
+  }, [])
 
   return (
     <div className='flex flex-col gap-4'>
@@ -159,6 +184,7 @@ export const AddProduct = ({loaderData}: Route.ComponentProps) => {
                   placeholder='Enter the product title'
                   value={productTitle}
                   onChange={(e) => setProductTitle(e.target.value)}
+                  required
                 />
               </div>
               <div className='flex flex-col gap-1'>
@@ -171,6 +197,7 @@ export const AddProduct = ({loaderData}: Route.ComponentProps) => {
                   placeholder='Enter the product description'
                   value={productDescription}
                   onChange={(e) => setProductDescription(e.target.value)}
+                  required
                 />
               </div>
               <div className='flex flex-col gap-1'>
@@ -181,6 +208,7 @@ export const AddProduct = ({loaderData}: Route.ComponentProps) => {
                   name="productPrice" 
                   className='input-field bg-foreground/5'
                   placeholder='Enter the product price'
+                  required
                   value={productPrice !== null ? productPrice : ''}
                   onChange={(e) => setProductPrice(e.target.value ? parseFloat(e.target.value) : null)}
                 />

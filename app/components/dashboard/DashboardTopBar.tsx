@@ -1,6 +1,5 @@
 import React from 'react'
 import { AiOutlineBell, AiOutlineQuestionCircle } from 'react-icons/ai'
-import { BsMoon } from 'react-icons/bs'
 import type { User } from '@supabase/supabase-js'
 
 import DashboardSearchBar from '~/components/dashboard/DashboardSearchBar'
@@ -19,7 +18,7 @@ export const DashboardTopBar = ({ user }: DashboardTopBarProps) => {
 
         {/* Display Message */}
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold text-foreground"> Hi,{displayName}. Welcome back</h1>
+          <h1 className="text-2xl font-semibold text-foreground"> Hi, {displayName}. Welcome back</h1>
           <p className="text-sm text-foreground/70">Here's what's happening with your store today.</p>
         </div>
 
