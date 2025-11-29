@@ -23,7 +23,9 @@ export const ProductCard = ({ id, name, storeName, price, imageUrl }: ProductCar
           <div className='p-4'>
               <h3 className='text-lg font-semibold text-foreground mb-2'>{name}</h3>
               <p className='text-sm text-muted-foreground mb-1'>{storeName}</p>
-              <p className='text-base font-bold text-foreground'>${price?.toFixed(2)}</p>
+              <p className='text-base font-bold text-foreground'>
+                ${price !== null ? price.toFixed(2) : 'N/A'}
+              </p>
           </div>
       </div>
     </Link>

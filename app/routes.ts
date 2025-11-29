@@ -18,7 +18,7 @@ export default [
   // Marketplace Routes
   route("marketplace", "routes/marketplace/_layout.tsx", {id: "market-layout"}, [
     index("routes/marketplace/index.tsx"),
-    route("products/", "routes/marketplace/products/_layout.tsx", {id: "products-layout"}, [
+    route("products", "routes/marketplace/products/_layout.tsx", {id: "products-layout"}, [
       index("routes/marketplace/products/index.tsx"),
       route(":productId", "routes/marketplace/products/$productId.tsx"),
       ])

@@ -13,7 +13,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function MarketplaceLayout({loaderData}: Route.ComponentProps) {
 
-  const {user, headers} = loaderData;
+  const {user} = loaderData;
   
   return (
     <div className="min-h-screen bg-background">

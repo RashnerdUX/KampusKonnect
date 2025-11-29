@@ -3,7 +3,6 @@ import type { Route } from "../marketplace/+types/index";
 import SearchBar from '~/components/marketplace/SearchBar';
 import { ProductCategoryCard } from '~/components/marketplace/ProductCategoryCard';
 import ProductCard from '~/components/marketplace/ProductCard';
-import Footer from '~/components/Footer';
 import { HomeSectionProductView } from '~/components/marketplace/HomeSectionProductView';
 import { VendorCard } from '~/components/marketplace/VendorCard';
 import { Link } from 'react-router';
@@ -94,18 +93,18 @@ export const IndexPage = () => {
 
         <section id="popular" className='relative mt-6 sm:mt-8 md:mt-10 lg:mt-12'>
           {/* Popular products section */}
-          <HomeSectionProductView sectionTitle="Popular Items" seeAllLink="/products/popular" productData={stockProducts} />
+          <HomeSectionProductView sectionTitle="Popular Items" seeAllLink="/products?sort=popular" productData={stockProducts} />
         </section>
 
         <section id='for-you' className='relative mt-6 sm:mt-8 md:mt-10 lg:mt-12'>
-          <HomeSectionProductView sectionTitle="For You" seeAllLink="/products/featured" productData={stockProducts} />
+          <HomeSectionProductView sectionTitle="For You" seeAllLink="/products?sort=featured" productData={stockProducts} />
         </section>
 
         <section id='vendors' className='relative mt-6 sm:mt-8 md:mt-10 lg:mt-12'>
             <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4'>
             <div className='flex justify-between items-baseline mb-8'>
               <h2 className='text-2xl font-bold'>Top Vendors</h2>
-              <Link to={"/"} >See All</Link>
+              <Link to={"/marketplace/vendors"} >See All</Link>
             </div>
             {/* Popular products grid */}
             <div className='relative'>
@@ -113,7 +112,7 @@ export const IndexPage = () => {
                 <div className='mx-4 flex gap-6 snap-x snap-mandatory no-scrollbar-new'>
                   {stockVendors.map((vendor, index) => (
                     <div className='snap-start shrink-0 w-64' key={index}>
-                      <Link to={`/vendors/${vendor.id}`}>
+                      <Link to={`/marketplace/vendors/${vendor.id}`}>
                         <VendorCard
                           id={vendor.id}
                           name={vendor.name}

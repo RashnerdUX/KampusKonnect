@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate, Link } from 'react-router';
+import { Link } from 'react-router';
 
 interface ProductCategoryCardProps {
   // Define any props if needed in the future
@@ -9,8 +9,6 @@ interface ProductCategoryCardProps {
 }
 
 export const ProductCategoryCard = ({ name, image, linkpath }: ProductCategoryCardProps) => {
-    const navigate = useNavigate();
-
   return (
     <Link to={linkpath}>
         <div className='relative group'>

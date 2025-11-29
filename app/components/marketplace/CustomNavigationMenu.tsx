@@ -28,7 +28,7 @@ export const CustomNavigationMenu = ({ desktopLinks }: CustomNavigationMenuProps
               </NavigationMenu.Content>
             </>
           ) : (
-            <NavigationMenu.Link href={link.path!} className="navlink">
+            <NavigationMenu.Link href={link.path ?? "#"} className="navlink">
               {link.name}
             </NavigationMenu.Link>
           )}

@@ -7,16 +7,17 @@ interface SearchBarProps {
 }
 
 interface CustomSelectProps {
+  id: string
   value: string
   onValueChange: (val: string) => void
   placeholderLabel: string
   items: { value: string; label: string }[]
 }
 
-export const CustomSelect = ({ value, onValueChange, placeholderLabel, items }: CustomSelectProps) => {
+export const CustomSelect = ({ id, value, onValueChange, placeholderLabel, items }: CustomSelectProps) => {
   return (
     <Select.Root value={value} onValueChange={onValueChange}>
-      <Select.Trigger className="flex w-full items-center justify-between rounded-lg border border-foreground/30 bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">
+      <Select.Trigger id={id} className="flex w-full items-center justify-between rounded-lg border border-foreground/30 bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">
         <Select.Value placeholder={placeholderLabel} />
         <Select.Icon className="text-foreground/60">▾</Select.Icon>
       </Select.Trigger>
@@ -78,6 +79,7 @@ export const SearchBar = ({ onSearch, placeholder }: SearchBarProps) => {
             <div className="relative bg-gray-100 p-2 md:p-4 text-foreground rounded-lg">
               <input
                 type="search"
+                id="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={placeholder || placeholderText}
@@ -92,12 +94,12 @@ export const SearchBar = ({ onSearch, placeholder }: SearchBarProps) => {
             <label htmlFor="category" className="text-base font-medium">
               Product Category
             </label>
-            <CustomSelect value={category} onValueChange={setCategory} placeholderLabel="All Categories" items={itemCategories} />
+            <CustomSelect id="category" value={category} onValueChange={setCategory} placeholderLabel="All Categories" items={itemCategories} />
           </div>
 
           <div className="flex flex-col gap-2 w-full">
             <label htmlFor="university" className="text-base font-medium">University</label>
-            <CustomSelect value={university} onValueChange={setUniversity} placeholderLabel="All Universities" items={universities} />
+            <CustomSelect id="university" value={university} onValueChange={setUniversity} placeholderLabel="All Universities" items={universities} />
           </div>
         </div>
       </div>

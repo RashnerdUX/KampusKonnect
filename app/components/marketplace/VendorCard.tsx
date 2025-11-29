@@ -16,7 +16,7 @@ export interface VendorCardProps {
     verified: boolean;
 }
 
-export const VendorCard = ({name, tagline, description, logoUrl, rating, reviewCount, category, verified}: VendorCardProps) => {
+export const VendorCard = ({id, name, tagline, description, location, logoUrl, coverUrl, rating, reviewCount, category, verified}: VendorCardProps) => {
   const placeholder = '/images/vendor-placeholder.png'
   const [logoSrc, setLogoSrc] = useState(logoUrl && logoUrl.trim() !== '' ? logoUrl : placeholder)
 
@@ -44,13 +44,13 @@ export const VendorCard = ({name, tagline, description, logoUrl, rating, reviewC
                 <h3 className='text-lg font-semibold text-foreground'>{name}</h3>
                 <p className='text-sm text-foreground/80 flex-grow'>{tagline}</p>
                 <div className='flex justify-between items-center mt-2'>
-                    <span className='text-sm text-foreground/70'> UNILORIN </span>
+                    <span className='text-sm text-foreground/70'> {location ?? "Unknown"} </span>
                     <PiDotOutlineFill className='mx-0.5 text-foreground/50' size={8} />
                     <span className='text-sm text-foreground/70'> 
                         {category}
                     </span>
                     <PiDotOutlineFill className='mx-0.5 text-foreground/50' size={8} />
-                    <span className='text-sm font-medium text-foreground align-center flex items-baseline-last'> 
+                    <span className='text-sm font-medium text-foreground align-center flex items-center'> 
                         {rating.toFixed(1)}
                     </span>
                 </div>
