@@ -37,7 +37,7 @@ export async function action({ request} : Route.ActionArgs) {
     }
 
     console.log("Login successful:", data);
-  return redirect("/playground", { headers });
+  return redirect("/marketplace", { headers });
 }
 
 export default function Login({actionData}:Route.ComponentProps) {

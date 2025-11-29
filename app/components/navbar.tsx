@@ -68,7 +68,7 @@ export const Navbar = () => {
               </div>
               <nav className="flex flex-col flex-1">
                 <div className='flex flex-col space-y-4 flex-1'>
-                  <NavLink to="/landing" className="navlink" onClick={closeMobileMenu}>Home</NavLink>
+                  <NavLink to="/" className="navlink" onClick={closeMobileMenu}>Home</NavLink>
                   <NavLink to="/marketplace" className="navlink" onClick={closeMobileMenu}>Marketplace</NavLink>
                   <NavLink to="/about" className="navlink" onClick={closeMobileMenu}>About</NavLink>
                   <NavLink to="/blog" className="navlink" onClick={closeMobileMenu}>Blog</NavLink>

@@ -146,3 +146,7 @@ body {
 .section-paragraph {
   @apply text-foreground/70 text-base md:text-lg lg:text-[24px] font-sans text-center max-w-full sm:max-w-4xl md:max-w-5xl mx-auto mb-6 sm:mb-8 md:mb-10;
 }
+
+.no-scrollbar-new{
+  @apply [&::-webkit-scrollbar]:hidden [scrollbar-width:none];
+}

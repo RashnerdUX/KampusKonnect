@@ -16,9 +16,14 @@ export default [
   // Onboarding Routes
 
   // Marketplace Routes
-  route("marketplace", "routes/marketplace/_layout.tsx", [
+  route("marketplace", "routes/marketplace/_layout.tsx", {id: "market-layout"}, [
     index("routes/marketplace/index.tsx"),
-  ]),
+    route("products", "routes/marketplace/products/_layout.tsx", {id: "products-layout"}, [
+      index("routes/marketplace/products/index.tsx"),
+      route(":productId", "routes/marketplace/products/$productId.tsx"),
+      ])
+    ]
+  ),
 
   // Vendor Routes
   route("vendor/new", "routes/vendor.new.tsx"),
