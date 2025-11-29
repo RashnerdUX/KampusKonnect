@@ -108,7 +108,7 @@ body {
 }
 
 .input-field{
-  @apply w-full h-12 px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/90 focus:border-primary/90 mt-2;
+  @apply w-full h-12 px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/90 focus:border-primary/90 mt-2 placeholder:text-foreground/50 text-foreground;
 }
 
 .social-auth-button{

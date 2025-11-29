@@ -29,7 +29,7 @@ export default [
   route("vendor", "routes/vendor/_layout.tsx", {id: "VendorLayout"}, [
     index("routes/vendor/index.tsx"),
     route("products", "routes/vendor/products.tsx"),
-    route("product/add", "routes/vendor/product.add.tsx"),
+    route("products/add", "routes/vendor/product.add.tsx"),
     route("profile", "routes/vendor/profile.tsx"),
     route("settings", "routes/vendor/settings.tsx"),
   ]),

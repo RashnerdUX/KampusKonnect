@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { FaPlus, FaFilter, FaSort, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { useNavigate } from 'react-router'
 
 import ProductRow, { type ProductRowProps, type ProductStatus } from '~/components/dashboard/ProductRow'
 
@@ -50,6 +51,8 @@ export const Products = () => {
 
   const allSelected = sampleProducts.length > 0 && selectedIds.size === sampleProducts.length
 
+  const navigate = useNavigate();
+
   return (
     <div className="flex flex-col gap-4">
       {/* Top controls */}
@@ -66,19 +69,20 @@ export const Products = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+            className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
           >
             <FaSort className="h-4 w-4" /> Sort
           </button>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+            className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
           >
             <FaFilter className="h-4 w-4" /> Filter
           </button>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+            className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 cursor-pointer"
+            onClick={() => navigate('/vendor/products/add')}
           >
             <FaPlus className="h-4 w-4" /> Add Product
           </button>
@@ -123,6 +127,8 @@ export const Products = () => {
 
       {/* Pagination */}
       <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-foreground/70">
+        
+        {/* Set the number of items per page */}
         <div className="flex items-center gap-2">
           <span>Show</span>
           <select
@@ -137,21 +143,13 @@ export const Products = () => {
           <span>per page</span>
         </div>
 
+        {/* Go to the previous page */}
         <div className="flex items-center gap-1">
           <button
             type="button"
             className="rounded border border-border p-1.5 transition hover:bg-muted disabled:opacity-50"
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage(1)}
-          >
-            <FaChevronLeft className="h-3 w-3" />
-            <FaChevronLeft className="h-3 w-3 -ml-1.5" />
-          </button>
-          <button
-            type="button"
-            className="rounded border border-border p-1.5 transition hover:bg-muted disabled:opacity-50"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
+            onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
           >
             <FaChevronLeft className="h-3 w-3" />
           </button>
@@ -161,7 +159,7 @@ export const Products = () => {
               key={page}
               type="button"
               onClick={() => setCurrentPage(page)}
-              className={`rounded px-3 py-1 font-medium transition ${
+              className={`rounded px-3 py-1 font-medium transition duration-200 ${
                 currentPage === page ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-muted'
               }`}
             >
@@ -174,7 +172,7 @@ export const Products = () => {
               key={page}
               type="button"
               onClick={() => setCurrentPage(page)}
-              className={`rounded px-3 py-1 font-medium transition ${
+              className={`rounded px-3 py-1 font-medium transition duration-200 ${
                 currentPage === page ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-muted'
               }`}
             >
@@ -182,6 +180,7 @@ export const Products = () => {
             </button>
           ))}
 
+          {/* Go to the next page */}
           <button
             type="button"
             className="rounded border border-border p-1.5 transition hover:bg-muted"
@@ -189,14 +188,7 @@ export const Products = () => {
           >
             <FaChevronRight className="h-3 w-3" />
           </button>
-          <button
-            type="button"
-            className="rounded border border-border p-1.5 transition hover:bg-muted"
-            onClick={() => setCurrentPage(6)}
-          >
-            <FaChevronRight className="h-3 w-3" />
-            <FaChevronRight className="h-3 w-3 -ml-1.5" />
-          </button>
+
         </div>
       </div>
     </div>
