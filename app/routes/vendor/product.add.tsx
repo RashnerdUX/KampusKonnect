@@ -5,6 +5,17 @@ import { FaCloudArrowUp } from "react-icons/fa6";
 import { createSupabaseServerClient } from '~/utils/supabase.server';
 import type { User } from '@supabase/supabase-js';
 
+// Mapping of MIME types to file extensions for images
+const MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/svg+xml': 'svg',
+  'image/bmp': 'bmp',
+  'image/tiff': 'tiff',
+}
+
 export const meta = (_args: Route.MetaArgs) => {
   return [
     {title: "Add Product - Vendor Dashboard - Campex"},
@@ -53,7 +64,17 @@ export const action = async ({ request }: Route.ActionArgs) => {
   }
 
   // Build a unique path for the image
-  const fileExt = imageFile.name.split('.').pop()
+  // Extract file extension from filename, or infer from MIME type as fallback
+  const getFileExtension = (file: File): string => {
+    // Try to get extension from filename - ensure there's text after the last dot
+    const lastDotIndex = file.name.lastIndexOf('.')
+    if (lastDotIndex > 0 && lastDotIndex < file.name.length - 1) {
+      return file.name.slice(lastDotIndex + 1)
+    }
+    // Fallback: infer from MIME type
+    return MIME_TO_EXT[file.type] || 'jpg'
+  }
+  const fileExt = getFileExtension(imageFile)
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
   const imagePath = `products/${fileName}`
 
