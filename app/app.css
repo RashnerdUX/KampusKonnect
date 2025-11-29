@@ -73,7 +73,7 @@
     --footer-link: 167 40% 88%; /* Muted Lapiz Lazuli for footer links */
     --footer-link-hover: 153 95% 77%; /* Brighter Green on hover */
   }
-  
+
 }
 
 @layer utilities {
@@ -90,7 +90,7 @@ html,
 body {
   @apply min-h-screen w-full bg-background text-foreground;
   font-family: var(--default-font-family);
-  
+
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
@@ -108,7 +108,7 @@ body {
 }
 
 .input-field{
-  @apply w-full h-12 px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/90 focus:border-primary/90 mt-2;
+  @apply w-full h-12 px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/90 focus:border-primary/90 mt-2 placeholder:text-foreground/50 text-foreground;
 }
 
 .social-auth-button{
@@ -145,8 +145,4 @@ body {
 
 .section-paragraph {
   @apply text-foreground/70 text-base md:text-lg lg:text-[24px] font-sans text-center max-w-full sm:max-w-4xl md:max-w-5xl mx-auto mb-6 sm:mb-8 md:mb-10;
-}
-
-.no-scrollbar-new{
-  @apply [&::-webkit-scrollbar]:hidden [scrollbar-width:none];
 }
