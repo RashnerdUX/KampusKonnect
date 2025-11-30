@@ -14,6 +14,14 @@ export default [
   route("auth/callback", "routes/auth/auth.callback.tsx"),
 
   // Onboarding Routes
+  route("onboarding/check-email", "routes/onboarding/check-email.tsx"),
+  route("onboarding", "routes/onboarding/_layout.tsx", { id: "OnboardingLayout" }, [
+    route("role", "routes/onboarding/role.tsx"),
+    route("student/profile", "routes/onboarding/student.profile.tsx"),
+    route("student/interests", "routes/onboarding/student.interests.tsx"),
+    route("vendor/profile", "routes/onboarding/vendor.profile.tsx"),
+    route("vendor/store", "routes/onboarding/vendor.store.tsx"),
+  ]),
 
   // Marketplace Routes
   route("marketplace", "routes/marketplace/_layout.tsx", {id: "market-layout"}, [

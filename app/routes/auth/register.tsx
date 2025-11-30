@@ -64,7 +64,7 @@ export async function action({ request} : Route.ActionArgs) {
         return { error: error.message };
     }
 
-  return redirect('/login');
+  return redirect('/onboarding/check-email');
 }
 
 export default function Register({actionData}: Route.ComponentProps){
@@ -80,7 +80,7 @@ export default function Register({actionData}: Route.ComponentProps){
   }
 
   return (
-    <div className='relative max-h-dvh flex flex-col md:m-auto items-center justify-center p-4 lg:p-8'>
+    <div className='relative max-h-dvh flex flex-col md:m-auto items-center justify-center p-4 lg:p-8 bg-gradient-to-br from-primary/5 via-background to-primary/10'>
       <main className='w-full max-w-6xl'>
         <div className=''>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 rounded-xl overflow-hidden shadow-lg px-10 py-6">
