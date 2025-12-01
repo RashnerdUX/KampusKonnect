@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Route } from './+types/login';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
-import { redirect, Form, Link } from 'react-router';
+import { redirect, Form, Link, data } from 'react-router';
 
 // Component imports
 import ImageCarousel from '~/components/auth/ImageCarousel';
@@ -24,16 +24,16 @@ export async function action({ request} : Route.ActionArgs) {
     const { supabase, headers } = createSupabaseServerClient(request);
 
     // Perform the login here
-    const { data, error} = await supabase.auth.signInWithPassword(
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword(
         { 
             email: email as string, 
             password: password as string 
         }
     )
 
-    if (error) {
-        console.error("Error during login:", error);
-        return { error: error.message };
+    if (loginError) {
+        console.error("Error during login:", loginError);
+        return data({ error: loginError.message }, { headers });
     }
 
     // Check if user has completed onboarding
@@ -42,8 +42,7 @@ export async function action({ request} : Route.ActionArgs) {
     if (!user) {
       return redirect('/login?error=no_user', { headers });
     }
-    console.log("Login successful:", data);
-
+    console.log("Login successful:", loginData);
     const { data: profile } = await supabase
       .from('user_profiles')
       .select('onboarding_complete, role')

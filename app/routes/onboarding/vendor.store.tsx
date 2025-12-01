@@ -1,10 +1,9 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect} from 'react'
 import type { Route } from './+types/vendor.store';
 import { Form, Link, data, redirect } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaCamera, FaCloudUploadAlt } from 'react-icons/fa'
 import { requireAuth } from '~/utils/requireAuth.server'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
-import type constants from 'constants';
 
 export const meta = (_args: Route.MetaArgs) => {
   return [
@@ -14,8 +13,8 @@ export const meta = (_args: Route.MetaArgs) => {
 }
 
 export const action = async ({ request }: Route.ActionArgs) => {
-  const { supabase } = createSupabaseServerClient(request)
-  const { user, headers } = await requireAuth(request)
+  const { supabase, headers } = createSupabaseServerClient(request)
+  const { user } = await requireAuth(request)
 
   // Verify user has vendor role before submitting
   const { data: profile } = await supabase
@@ -88,7 +87,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
   logoUrl = logoPublicUrl.publicUrl
 
   // Create the store
-  console.log("Creating a store for the user", user.email)
+  console.log("Creating a store for the user", user.id)
   const { data: store, error: storeError } = await supabase
     .from('stores')
     .insert({
@@ -107,7 +106,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
     return { error: 'Failed to create store' }
   }
 
-  console.log("Store created for the user", user.email)
+  console.log("Store created for the user", user.id)
   return redirect('/onboarding/complete', { headers })
 }
 
@@ -166,6 +165,18 @@ export default function VendorStore({loaderData, actionData}: Route.ComponentPro
 //   The store categories
     const {store_categories} = loaderData;
     const {error} = actionData || {};
+
+    // Clear the blobs after unmount
+    useEffect(() => {
+        return () => {
+            if (logoBlobRef.current) {
+            URL.revokeObjectURL(logoBlobRef.current)
+            }
+            if (headerBlobRef.current) {
+            URL.revokeObjectURL(headerBlobRef.current)
+            }
+        }
+    }, [])
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

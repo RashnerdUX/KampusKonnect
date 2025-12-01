@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import type { Route } from './+types/onboarding.complete'
-import { redirect, useNavigate } from 'react-router'
+import { redirect, useNavigate, data } from 'react-router'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 import { FaCheckCircle } from 'react-icons/fa'
 
@@ -48,12 +48,16 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 
   if (updateError) {
     console.error('Error updating onboarding status:', updateError)
+    return redirect('/onboarding/complete', { headers })
   }
 
-  return {
-    firstName: profile.first_name,
-    role: profile.role as 'student' | 'vendor',
-  }
+  return data(
+    {
+      firstName: profile.first_name,
+      role: profile.role as 'student' | 'vendor',
+    },
+    { headers }
+  )
 }
 
 export const OnboardingComplete = ({ loaderData }: Route.ComponentProps) => {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import type { Route } from './+types/products'
 import { FaPlus, FaFilter, FaSort, FaSearch, FaChevronLeft, FaChevronRight, FaEdit, FaTrash } from 'react-icons/fa'
-import { useNavigate, redirect, useSearchParams } from 'react-router'
+import { useNavigate, redirect, useSearchParams, data } from 'react-router'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 
 import ProductRow from '~/components/dashboard/ProductRow'
@@ -84,12 +84,13 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
   const totalItems = count ?? 0
   const totalPages = Math.ceil(totalItems / perPage)
 
-  return {
+  return data(
+    {
     products: products ?? [],
     store,
     pagination: { page, perPage, totalItems, totalPages },
     search,
-  }
+  }, { headers })
 }
 
 export const Products = ({ loaderData }: Route.ComponentProps) => {

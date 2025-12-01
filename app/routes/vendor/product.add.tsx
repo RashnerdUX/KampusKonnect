@@ -355,7 +355,7 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
             <div className="mt-6 flex justify-end gap-2">
               <button
                 type="button"
-                className="rounded-full px-4 py-2 text-base text-foreground hover:bg-muted"
+                className="hidden rounded-full px-4 py-2 text-base text-foreground hover:bg-muted"
               >
                 Save draft
               </button>

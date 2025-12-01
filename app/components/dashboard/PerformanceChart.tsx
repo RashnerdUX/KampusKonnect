@@ -13,7 +13,7 @@ interface PerformanceChartProps {
 
 const PerformanceChart = ({ className, data = [] }: PerformanceChartProps) => {
   // Find max revenue for scaling
-  const maxRevenue = Math.max(...data.map((d) => d.revenue), 1)
+  const maxRevenue = Math.max(...data.map((d) => Math.abs(d.revenue)), 1)
 
   return (
     <div className={`rounded-2xl border border-border bg-card p-4 ${className ?? ''}`}>
@@ -27,7 +27,7 @@ const PerformanceChart = ({ className, data = [] }: PerformanceChartProps) => {
         <div className="flex h-64 items-end gap-1">
           {data.map((point, index) => (
             <div
-              key={point.date}
+              key={`${point.date}-${index}`}
               className="group relative flex-1"
               title={`${point.date}: ₦${point.revenue.toLocaleString()}`}
             >

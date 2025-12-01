@@ -3,7 +3,6 @@ import type { Route } from './+types/student.interests';
 import { Form, Link, data, redirect } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaCheck } from 'react-icons/fa'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
-import { requireAuth } from '~/utils/requireAuth.server'
 
 export const meta = () => {
   return [
@@ -28,10 +27,15 @@ export const action = async ({ request }: Route.ActionArgs) => {
   }
 
   // Delete existing interests (in case user goes back and resubmits)
-  await supabase
+  const { error: deleteError } = await supabase
     .from('user_interests')
     .delete()
     .eq('user_id', user.id)
+
+    if (deleteError) {
+      console.error('Error deleting interests:', deleteError)
+      return data({ error: 'Failed to delete existing interests' }, { headers })
+    }
 
   // Insert new interests
   const { error: insertError } = await supabase

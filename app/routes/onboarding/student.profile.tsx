@@ -46,8 +46,8 @@ export const action = async ({ request }: Route.ActionArgs) => {
         .select()
 
     if (error) {
-        console.error("Error updating vendor profile:", error);
-        return redirect("/onboarding/vendor/profile", { headers  });
+        console.error("Error updating student profile:", error);
+        return redirect("/onboarding/student/profile", { headers  });
     }        
   
     console.log("Updated the User profile")

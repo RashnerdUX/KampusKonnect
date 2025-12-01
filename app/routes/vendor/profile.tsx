@@ -174,7 +174,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
 
     if (error) {
       console.error('Error updating store:', error)
-      return { error: 'Failed to update store' }
+      return data({ error: 'Failed to update store information' }, { headers })
     }
 
     return { success: true }
@@ -192,7 +192,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
     const filePath = `${user.id}/header-${Date.now()}.${fileExt}`
 
     const { error: uploadError } = await supabase.storage
-      .from('store-headers')
+      .from('store_header_images')
       .upload(filePath, headerFile, { contentType: headerFile.type, upsert: true })
 
     if (uploadError) {
@@ -200,7 +200,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
       return { error: 'Failed to upload header image' }
     }
 
-    const { data: publicUrl } = supabase.storage.from('store-headers').getPublicUrl(filePath)
+    const { data: publicUrl } = supabase.storage.from('store_header_images').getPublicUrl(filePath)
 
     const { error: updateError } = await supabase
       .from('stores')
@@ -227,7 +227,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
     const filePath = `${user.id}/logo-${Date.now()}.${fileExt}`
 
     const { error: uploadError } = await supabase.storage
-      .from('store-logos')
+      .from('store_logos')
       .upload(filePath, logoFile, { contentType: logoFile.type, upsert: true })
 
     if (uploadError) {
@@ -235,7 +235,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
       return { error: 'Failed to upload logo image' }
     }
 
-    const { data: publicUrl } = supabase.storage.from('store-logos').getPublicUrl(filePath)
+    const { data: publicUrl } = supabase.storage.from('store_logos').getPublicUrl(filePath)
 
     const { error: updateError } = await supabase
       .from('stores')
