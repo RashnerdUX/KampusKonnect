@@ -8,9 +8,9 @@ type ActionData =
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
-        {title: "Kampus Konnect - Find Campus Vendors Close to You"},
-        {name: "description", content: "Join Kampus Konnect to easily find and connect with campus vendors close to you. Sign up for our waitlist today!",},
-        {name: "keywords", content: "Kampus Konnect, campus vendors, WhatsApp, student marketplace, vendor marketplace, Nigeria, waitlist, connect, sell, grow"}
+        {title: "Campex - Find Campus Vendors Close to You"},
+        {name: "description", content: "Join Campex to easily find and connect with campus vendors close to you. Sign up for our waitlist today!",},
+        {name: "keywords", content: "Campex, campus vendors, WhatsApp, student marketplace, vendor marketplace, Nigeria, waitlist, connect, sell, grow"}
     ];
 };
 
@@ -66,7 +66,7 @@ export default function LandingPage( { actionData }: Route.ComponentProps) {
   return (
     <div className="min-h-dvh bg-background flex flex-col">
         <header className="px-4 flex justify-start items-center md:justify-center border-b border-border">
-            <img src="/logo/logo.svg" alt="Kampus Konnect Logo" className="h-16 w-16 mr-1" />
+            <img src="/logo/logo.svg" alt="Campex Logo" className="h-16 w-16 mr-1" />
             <h1 className="hidden md:block font-[700] text-primary text-2xl font-[Oswald]">KampusKonnect</h1>
         </header>
 
@@ -105,7 +105,7 @@ export default function LandingPage( { actionData }: Route.ComponentProps) {
         </main>
 
         <footer className="w-full text-center text-sm border-t border-border mt-auto py-4 text-foreground/80 flex gap-2 justify-center items-center">
-            © 2025 Kampus Konnect · All Rights Reserved
+            © 2025 Campex · All Rights Reserved
             <ThemeToggle />
         </footer>
     </div>

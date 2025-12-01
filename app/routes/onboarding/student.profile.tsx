@@ -7,7 +7,7 @@ import { requireAuth } from '~/utils/requireAuth'
 
 export const meta = () => {
   return [
-    { title: 'Complete Your Profile - Kampus Konnect' },
+    { title: 'Complete Your Profile - Campex' },
     { name: 'description', content: 'Tell us a bit about yourself to personalize your experience.' },
   ]
 }

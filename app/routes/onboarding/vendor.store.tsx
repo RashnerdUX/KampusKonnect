@@ -8,8 +8,8 @@ import type constants from 'constants';
 
 export const meta = (_args: Route.MetaArgs) => {
   return [
-    { title: 'Create Your Store - Kampus Konnect' },
-    { name: 'description', content: 'Set up your store on Kampus Konnect.' },
+    { title: 'Create Your Store - Campex' },
+    { name: 'description', content: 'Set up your store on Campex.' },
   ]
 }
 

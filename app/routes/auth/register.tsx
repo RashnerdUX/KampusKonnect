@@ -90,7 +90,7 @@ export default function Register({actionData}: Route.ComponentProps){
             <div className='flex flex-col'>
               {/* The Registration Form */}
               <div className='flex flex-col items-center justify-center mb-4'>
-                <img src="/logo/logo.svg" alt="Kampus Konnect Logo" className="h-16 w-16 mr-1" />
+                <img src="/logo/logo.svg" alt="Campex Logo" className="h-16 w-16 mr-1" />
                 <h1 className='text-3xl font-black lg:text-4xl text-center'>Create Your Account</h1>
               </div>
               <div>

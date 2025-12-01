@@ -3,7 +3,7 @@ import { requireAuth } from "~/utils/requireAuth";
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
-    { title: "Playground - Kampus Konnect" },
+    { title: "Playground - Campex" },
     { name: "description", content: "A playground route for testing and experimentation." }
   ];
 };

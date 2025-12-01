@@ -7,7 +7,7 @@ import { requireAuth } from '~/utils/requireAuth'
 
 export const meta = () => {
   return [
-    { title: 'Select Your Interests - Kampus Konnect' },
+    { title: 'Select Your Interests - Campex' },
     { name: 'description', content: 'Choose categories you are interested in.' },
   ]
 }

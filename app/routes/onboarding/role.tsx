@@ -6,8 +6,8 @@ import { createSupabaseServerClient } from '~/utils/supabase.server'
 
 export const meta = () => {
   return [
-    { title: 'Choose Your Role - Kampus Konnect' },
-    { name: 'description', content: 'Continue as a student or vendor on Kampus Konnect.' },
+    { title: 'Choose Your Role - Campex' },
+    { name: 'description', content: 'Continue as a student or vendor on Campex.' },
   ]
 }
 
@@ -37,7 +37,7 @@ export async function action({ request }: Route.ActionArgs) {
     .eq('id', user.id)
 
     console.log("Updated the student's role to this", role)
-    
+
     if (error) {
         console.error('Error updating user role:', error)
         return redirect('/onboarding/role', { headers })

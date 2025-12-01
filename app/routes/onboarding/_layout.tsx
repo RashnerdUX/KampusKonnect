@@ -11,7 +11,7 @@ const ONBOARDING_STEPS = [
 
 export const meta = () => {
   return [
-    { title: 'Onboarding - Kampus Konnect' },
+    { title: 'Onboarding - Campex' },
     { name: 'description', content: 'Complete your profile to get started.' },
   ]
 }
@@ -42,7 +42,7 @@ export default function OnboardingLayout() {
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <img src="/logo/logo.svg" alt="Kampus Konnect" className="h-8 w-8" />
+            <img src="/logo/logo.svg" alt="Campex" className="h-8 w-8" />
             <span className="text-lg font-bold text-foreground">Campex</span>
           </div>
 

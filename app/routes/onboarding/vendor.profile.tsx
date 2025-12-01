@@ -7,7 +7,7 @@ import { requireAuth } from '~/utils/requireAuth'
 
 export const meta = () => {
   return [
-    { title: 'Vendor Profile - Kampus Konnect' },
+    { title: 'Vendor Profile - Campex' },
     { name: 'description', content: 'Complete your vendor profile to get started.' },
   ]
 }

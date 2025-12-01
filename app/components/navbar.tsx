@@ -35,10 +35,10 @@ export const Navbar = () => {
             <NavLink to="/blog" className="navlink">Blog</NavLink>
           </div>
           <div className="space-x-4 flex justify-center items-center">
-              <Link to='/#waitlist' className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 md:w-auto rounded-full transition-colors">
+              <Link to='/login' className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 md:w-auto rounded-full transition-colors">
                 Log In
               </Link>
-              <Link to="/#waitlist" className="bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors md:w-auto">
+              <Link to="/register" className="bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors md:w-auto">
                 Get Started
               </Link>
           </div>
@@ -74,10 +74,10 @@ export const Navbar = () => {
                   <NavLink to="/blog" className="navlink" onClick={closeMobileMenu}>Blog</NavLink>
                 </div>
                 <div className='mt-auto w-full flex flex-col space-y-2'>
-                  <Link to={'/#waitlist'} className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors flex items-center justify-center" onClick={() => {closeMobileMenu();}}>
+                  <Link to={'/login'} className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors flex items-center justify-center" onClick={() => {closeMobileMenu();}}>
                     Log In
                   </Link>
-                  <Link to={'/#waitlist'} className="bg-primary text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors flex items-center justify-center" onClick={() => {closeMobileMenu();}}>
+                  <Link to={'/register'} className="bg-primary text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors flex items-center justify-center" onClick={() => {closeMobileMenu();}}>
                     Get Started
                   </Link>
                 </div>

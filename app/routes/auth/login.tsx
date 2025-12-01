@@ -10,8 +10,8 @@ import { handleGoogleLogin } from '~/utils/social_login';
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
-    { title: "Login - Kampus Konnect" }, 
-    { name: "description", content: "Log in to your Kampus Konnect account to connect with campus vendors near you." }
+    { title: "Login - Campex" }, 
+    { name: "description", content: "Log in to your Campex account to connect with campus vendors near you." }
   ];
 }
 
@@ -81,7 +81,7 @@ export default function Login({actionData}:Route.ComponentProps) {
             <div className='flex flex-col'>
               {/* The Registration Form */}
               <div className='flex flex-col items-center justify-center mb-4'>
-                <img src="/logo/logo.svg" alt="Kampus Konnect Logo" className="h-16 w-16 mr-1" />
+                <img src="/logo/logo.svg" alt="Campex Logo" className="h-16 w-16 mr-1" />
                 <h1 className='text-3xl font-black lg:text-4xl text-center'>Log In to Your Account</h1>
               </div>
               <div>
