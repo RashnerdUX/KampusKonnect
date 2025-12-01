@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Route } from './+types/login';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
-import { redirect, Form, Link } from 'react-router';
+import { redirect, Form, Link, data } from 'react-router';
 
 // Component imports
 import ImageCarousel from '~/components/auth/ImageCarousel';
@@ -10,8 +10,8 @@ import { handleGoogleLogin } from '~/utils/social_login';
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
-    { title: "Login - Kampus Konnect" }, 
-    { name: "description", content: "Log in to your Kampus Konnect account to connect with campus vendors near you." }
+    { title: "Login - Campex" }, 
+    { name: "description", content: "Log in to your Campex account to connect with campus vendors near you." }
   ];
 }
 
@@ -24,19 +24,39 @@ export async function action({ request} : Route.ActionArgs) {
     const { supabase, headers } = createSupabaseServerClient(request);
 
     // Perform the login here
-    const { data, error} = await supabase.auth.signInWithPassword(
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword(
         { 
             email: email as string, 
             password: password as string 
         }
     )
 
-    if (error) {
-        console.error("Error during login:", error);
-        return { error: error.message };
+    if (loginError) {
+        console.error("Error during login:", loginError);
+        return data({ error: loginError.message }, { headers });
     }
 
-    console.log("Login successful:", data);
+    // Check if user has completed onboarding
+    const {data: { user }} = await supabase.auth.getUser();
+
+    if (!user) {
+      return redirect('/login?error=no_user', { headers });
+    }
+    console.log("Login successful:", loginData);
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('onboarding_complete, role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || !profile.onboarding_complete) {
+      return redirect('/onboarding/role', { headers });
+    }
+
+    if (profile && profile.role === 'vendor') {
+      return redirect('/vendor/dashboard', { headers });
+    }
+
   return redirect("/marketplace", { headers });
 }
 
@@ -51,7 +71,7 @@ export default function Login({actionData}:Route.ComponentProps) {
   }
 
   return (
-<div className='relative min-h-screen flex flex-col md:m-auto items-center justify-center p-4 lg:p-8'>
+<div className='relative min-h-screen flex flex-col md:m-auto items-center justify-center p-4 lg:p-8 bg-gradient-to-br from-primary/5 via-background to-primary/10'>
       <main className='w-full max-w-6xl'>
         <div className=''>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 rounded-xl overflow-hidden shadow-lg px-10 py-6">
@@ -60,7 +80,7 @@ export default function Login({actionData}:Route.ComponentProps) {
             <div className='flex flex-col'>
               {/* The Registration Form */}
               <div className='flex flex-col items-center justify-center mb-4'>
-                <img src="/logo/logo.svg" alt="Kampus Konnect Logo" className="h-16 w-16 mr-1" />
+                <img src="/logo/logo.svg" alt="Campex Logo" className="h-16 w-16 mr-1" />
                 <h1 className='text-3xl font-black lg:text-4xl text-center'>Log In to Your Account</h1>
               </div>
               <div>

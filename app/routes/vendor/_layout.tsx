@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import type { Route } from './+types/_layout';
 
 import { Outlet, data } from 'react-router';
@@ -6,7 +6,7 @@ import SideNavigationBar from '~/components/dashboard/SideNavigationBar';
 import DashboardTopBar from '~/components/dashboard/DashboardTopBar';
 import { redirect } from "react-router";
 import { createSupabaseServerClient } from '~/utils/supabase.server';
-import { requireAuth } from '~/utils/requireAuth';
+import { requireAuth } from '~/utils/requireAuth.server';
 
 export const meta = () => {
     return [
@@ -45,12 +45,19 @@ export const loader =  async ({request}: Route.LoaderArgs) => {
 }
 
 export const VendorDashboardLayout = ({loaderData}: Route.ComponentProps) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="min-h-screen flex bg-muted">
-      <SideNavigationBar />
-      <div className="flex-1 flex flex-col px-4 py-6 gap-6">
-        <DashboardTopBar user={loaderData.user} />
+      {/* Sidebar */}
+      <SideNavigationBar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col px-4 py-4 gap-4 lg:px-6 lg:py-6 lg:gap-6">
+        <DashboardTopBar 
+          user={loaderData.user} 
+          onMenuClick={() => setSidebarOpen(true)} 
+        />
         <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>

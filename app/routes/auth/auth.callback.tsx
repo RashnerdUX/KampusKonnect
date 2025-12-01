@@ -19,7 +19,26 @@ export async function loader({ request }: Route.LoaderArgs) {
     }
     
     // Success! Redirect to dashboard
-    return redirect('/app', { headers })
+    // Check if the user is just registering for the first time
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return redirect('/login?error=no_user', { headers })
+    }
+
+    // Check if user has completed onboarding
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('onboarding_complete')
+      .eq('id', user.id)
+      .single()
+
+
+    if (!profile || !profile.onboarding_complete) {
+      return redirect('/onboarding/role', { headers })
+    }
+    
+    return redirect('/marketplace', { headers })
   }
   
   // No code provided

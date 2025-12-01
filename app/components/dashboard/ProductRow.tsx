@@ -6,7 +6,7 @@ export type ProductStatus = 'in-stock' | 'out-of-stock' | 'coming-soon'
 export interface ProductRowProps {
   id: string
   name: string
-  imageUrl?: string
+  imageUrl?: string | null
   category: string
   status: ProductStatus
   stock: number
@@ -68,7 +68,7 @@ export const ProductRow = ({
         </span>
       </td>
       <td className="px-4 py-3 text-foreground/80">{stock}</td>
-      <td className="px-4 py-3 font-medium text-foreground">${price.toFixed(2)}</td>
+      <td className="px-4 py-3 font-medium text-foreground">₦{price.toFixed(2)}</td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           <button

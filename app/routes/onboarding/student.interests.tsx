@@ -1,0 +1,217 @@
+import React, { useState } from 'react'
+import type { Route } from './+types/student.interests';
+import { Form, Link, data, redirect } from 'react-router'
+import { FaArrowLeft, FaArrowRight, FaCheck } from 'react-icons/fa'
+import { createSupabaseServerClient } from '~/utils/supabase.server'
+
+export const meta = () => {
+  return [
+    { title: 'Select Your Interests - Campex' },
+    { name: 'description', content: 'Choose categories you are interested in.' },
+  ]
+}
+
+export const action = async ({ request }: Route.ActionArgs) => {
+  const { supabase, headers } = createSupabaseServerClient(request)
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return redirect('/login', { headers })
+  }
+
+  const formData = await request.formData()
+  const interests = formData.getAll('interests') as string[]
+
+  if (interests.length < 3) {
+    return { error: 'Please select at least 3 categories' }
+  }
+
+  // Delete existing interests (in case user goes back and resubmits)
+  const { error: deleteError } = await supabase
+    .from('user_interests')
+    .delete()
+    .eq('user_id', user.id)
+
+    if (deleteError) {
+      console.error('Error deleting interests:', deleteError)
+      return data({ error: 'Failed to delete existing interests' }, { headers })
+    }
+
+  // Insert new interests
+  const { error: insertError } = await supabase
+    .from('user_interests')
+    .insert(
+      interests.map((categoryId) => ({
+        user_id: user.id,
+        category_id: categoryId,
+      }))
+    )
+
+  if (insertError) {
+    console.error('Error saving interests:', insertError)
+    return { error: 'Failed to save interests' }
+  }
+
+  return redirect('/onboarding/complete', { headers })
+}
+
+export const loader = async ({ request }: Route.LoaderArgs) => {
+  const { supabase, headers } = createSupabaseServerClient(request)
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    return redirect('/login', { headers })
+  }
+
+  // Check role
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'student') {
+    return redirect('/onboarding/role', { headers })
+  }
+
+  // Fetch categories from database
+  const { data: categories, error } = await supabase
+    .from('categories')
+    .select('id, slug, name, emoji, description')
+    .order('name')
+
+  if (error) {
+    console.error('Error fetching categories:', error)
+  }
+
+  return data({ categories: categories ?? [] }, { headers })
+}
+
+interface CategoryCardProps {
+  id: string
+  label: string
+  emoji: string
+  description: string
+  selected: boolean
+  onToggle: (id: string) => void
+}
+
+const CategoryCard = ({ id, label, emoji, description, selected, onToggle }: CategoryCardProps) => {
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(id)}
+      className={`relative flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all ${
+        selected
+          ? 'border-primary bg-primary/5 shadow-md'
+          : 'border-border bg-card hover:border-primary/50 hover:shadow-sm'
+      }`}
+    >
+      {/* Checkmark */}
+      {selected && (
+        <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <FaCheck className="h-3 w-3" />
+        </div>
+      )}
+
+      {/* Emoji */}
+      <span className="text-3xl">{emoji}</span>
+
+      {/* Label */}
+      <span className="font-semibold text-foreground">{label}</span>
+
+      {/* Description */}
+      <span className="text-xs text-foreground/60">{description}</span>
+
+      {/* Hidden input for form submission */}
+      {selected && <input type="hidden" name="interests" value={id} />}
+    </button>
+  )
+}
+
+export default function StudentInterests({ loaderData }: Route.ComponentProps) {
+  const { categories } = loaderData
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const toggleCategory = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const isValid = selectedIds.size >= 3
+
+  return (
+    <div className="w-full max-w-3xl">
+      {/* Card */}
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-lg md:p-8">
+        {/* Header */}
+        <div className="mb-6 text-center">
+          <h1 className="mb-2 text-2xl font-bold text-foreground">What are you interested in?</h1>
+          <p className="text-foreground/70">
+            Select at least <span className="font-semibold text-primary">3 categories</span> to
+            personalize your feed
+          </p>
+        </div>
+
+        {/* Selection count */}
+        <div className="mb-4 flex items-center justify-center">
+          <div
+            className={`rounded-full px-4 py-1.5 text-sm font-medium ${
+              isValid
+                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-muted text-foreground/70'
+            }`}
+          >
+            {selectedIds.size} of 3 minimum selected
+            {isValid && ' ✓'}
+          </div>
+        </div>
+
+        {/* Form */}
+        <Form method="post">
+          {/* Categories Grid */}
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {categories.map((category) => (
+              <CategoryCard
+                key={category.id}
+                id={category.id}
+                label={category.name}
+                emoji={category.emoji ?? '📦'}
+                description={category.description ?? ''}
+                selected={selectedIds.has(category.id)}
+                onToggle={toggleCategory}
+              />
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+            <Link
+              to="/onboarding/student/profile"
+              className="flex items-center justify-center gap-2 rounded-xl border border-border px-6 py-3 font-medium text-foreground transition hover:bg-muted"
+            >
+              <FaArrowLeft className="h-4 w-4" />
+              Back
+            </Link>
+            <button
+              type="submit"
+              disabled={!isValid}
+              className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Complete Setup
+              <FaArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </Form>
+      </div>
+    </div>
+  )
+}

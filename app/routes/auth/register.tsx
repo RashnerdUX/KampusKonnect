@@ -10,8 +10,8 @@ import { handleGoogleLogin } from '~/utils/social_login';
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
-    { title: "Register - Kampus Konnect" }, 
-    { name: "description", content: "Create a Kampus Konnect account to connect with campus vendors near you." }
+    { title: "Register - Campex" }, 
+    { name: "description", content: "Create a Campex account to connect with campus vendors near you." }
   ];
 };
 
@@ -55,7 +55,8 @@ export async function action({ request} : Route.ActionArgs) {
                 username: String(username),
                 surname: String(surname),
                 first_name: String(first_name),
-            }
+            },
+            emailRedirectTo: `${new URL(request.url).origin}/auth/callback`,
         }
     });
 
@@ -64,7 +65,7 @@ export async function action({ request} : Route.ActionArgs) {
         return { error: error.message };
     }
 
-  return redirect('/login');
+  return redirect('/onboarding/check-email');
 }
 
 export default function Register({actionData}: Route.ComponentProps){
@@ -80,7 +81,7 @@ export default function Register({actionData}: Route.ComponentProps){
   }
 
   return (
-    <div className='relative max-h-dvh flex flex-col md:m-auto items-center justify-center p-4 lg:p-8'>
+    <div className='relative max-h-dvh flex flex-col md:m-auto items-center justify-center p-4 lg:p-8 bg-gradient-to-br from-primary/5 via-background to-primary/10'>
       <main className='w-full max-w-6xl'>
         <div className=''>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 rounded-xl overflow-hidden shadow-lg px-10 py-6">
@@ -89,7 +90,7 @@ export default function Register({actionData}: Route.ComponentProps){
             <div className='flex flex-col'>
               {/* The Registration Form */}
               <div className='flex flex-col items-center justify-center mb-4'>
-                <img src="/logo/logo.svg" alt="Kampus Konnect Logo" className="h-16 w-16 mr-1" />
+                <img src="/logo/logo.svg" alt="Campex Logo" className="h-16 w-16 mr-1" />
                 <h1 className='text-3xl font-black lg:text-4xl text-center'>Create Your Account</h1>
               </div>
               <div>

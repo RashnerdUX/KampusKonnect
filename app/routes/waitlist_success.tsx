@@ -53,7 +53,7 @@ export const WaitListSuccess = () => {
             </div>
         </div>
         <footer className="w-full text-center text-sm border-t border-border mt-auto py-4 text-foreground/80 flex gap-2 justify-center items-center">
-            © 2025 Kampus Konnect · All Rights Reserved
+            © 2025 Campex · All Rights Reserved
         </footer>
     </div>
   )

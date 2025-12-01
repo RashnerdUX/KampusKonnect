@@ -7,9 +7,10 @@ interface SideBarLinkProps {
     to: string;
     label: string;
     icon: React.ReactNode;
+    onClick?: () => void;
 }
 
-export const SideBarLinks: SideBarLinkProps[] = [
+export const SideBarLinks: Omit<SideBarLinkProps, 'onClick'>[] = [
     {
         to: '/vendor',
         label: 'Dashboard Home',
@@ -32,10 +33,11 @@ export const SideBarLinks: SideBarLinkProps[] = [
     },
 ]
 
-export const SideBarLink = ({ to, label, icon }: SideBarLinkProps) => (
+export const SideBarLink = ({ to, label, icon, onClick }: SideBarLinkProps) => (
   <NavLink
     to={to}
     end={to === '/vendor'}
+    onClick={onClick}
     className={({ isActive }) =>
       `flex items-center gap-2 rounded-full px-4 py-3 transition ${
         isActive ? 'bg-primary text-primary-foreground shadow-lg' : 'text-foreground/70 hover:bg-foreground/10'

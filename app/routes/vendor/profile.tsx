@@ -1,61 +1,11 @@
-import React, { useState, useRef } from 'react'
-import type { Route } from './+types/profile';
-import { Form, Link } from 'react-router'
+import React, { useState, useRef, useEffect } from 'react'
+import type { Route } from './+types/profile'
+import { Form, Link, redirect, data } from 'react-router'
 import { FaExternalLinkAlt, FaStar, FaPen, FaTimes, FaCamera, FaUser } from 'react-icons/fa'
 
 import VerifiedBadge from '~/components/dashboard/VerifiedBadge'
 import ProfileSection from '~/components/dashboard/ProfileSection'
-
-// Sample store data – replace with loader data
-const sampleStore = {
-  id: 'store-123',
-  name: 'TechStore',
-  description: 'Cutting-edge gadgets and accessories for the modern student. We provide the latest tech products at affordable prices, perfect for university life.',
-  category: 'Electronics',
-  logoUrl: '',
-  headerUrl: '',
-  verified: true,
-  rating: 4.8,
-  reviewCount: 1320,
-}
-
-// Sample reviews
-const sampleReviews = [
-  {
-    id: '1',
-    author: 'John D.',
-    avatar: '',
-    rating: 5,
-    date: '2 days ago',
-    comment: 'Amazing products and super fast delivery! Highly recommend this store.',
-  },
-  {
-    id: '2',
-    author: 'Sarah M.',
-    avatar: '',
-    rating: 4,
-    date: '1 week ago',
-    comment: 'Good quality items. Customer service was helpful when I had questions.',
-  },
-  {
-    id: '3',
-    author: 'Mike K.',
-    avatar: '',
-    rating: 5,
-    date: '2 weeks ago',
-    comment: 'Best prices on campus! Will definitely buy again.',
-  },
-]
-
-const CATEGORY_OPTIONS = [
-  'Electronics',
-  'Fashion',
-  'Food & Beverages',
-  'Books & Stationery',
-  'Health & Wellness',
-  'Services',
-  'Other',
-]
+import { createSupabaseServerClient } from '~/utils/supabase.server'
 
 export const meta = () => {
   return [
@@ -64,15 +14,243 @@ export const meta = () => {
   ]
 }
 
-export const loader = async () => {
-  // TODO: fetch store from database
-  return { store: sampleStore, reviews: sampleReviews }
+export const loader = async ({ request }: Route.LoaderArgs) => {
+  const { supabase, headers } = createSupabaseServerClient(request)
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return redirect('/login', { headers })
+  }
+
+  // Fetch user's store with category
+  const { data: store, error: storeError } = await supabase
+    .from('stores')
+    .select(`
+      id,
+      business_name,
+      description,
+      logo_url,
+      header_url,
+      verified_badge,
+      category:store_categories(id, name)
+    `)
+    .eq('user_id', user.id)
+    .single()
+
+  if (storeError || !store) {
+    console.error('Error fetching store:', storeError)
+    return redirect('/onboarding/vendor/store', { headers })
+  }
+
+  // Fetch reviews for this store
+  // Reviews where listing_id = store.id and listing_type = 'store'
+  const { data: reviews, error: reviewsError } = await supabase
+    .from('reviews')
+    .select(`
+      id,
+      rating,
+      comment,
+      created_at,
+      user:user_profiles(id, first_name, surname, avatar_url)
+    `)
+    .eq('listing_id', store.id)
+    .eq('listing_type', 'store')
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  if (reviewsError) {
+    console.error('Error fetching reviews:', reviewsError)
+  }
+
+  // Calculate average rating and total count
+  const { data: ratingData, error: ratingError } = await supabase
+    .from('reviews')
+    .select('rating')
+    .eq('listing_id', store.id)
+    .eq('listing_type', 'store')
+
+  let averageRating = 0
+  let reviewCount = 0
+
+  if (!ratingError && ratingData) {
+    reviewCount = ratingData.length
+    if (reviewCount > 0) {
+      const totalRating = ratingData.reduce((sum, r) => sum + (r.rating ?? 0), 0)
+      averageRating = Math.round((totalRating / reviewCount) * 10) / 10
+    }
+  }
+
+  // Fetch store categories for the edit dropdown
+  const { data: categories } = await supabase
+    .from('store_categories')
+    .select('id, name')
+    .order('name')
+
+  return data(
+    {
+      store: {
+        id: store.id,
+        name: store.business_name,
+        description: store.description ?? '',
+        category: store.category?.name ?? 'Uncategorized',
+        categoryId: store.category?.id ?? '',
+        logoUrl: store.logo_url ?? '',
+        headerUrl: store.header_url ?? '',
+        verified: store.verified_badge ?? false,
+        rating: averageRating,
+        reviewCount,
+      },
+      reviews: (reviews ?? []).map((r) => ({
+        id: r.id,
+        author: r.user ? `${r.user.first_name ?? ''} ${r.user.surname ?? ''}`.trim() || 'Anonymous' : 'Anonymous',
+        avatar: r.user?.avatar_url ?? '',
+        rating: r.rating ?? 0,
+        date: formatRelativeDate(r.created_at),
+        comment: r.comment ?? '',
+      })),
+      categories: categories ?? [],
+    },
+    { headers }
+  )
 }
 
-export const action = async () => {
-  // TODO: handle profile update
-  // TODO: Ensure you switch the button type on the profile update button and bring the logic from the function into here
-  return null
+// Helper function to format relative dates
+function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 14) return '1 week ago'
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  if (diffDays < 60) return '1 month ago'
+  return `${Math.floor(diffDays / 30)} months ago`
+}
+
+export const action = async ({ request }: Route.ActionArgs) => {
+  const { supabase, headers } = createSupabaseServerClient(request)
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return redirect('/login', { headers })
+  }
+
+  const formData = await request.formData()
+  const intent = formData.get('intent') as string
+
+  // Get user's store
+  const { data: store } = await supabase
+    .from('stores')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!store) {
+    return { error: 'Store not found' }
+  }
+
+  if (intent === 'updateAbout') {
+    const storeName = formData.get('storeName') as string
+    const storeCategory = formData.get('storeCategory') as string
+    const storeDescription = formData.get('storeDescription') as string
+
+    if (!storeName || !storeCategory) {
+      return { error: 'Name and category are required' }
+    }
+
+    const { error } = await supabase
+      .from('stores')
+      .update({
+        business_name: storeName,
+        category_id: storeCategory,
+        description: storeDescription,
+      })
+      .eq('id', store.id)
+
+    if (error) {
+      console.error('Error updating store:', error)
+      return data({ error: 'Failed to update store information' }, { headers })
+    }
+
+    return { success: true }
+  }
+
+  if (intent === 'updateHeader') {
+    const headerFile = formData.get('headerImage') as File
+
+    if (!(headerFile instanceof File) || headerFile.size === 0) {
+      return { error: 'No header image provided' }
+    }
+
+    // Upload to storage
+    const fileExt = headerFile.name.split('.').pop()
+    const filePath = `${user.id}/header-${Date.now()}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('store_header_images')
+      .upload(filePath, headerFile, { contentType: headerFile.type, upsert: true })
+
+    if (uploadError) {
+      console.error('Error uploading header:', uploadError)
+      return { error: 'Failed to upload header image' }
+    }
+
+    const { data: publicUrl } = supabase.storage.from('store_header_images').getPublicUrl(filePath)
+
+    const { error: updateError } = await supabase
+      .from('stores')
+      .update({ header_url: publicUrl.publicUrl })
+      .eq('id', store.id)
+
+    if (updateError) {
+      console.error('Error updating header URL:', updateError)
+      return { error: 'Failed to update header' }
+    }
+
+    return { success: true }
+  }
+
+  if (intent === 'updateLogo') {
+    const logoFile = formData.get('logoImage') as File
+
+    if (!(logoFile instanceof File) || logoFile.size === 0) {
+      return { error: 'No logo image provided' }
+    }
+
+    // Upload to storage
+    const fileExt = logoFile.name.split('.').pop()
+    const filePath = `${user.id}/logo-${Date.now()}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('store_logos')
+      .upload(filePath, logoFile, { contentType: logoFile.type, upsert: true })
+
+    if (uploadError) {
+      console.error('Error uploading logo:', uploadError)
+      return { error: 'Failed to upload logo image' }
+    }
+
+    const { data: publicUrl } = supabase.storage.from('store_logos').getPublicUrl(filePath)
+
+    const { error: updateError } = await supabase
+      .from('stores')
+      .update({ logo_url: publicUrl.publicUrl })
+      .eq('id', store.id)
+
+    if (updateError) {
+      console.error('Error updating logo URL:', updateError)
+      return { error: 'Failed to update logo' }
+    }
+
+    return { success: true }
+  }
+
+  return { error: 'Unknown action' }
 }
 
 // Star Rating Component
@@ -120,65 +298,79 @@ const ReviewCard = ({
   )
 }
 
-export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
-  
-  const { store, reviews } = loaderData;
+export const VendorProfile = ({ loaderData }: Route.ComponentProps) => {
+  const { store, reviews, categories } = loaderData
 
   // Edit states
   const [isEditingAbout, setIsEditingAbout] = useState(false)
   const [editName, setEditName] = useState(store.name)
-  const [editCategory, setEditCategory] = useState(store.category)
+  const [editCategory, setEditCategory] = useState(store.categoryId)
   const [editDescription, setEditDescription] = useState(store.description)
 
   // File input refs
   const headerInputRef = useRef<HTMLInputElement>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
+  const headerFormRef = useRef<HTMLFormElement>(null)
+  const logoFormRef = useRef<HTMLFormElement>(null)
 
   // Preview states for images
   const [headerPreview, setHeaderPreview] = useState(store.headerUrl)
   const [logoPreview, setLogoPreview] = useState(store.logoUrl)
 
+  // Blob URL refs for cleanup
+  const headerBlobRef = useRef<string | null>(null)
+  const logoBlobRef = useRef<string | null>(null)
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (headerBlobRef.current) URL.revokeObjectURL(headerBlobRef.current)
+      if (logoBlobRef.current) URL.revokeObjectURL(logoBlobRef.current)
+    }
+  }, [])
+
   const handleHeaderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      const url = URL.createObjectURL(file)
-      setHeaderPreview(url)
-      // TODO: upload to Supabase
-    }
+      // Revoke previous blob URL
+      if (headerBlobRef.current) {
+        URL.revokeObjectURL(headerBlobRef.current)
+      }
 
-    // After uploading revoke url
-    if (headerPreview){
-      URL.revokeObjectURL(headerPreview);
+      const url = URL.createObjectURL(file)
+      headerBlobRef.current = url
+      setHeaderPreview(url)
+
+      // Auto-submit the form
+      headerFormRef.current?.requestSubmit()
     }
   }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      // Revoke previous blob URL
+      if (logoBlobRef.current) {
+        URL.revokeObjectURL(logoBlobRef.current)
+      }
+
       const url = URL.createObjectURL(file)
+      logoBlobRef.current = url
       setLogoPreview(url)
-      // TODO: upload to Supabase
-    }
 
-    // After uploading revoke url
-    if (logoPreview){
-      URL.revokeObjectURL(logoPreview);
+      // Auto-submit the form
+      logoFormRef.current?.requestSubmit()
     }
-  }
-
-  const handleSaveAbout = () => {
-    // TODO: save to database
-    setIsEditingAbout(false)
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 lg:p-6">
+    <div className="flex flex-col gap-6">
       {/* Page Title */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-foreground">Store Profile</h1>
         <div className="flex items-center gap-2">
           <Link
-            to={`/marketplace/vendors/${store.id}`}
+            to={`/marketplace/stores/${store.id}`}
             target="_blank"
             className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
           >
@@ -214,13 +406,17 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
           >
             <FaCamera className="h-4 w-4" /> Edit Cover
           </button>
-          <input
-            ref={headerInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleHeaderUpload}
-            className="hidden"
-          />
+          {/* Hidden form for header upload */}
+          <Form ref={headerFormRef} method="post" encType="multipart/form-data" className="hidden">
+            <input type="hidden" name="intent" value="updateHeader" />
+            <input
+              ref={headerInputRef}
+              type="file"
+              name="headerImage"
+              accept="image/*"
+              onChange={handleHeaderUpload}
+            />
+          </Form>
         </div>
 
         {/* Logo */}
@@ -243,13 +439,17 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
             >
               <FaPen className="h-3 w-3" />
             </button>
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleLogoUpload}
-              className="hidden"
-            />
+            {/* Hidden form for logo upload */}
+            <Form ref={logoFormRef} method="post" encType="multipart/form-data" className="hidden">
+              <input type="hidden" name="intent" value="updateLogo" />
+              <input
+                ref={logoInputRef}
+                type="file"
+                name="logoImage"
+                accept="image/*"
+                onChange={handleLogoUpload}
+              />
+            </Form>
           </div>
         </div>
       </div>
@@ -280,6 +480,7 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
       >
         {isEditingAbout ? (
           <Form method="post" className="flex flex-col gap-4">
+            <input type="hidden" name="intent" value="updateAbout" />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="flex flex-col gap-1">
                 <span className="text-sm font-medium text-foreground">Business Name</span>
@@ -289,6 +490,7 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   className="rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
                 />
               </label>
               <label className="flex flex-col gap-1">
@@ -298,10 +500,12 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
                   value={editCategory}
                   onChange={(e) => setEditCategory(e.target.value)}
                   className="rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
                 >
-                  {CATEGORY_OPTIONS.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>
@@ -323,7 +527,7 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
                 onClick={() => {
                   setIsEditingAbout(false)
                   setEditName(store.name)
-                  setEditCategory(store.category)
+                  setEditCategory(store.categoryId)
                   setEditDescription(store.description)
                 }}
                 className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
@@ -331,8 +535,7 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
                 <FaTimes className="h-3 w-3" /> Cancel
               </button>
               <button
-                type="button"
-                onClick={handleSaveAbout}
+                type="submit"
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
               >
                 Save Changes
@@ -355,7 +558,9 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-foreground/60">Description</span>
-              <p className="text-sm text-foreground/80">{store.description}</p>
+              <p className="text-sm text-foreground/80">
+                {store.description || 'No description provided.'}
+              </p>
             </div>
           </div>
         )}
@@ -373,19 +578,21 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
             <span className="text-foreground/60">/5</span>
           </div>
           <span className="text-sm text-foreground/70">
-            Based on {store.reviewCount.toLocaleString()} reviews
+            Based on {store.reviewCount.toLocaleString()} review{store.reviewCount !== 1 ? 's' : ''}
           </span>
         </div>
 
         {/* Reviews List */}
         <div className="flex flex-col gap-4">
-          {reviews.map((review) => (
-            <ReviewCard key={review.id} review={review} />
-          ))}
+          {reviews.length === 0 ? (
+            <p className="text-sm text-foreground/60">No reviews yet.</p>
+          ) : (
+            reviews.map((review) => <ReviewCard key={review.id} review={review} />)
+          )}
         </div>
 
         {/* View All Link */}
-        {reviews.length > 0 && (
+        {store.reviewCount > reviews.length && (
           <div className="mt-4 text-center">
             <Link
               to="/vendor/reviews"
@@ -400,4 +607,4 @@ export const VendorProfile = ({loaderData}: Route.ComponentProps) => {
   )
 }
 
-export default VendorProfile   
+export default VendorProfile
