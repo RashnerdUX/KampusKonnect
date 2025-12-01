@@ -48,9 +48,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
     return { error: 'Failed to save interests' }
   }
 
-  // Mark onboarding as complete
-
-  return redirect('/marketplace', { headers })
+  return redirect('/onboarding/complete', { headers })
 }
 
 export const loader = async ({ request }: Route.LoaderArgs) => {

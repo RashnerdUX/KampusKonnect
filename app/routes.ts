@@ -21,6 +21,7 @@ export default [
     route("student/interests", "routes/onboarding/student.interests.tsx"),
     route("vendor/profile", "routes/onboarding/vendor.profile.tsx"),
     route("vendor/store", "routes/onboarding/vendor.store.tsx"),
+    route("complete", "routes/onboarding/onboarding.complete.tsx"),
   ]),
 
   // Marketplace Routes

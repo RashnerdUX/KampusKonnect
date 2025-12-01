@@ -108,7 +108,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
   }
 
   console.log("Store created for the user", user.email)
-  return redirect('/vendor', { headers })
+  return redirect('/onboarding/complete', { headers })
 }
 
 export const loader = async ({request}: Route.LoaderArgs) => {
