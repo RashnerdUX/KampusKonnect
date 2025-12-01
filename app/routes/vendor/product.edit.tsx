@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react'
-import type { Route } from './+types/product.add'
+import type { Route } from './+types/product.edit'
 import { Form, redirect, data, useNavigate } from 'react-router'
 import { FaCloudArrowUp } from 'react-icons/fa6'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 
-export const meta = (_args: Route.MetaArgs) => {
+export const meta = ({ data }: Route.MetaArgs) => {
+  const productName = data?.product?.title ?? 'Edit Product'
   return [
-    { title: 'Add Product - Vendor Dashboard - Campex' },
-    { name: 'description', content: 'Add a new product to your vendor store on Campex.' },
-    { name: 'keywords', content: 'Campex, Vendor, Add Product' },
+    { title: `${productName} - Edit - Campex` },
+    { name: 'description', content: `Edit ${productName} on your vendor store.` },
+    { name: 'keywords', content: 'Campex, Vendor, Edit Product' },
   ]
 }
 
-export const loader = async ({ request }: Route.LoaderArgs) => {
+export const loader = async ({ request, params }: Route.LoaderArgs) => {
   const { supabase, headers } = createSupabaseServerClient(request)
+  const { productId } = params
 
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -32,6 +34,28 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
     return redirect('/onboarding/vendor/store', { headers })
   }
 
+  // Fetch the product
+  const { data: product, error: productError } = await supabase
+    .from('store_listings')
+    .select(`
+      id,
+      title,
+      description,
+      price,
+      image_url,
+      is_active,
+      category_id,
+      stock_quantity
+    `)
+    .eq('id', productId)
+    .eq('store_id', store.id)
+    .single()
+
+  if (productError || !product) {
+    console.error('Error fetching product:', productError)
+    return redirect('/vendor/products', { headers })
+  }
+
   // Fetch product categories
   const { data: categories, error: categoriesError } = await supabase
     .from('categories')
@@ -42,20 +66,23 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
     console.error('Error fetching categories:', categoriesError)
   }
 
-  return data({ categories: categories ?? [] }, { headers })
+  return data({ product, categories: categories ?? [], storeId: store.id }, { headers })
 }
 
-export const action = async ({ request }: Route.ActionArgs) => {
+export const action = async ({ request, params }: Route.ActionArgs) => {
   const formData = await request.formData()
+  const { productId } = params
 
   const productTitle = formData.get('productTitle') as string
   const productDescription = formData.get('productDescription') as string
   const productPrice = formData.get('productPrice') as string
   const productCategory = formData.get('productCategory') as string
   const stockQuantity = formData.get('stockQuantity') as string
+  const isActive = formData.get('isActive') === 'true'
   const imageFile = formData.get('imageUpload')
+  const existingImageUrl = formData.get('existingImageUrl') as string
 
-  // Safe guards for form fields
+  // Validations
   if (typeof productTitle !== 'string' || productTitle.length === 0) {
     return { error: 'Product title is required' }
   }
@@ -72,29 +99,10 @@ export const action = async ({ request }: Route.ActionArgs) => {
     return { error: 'Valid stock quantity is required' }
   }
 
-  // Debug
-  console.log('Received form data:', {
-    productTitle,
-    productDescription,
-    productPrice,
-    productCategory,
-    stockQuantity,
-    imageFile,
-  })
-
-  // Type guard: ensure it's a File (not a string)
-  if (!(imageFile instanceof File) || imageFile.size === 0) {
-    console.error('No image uploaded')
-    return { error: 'No image uploaded' }
-  }
-
-  // Create the client
   const { supabase, headers } = createSupabaseServerClient(request)
 
-  // Get the current user's session
   const { data: { user }, error: sessionError } = await supabase.auth.getUser()
   if (sessionError || !user) {
-    console.error("The user isn't authenticated")
     return { error: 'Not authenticated' }
   }
 
@@ -106,72 +114,93 @@ export const action = async ({ request }: Route.ActionArgs) => {
     .single()
 
   if (storeError || !store) {
-    console.error('Error fetching store: ', storeError)
-    return { error: 'Store not found. Please create a store first.' }
+    return { error: 'Store not found.' }
   }
 
-  // Build a unique path for the image (user.id as first folder)
-  const fileExt = imageFile.name.split('.').pop()
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
-  const imagePath = `${user.id}/${fileName}`
-
-  // Upload image to Supabase Storage
-  console.log('Uploading image to storage at path: ', imagePath)
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from('product-images')
-    .upload(imagePath, imageFile, {
-      contentType: imageFile.type,
-      upsert: false,
-    })
-
-  if (uploadError) {
-    console.error('Error uploading image: ', uploadError)
-    return { error: uploadError.message }
-  }
-
-  // Get the public URL
-  const { data: publicUrlData } = supabase.storage
-    .from('product-images')
-    .getPublicUrl(imagePath)
-
-  const imageUrl = publicUrlData.publicUrl
-
-  // Upload the product
-  console.log('Inserting product into database')
-  const { data: insertData, error: insertError } = await supabase
+  // Verify the product belongs to this store
+  const { data: existingProduct, error: existingError } = await supabase
     .from('store_listings')
-    .insert([
-      {
-        store_id: store.id,
-        title: productTitle,
-        description: productDescription,
-        price: parseFloat(productPrice),
-        category_id: productCategory,
-        stock_quantity: parseInt(stockQuantity, 10),
-        image_url: imageUrl,
-      },
-    ])
-    .select()
+    .select('id, image_url')
+    .eq('id', productId)
+    .eq('store_id', store.id)
+    .single()
 
-  if (insertError) {
-    console.error('Error uploading product: ', insertError)
-    return { error: insertError.message }
+  if (existingError || !existingProduct) {
+    return { error: 'Product not found or you do not have permission to edit it.' }
   }
 
-  console.log('Product added successfully: ', insertData)
+  let imageUrl = existingImageUrl
+
+  // Check if a new image was uploaded
+  if (imageFile instanceof File && imageFile.size > 0) {
+    // Delete old image if it exists
+    if (existingProduct.image_url) {
+      const oldPath = existingProduct.image_url.split('/product-images/')[1]
+      if (oldPath) {
+        await supabase.storage.from('product-images').remove([oldPath])
+      }
+    }
+
+    // Upload new image
+    const fileExt = imageFile.name.split('.').pop()
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
+    const imagePath = `${user.id}/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(imagePath, imageFile, {
+        contentType: imageFile.type,
+        upsert: false,
+      })
+
+    if (uploadError) {
+      console.error('Error uploading image:', uploadError)
+      return { error: uploadError.message }
+    }
+
+    // Get the public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(imagePath)
+
+    imageUrl = publicUrlData.publicUrl
+  }
+
+  // Update the product
+  const { error: updateError } = await supabase
+    .from('store_listings')
+    .update({
+      title: productTitle,
+      description: productDescription,
+      price: parseFloat(productPrice),
+      category_id: productCategory,
+      stock_quantity: parseInt(stockQuantity, 10),
+      image_url: imageUrl,
+      is_active: isActive,
+    })
+    .eq('id', productId)
+    .eq('store_id', store.id)
+
+  if (updateError) {
+    console.error('Error updating product:', updateError)
+    return { error: updateError.message }
+  }
+
   return redirect('/vendor/products', { headers })
 }
 
-export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
+export const EditProduct = ({ loaderData, actionData }: Route.ComponentProps) => {
+  const { product, categories } = loaderData ?? { product: null, categories: [] }
   const navigate = useNavigate()
-  const { categories } = loaderData ?? { categories: [] }
 
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [productTitle, setProductTitle] = useState<string>('')
-  const [productDescription, setProductDescription] = useState<string>('')
-  const [productPrice, setProductPrice] = useState<number | null>(null)
-  const [productCategory, setProductCategory] = useState<string>('')
-  const [stockQuantity, setStockQuantity] = useState<number | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(product?.image_url ?? null)
+  const [hasNewImage, setHasNewImage] = useState(false)
+  const [productTitle, setProductTitle] = useState<string>(product?.title ?? '')
+  const [productDescription, setProductDescription] = useState<string>(product?.description ?? '')
+  const [productPrice, setProductPrice] = useState<number | null>(product?.price ?? null)
+  const [productCategory, setProductCategory] = useState<string>(product?.category_id ?? '')
+  const [stockQuantity, setStockQuantity] = useState<number | null>(product?.stock_quantity ?? null)
+  const [isActive, setIsActive] = useState<boolean>(product?.is_active ?? true)
 
   const blobUrlRef = useRef<string | null>(null)
 
@@ -189,12 +218,13 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
       const previewUrl = URL.createObjectURL(file)
       blobUrlRef.current = previewUrl
       setImagePreview(previewUrl)
+      setHasNewImage(true)
     }
   }
 
   useEffect(() => {
     return () => {
-      // Remove the URL when unmounting
+      // Remove the blob URL when unmounting
       if (blobUrlRef.current) {
         URL.revokeObjectURL(blobUrlRef.current)
         blobUrlRef.current = null
@@ -205,36 +235,65 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
   // Get selected category name for preview
   const selectedCategoryName = categories.find((c) => c.id === productCategory)?.name ?? ''
 
+  if (!product) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-12">
+        <p className="text-foreground/60">Product not found.</p>
+        <button
+          onClick={() => navigate('/vendor/products')}
+          className="rounded-full bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
+        >
+          Back to Products
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div className='flex items-center gap-4'>
+      <div className="flex items-center gap-4">
         <button
-            onClick={() => navigate('/vendor/products')}
-            className="rounded-full p-2 text-foreground/60 transition hover:bg-muted hover:text-foreground"
-            aria-label="Go back to products"
+          onClick={() => navigate('/vendor/products')}
+          className="rounded-full p-2 text-foreground/60 transition hover:bg-muted hover:text-foreground"
+          aria-label="Go back to products"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-2xl font-bold text-foreground">Add Product</h1>
+        <h1 className="text-2xl font-bold text-foreground">Edit Product</h1>
       </div>
+
+      {actionData?.error && (
+        <div className="rounded-lg bg-red-100 p-4 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+          {actionData.error}
+        </div>
+      )}
 
       <main className="flex flex-col gap-4 lg:flex-row lg:gap-6">
         {/* The form for submission */}
         <div className="flex h-full w-full flex-col gap-4 rounded-2xl bg-card p-4 lg:w-[70%]">
           <Form method="post" encType="multipart/form-data">
+            {/* Hidden field to preserve existing image URL */}
+            <input type="hidden" name="existingImageUrl" value={product.image_url ?? ''} />
+            <input type="hidden" name="isActive" value={isActive.toString()} />
+
             {/* Image Upload */}
             <label
               htmlFor="imageUpload"
               className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border py-12 transition-colors hover:border-primary"
             >
               {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Product Preview"
-                  className="h-48 w-48 rounded-lg object-cover"
-                />
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Product Preview"
+                    className="h-48 w-48 rounded-lg object-cover"
+                  />
+                  <span className="mt-2 block text-center text-sm text-foreground/60">
+                    Click to change image
+                  </span>
+                </div>
               ) : (
                 <>
                   <FaCloudArrowUp className="size-16 text-foreground" />
@@ -349,21 +408,43 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
                   />
                 </div>
               </div>
+
+              {/* Status Toggle */}
+              <div className="flex items-center gap-3">
+                <label className="font-medium text-foreground">Product Status</label>
+                <button
+                  type="button"
+                  onClick={() => setIsActive(!isActive)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                    isActive ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      isActive ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+                <span className={`text-sm ${isActive ? 'text-green-600 dark:text-green-400' : 'text-foreground/60'}`}>
+                  {isActive ? 'Active (In Stock)' : 'Inactive (Out of Stock)'}
+                </span>
+              </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
+                onClick={() => navigate('/vendor/products')}
                 className="rounded-full px-4 py-2 text-base text-foreground hover:bg-muted"
               >
-                Save draft
+                Cancel
               </button>
               <button
                 type="submit"
                 className="rounded-full bg-primary px-4 py-2 text-base text-primary-foreground hover:bg-primary/90"
               >
-                Publish product
+                Save Changes
               </button>
             </div>
           </Form>
@@ -389,11 +470,23 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
             <h3 className="mt-4 text-xl font-bold text-foreground">
               {productTitle || 'Product Name'}
             </h3>
-            {selectedCategoryName && (
-              <span className="mt-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                {selectedCategoryName}
+            <div className="mt-1 flex items-center gap-2">
+              {selectedCategoryName && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  {selectedCategoryName}
+                </span>
+              )}
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                  isActive
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                }`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                {isActive ? 'Active' : 'Inactive'}
               </span>
-            )}
+            </div>
             <p className="mt-2 text-foreground/80">
               {productDescription || 'Product description will appear here...'}
             </p>
@@ -412,4 +505,4 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
   )
 }
 
-export default AddProduct
+export default EditProduct

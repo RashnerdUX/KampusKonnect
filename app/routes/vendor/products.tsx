@@ -157,7 +157,7 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {/* Search */}
         <form onSubmit={handleSearch} className="w-full sm:w-auto">
-          <label className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm focus-within:ring-2 focus-within:ring-primary">
+          <label className="flex items-center gap-2 rounded-full border border-border bg-foreground/5 px-4 py-2 text-sm focus-within:ring-2 focus-within:ring-primary">
             <FaSearch className="text-foreground/50" aria-hidden="true" />
             <input
               type="search"

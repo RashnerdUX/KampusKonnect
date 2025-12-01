@@ -43,6 +43,7 @@ export default [
     index("routes/vendor/index.tsx"),
     route("products", "routes/vendor/products.tsx"),
     route("products/add", "routes/vendor/product.add.tsx"),
+    route("products/:productId/edit", "routes/vendor/product.edit.tsx"),
     route("profile", "routes/vendor/profile.tsx"),
     route("settings", "routes/vendor/settings.tsx"),
   ]),
