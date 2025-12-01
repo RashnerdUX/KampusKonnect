@@ -10,8 +10,8 @@ import { handleGoogleLogin } from '~/utils/social_login';
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
-    { title: "Register - Kampus Konnect" }, 
-    { name: "description", content: "Create a Kampus Konnect account to connect with campus vendors near you." }
+    { title: "Register - Campex" }, 
+    { name: "description", content: "Create a Campex account to connect with campus vendors near you." }
   ];
 };
 
@@ -55,7 +55,8 @@ export async function action({ request} : Route.ActionArgs) {
                 username: String(username),
                 surname: String(surname),
                 first_name: String(first_name),
-            }
+            },
+            emailRedirectTo: `${new URL(request.url).origin}/auth/callback`,
         }
     });
 

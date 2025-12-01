@@ -1,34 +1,160 @@
 import React, { useState, useRef } from 'react'
-import { Form, Link } from 'react-router'
+import type { Route } from './+types/vendor.store';
+import { Form, Link, data, redirect } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaCamera, FaCloudUploadAlt } from 'react-icons/fa'
+import { requireAuth } from '~/utils/requireAuth'
+import { createSupabaseServerClient } from '~/utils/supabase.server'
+import type constants from 'constants';
 
-export const meta = () => {
+export const meta = (_args: Route.MetaArgs) => {
   return [
     { title: 'Create Your Store - Kampus Konnect' },
     { name: 'description', content: 'Set up your store on Kampus Konnect.' },
   ]
 }
 
-export const action = async () => {
-  // TODO: Save store to database
-  return null
+export const action = async ({ request }: Route.ActionArgs) => {
+  const { supabase } = createSupabaseServerClient(request)
+  const { user, headers } = await requireAuth(request)
+
+  // Verify user has vendor role before submitting
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'vendor') {
+    return redirect('/onboarding/role', { headers })
+  }
+
+  // Get form data
+  const formData = await request.formData()
+
+  const headerImage = formData.get('headerImage') as File
+  const logoImage = formData.get('logoImage') as File
+  const businessName = formData.get('businessName') as string
+  const storeCategory = formData.get('storeCategory') as string
+  const storeDescription = formData.get('storeDescription') as string
+
+  // Validate required fields
+  if (!logoImage || logoImage.size === 0) {
+    return { error: 'Logo image is required' }
+  }
+  if (!businessName || !storeCategory || !storeDescription) {
+    return { error: 'All fields are required' }
+  }
+
+  // Create unique file paths
+  const logoImagePath = `${user.id}/logo-${Date.now()}`
+  let headerUrl: string | null = null
+  let logoUrl: string | null = null
+
+  // Upload header image if provided
+  if (headerImage && headerImage.size > 0) {
+    const headerImagePath = `${user.id}/header-${Date.now()}`
+    const { data: headerData, error: headerError } = await supabase.storage
+      .from('store_header_images')
+      .upload(headerImagePath, headerImage)
+
+    if (headerError) {
+      console.error('Error uploading header image:', headerError)
+      return { error: 'Failed to upload header image' }
+    }
+
+    // Get public URL
+    const { data: headerPublicUrl } = supabase.storage
+      .from('store_header_images')
+      .getPublicUrl(headerData.path)
+    
+    headerUrl = headerPublicUrl.publicUrl
+  }
+
+  // Upload logo image
+  const { data: logoData, error: logoError } = await supabase.storage
+    .from('store_logos')
+    .upload(logoImagePath, logoImage)
+
+  if (logoError) {
+    console.error('Error uploading logo image:', logoError)
+    return { error: 'Failed to upload logo image' }
+  }
+
+  // Get public URL for logo
+  const { data: logoPublicUrl } = supabase.storage
+    .from('store_logos')
+    .getPublicUrl(logoData.path)
+
+  logoUrl = logoPublicUrl.publicUrl
+
+  // Create the store
+  console.log("Creating a store for the user", user.email)
+  const { data: store, error: storeError } = await supabase
+    .from('stores')
+    .insert({
+      user_id: user.id,
+      business_name: businessName,
+      category_id: storeCategory,
+      description: storeDescription,
+      logo_url: logoUrl,
+      header_url: headerUrl,
+    })
+    .select()
+    .single()
+
+  if (storeError) {
+    console.error('Error creating store:', storeError)
+    return { error: 'Failed to create store' }
+  }
+
+  console.log("Store created for the user", user.email)
+  return redirect('/vendor', { headers })
 }
 
-const STORE_CATEGORIES = [
-  { value: 'food', label: 'Food & Beverages' },
-  { value: 'electronics', label: 'Electronics & Gadgets' },
-  { value: 'fashion', label: 'Fashion & Accessories' },
-  { value: 'books', label: 'Books & Stationery' },
-  { value: 'beauty', label: 'Beauty & Personal Care' },
-  { value: 'services', label: 'Services' },
-  { value: 'health', label: 'Health & Wellness' },
-  { value: 'home', label: 'Home & Living' },
-  { value: 'art', label: 'Art & Crafts' },
-  { value: 'sports', label: 'Sports & Outdoor' },
-  { value: 'other', label: 'Other' },
-]
+export const loader = async ({request}: Route.LoaderArgs) => {
 
-export default function VendorStore() {
+    const {supabase, headers} = createSupabaseServerClient(request);
+
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+        return redirect('/login', { headers })
+    }
+
+    // Check if user has vendor role
+    const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    if (profileError || !profile) {
+        console.error('Error fetching profile:', profileError)
+        return redirect('/onboarding/role', { headers })
+    }
+
+    // Redirect non-vendors to appropriate path
+    if (profile.role !== 'vendor') {
+        if (profile.role === 'student') {
+        return redirect('/onboarding/student/profile', { headers })
+        }
+        return redirect('/onboarding/role', { headers })
+    }
+    
+    // Get store categories
+    const { data: store_categories, error } = await supabase
+    .from('store_categories')
+    .select('id, name')
+
+    if (error) {
+        console.error("Error fetching store categories:", error);
+    }
+    
+    return data({ store_categories: store_categories ?? [] }, { headers });
+}
+
+export default function VendorStore({loaderData, actionData}: Route.ComponentProps) {
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [headerPreview, setHeaderPreview] = useState<string | null>(null)
 
@@ -36,6 +162,10 @@ export default function VendorStore() {
   const headerInputRef = useRef<HTMLInputElement>(null)
   const logoBlobRef = useRef<string | null>(null)
   const headerBlobRef = useRef<string | null>(null)
+
+//   The store categories
+    const {store_categories} = loaderData;
+    const {error} = actionData || {};
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -65,6 +195,7 @@ export default function VendorStore() {
         <div className="mb-6 text-center">
           <h1 className="mb-2 text-2xl font-bold text-foreground">Create Your Store</h1>
           <p className="text-foreground/70">Set up your storefront to start selling</p>
+          {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
         </div>
 
         {/* Form */}
@@ -179,9 +310,9 @@ export default function VendorStore() {
                 className="rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Select a category</option>
-                {STORE_CATEGORIES.map((cat) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
+                {store_categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
                   </option>
                 ))}
               </select>

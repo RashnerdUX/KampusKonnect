@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
-import { Form, Link } from 'react-router'
+import type { Route } from './+types/student.interests';
+import { Form, Link, data, redirect } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaCheck } from 'react-icons/fa'
+import { createSupabaseServerClient } from '~/utils/supabase.server'
+import { requireAuth } from '~/utils/requireAuth'
 
 export const meta = () => {
   return [
@@ -9,25 +12,79 @@ export const meta = () => {
   ]
 }
 
-export const action = async () => {
-  // TODO: Save student interests to database
-  return null
+export const action = async ({ request }: Route.ActionArgs) => {
+  const { supabase, headers } = createSupabaseServerClient(request)
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return redirect('/login', { headers })
+  }
+
+  const formData = await request.formData()
+  const interests = formData.getAll('interests') as string[]
+
+  if (interests.length < 3) {
+    return { error: 'Please select at least 3 categories' }
+  }
+
+  // Delete existing interests (in case user goes back and resubmits)
+  await supabase
+    .from('user_interests')
+    .delete()
+    .eq('user_id', user.id)
+
+  // Insert new interests
+  const { error: insertError } = await supabase
+    .from('user_interests')
+    .insert(
+      interests.map((categoryId) => ({
+        user_id: user.id,
+        category_id: categoryId,
+      }))
+    )
+
+  if (insertError) {
+    console.error('Error saving interests:', insertError)
+    return { error: 'Failed to save interests' }
+  }
+
+  // Mark onboarding as complete
+
+  return redirect('/marketplace', { headers })
 }
 
-const CATEGORIES = [
-  { id: 'food', label: 'Food & Beverages', emoji: '🍔', description: 'Meals, snacks, drinks' },
-  { id: 'electronics', label: 'Electronics', emoji: '📱', description: 'Phones, laptops, gadgets' },
-  { id: 'fashion', label: 'Fashion', emoji: '👗', description: 'Clothes, shoes, accessories' },
-  { id: 'books', label: 'Books & Stationery', emoji: '📚', description: 'Textbooks, notes, supplies' },
-  { id: 'beauty', label: 'Beauty & Personal Care', emoji: '💄', description: 'Skincare, makeup, grooming' },
-  { id: 'services', label: 'Services', emoji: '🛠️', description: 'Laundry, repairs, tutoring' },
-  { id: 'health', label: 'Health & Wellness', emoji: '💪', description: 'Pharmacy, fitness, supplements' },
-  { id: 'home', label: 'Home & Living', emoji: '🏠', description: 'Bedding, decor, appliances' },
-  { id: 'entertainment', label: 'Entertainment', emoji: '🎮', description: 'Games, events, streaming' },
-  { id: 'transport', label: 'Transport', emoji: '🚗', description: 'Rides, deliveries, logistics' },
-  { id: 'art', label: 'Art & Crafts', emoji: '🎨', description: 'Handmade, custom designs' },
-  { id: 'sports', label: 'Sports & Outdoor', emoji: '⚽', description: 'Equipment, jerseys, gear' },
-]
+export const loader = async ({ request }: Route.LoaderArgs) => {
+  const { supabase, headers } = createSupabaseServerClient(request)
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    return redirect('/login', { headers })
+  }
+
+  // Check role
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'student') {
+    return redirect('/onboarding/role', { headers })
+  }
+
+  // Fetch categories from database
+  const { data: categories, error } = await supabase
+    .from('categories')
+    .select('id, slug, name, emoji, description')
+    .order('name')
+
+  if (error) {
+    console.error('Error fetching categories:', error)
+  }
+
+  return data({ categories: categories ?? [] }, { headers })
+}
 
 interface CategoryCardProps {
   id: string
@@ -71,7 +128,8 @@ const CategoryCard = ({ id, label, emoji, description, selected, onToggle }: Cat
   )
 }
 
-export default function StudentInterests() {
+export default function StudentInterests({ loaderData }: Route.ComponentProps) {
+  const { categories } = loaderData
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const toggleCategory = (id: string) => {
@@ -119,10 +177,13 @@ export default function StudentInterests() {
         <Form method="post">
           {/* Categories Grid */}
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <CategoryCard
                 key={category.id}
-                {...category}
+                id={category.id}
+                label={category.name}
+                emoji={category.emoji ?? '📦'}
+                description={category.description ?? ''}
                 selected={selectedIds.has(category.id)}
                 onToggle={toggleCategory}
               />

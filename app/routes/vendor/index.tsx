@@ -20,7 +20,7 @@ export const DashboardHome = () => {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Total Revenue"
-          value="$6,659"
+          value="₦6,659"
           icon={<FaDollarSign className="h-5 w-5" />}
           trendPercent={2.3}
           trendDirection="up"

@@ -1,6 +1,9 @@
 import React from 'react'
-import { Form, Link } from 'react-router'
+import type { Route } from './+types/vendor.profile'
+import { Form, Link, redirect, data } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaStore } from 'react-icons/fa'
+import { createSupabaseServerClient } from '~/utils/supabase.server'
+import { requireAuth } from '~/utils/requireAuth'
 
 export const meta = () => {
   return [
@@ -9,12 +12,76 @@ export const meta = () => {
   ]
 }
 
-export const action = async () => {
-  // TODO: Save vendor profile to database
-  return null
+export const action = async ({request}: Route.ActionArgs) => {
+
+    const formData = await request.formData();
+    // Get all data provided from the form
+    const surname = formData.get("surname") as string;
+    const firstName = formData.get("firstName") as string;
+    const phone = formData.get("phone") as string;
+    const whatsapp = formData.get("whatsapp") as string;
+    const university = formData.get("university") as string;
+
+
+    const { supabase, headers } = createSupabaseServerClient(request);
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return redirect("/login", { headers });
+    }
+
+    // Update the vendor profile in the database
+    console.log("Updating the user profile now");
+
+    const { data, error } = await supabase
+        .from('user_profiles')
+        .update({
+            surname: surname,
+            first_name: firstName,
+            phone_number: phone,
+            whatsapp_number: whatsapp,
+            university_id: university,
+        })
+        .eq('id', user.id)
+        .select()
+
+    if (error) {
+        console.error("Error updating vendor profile:", error);
+        return redirect("/onboarding/vendor/profile", { headers  });
+    }        
+  
+    console.log("Updated the User profile")
+  return redirect("/onboarding/vendor/store", { headers  });
 }
 
-export default function VendorProfile() {
+export const loader = async({request}: Route.LoaderArgs) => {
+
+    // Get default data
+    const { user, headers} = await requireAuth(request); 
+    const userEmail = user.email;
+    const firstName = user.user_metadata.first_name;
+    const surname = user.user_metadata.surname;
+
+    const {supabase} = createSupabaseServerClient(request);
+
+    // Get the list of universities
+    let { data: universities, error } = await supabase
+        .from('universities')
+        .select('id, name');
+
+    if (error) {
+        console.error("Error fetching universities:", error);
+        universities = [];
+    }
+    
+    return data({ userEmail, firstName, surname, universities }, { headers: headers });
+}
+
+export default function VendorProfile({loaderData}: Route.ComponentProps) {
+
+    const { userEmail, firstName, surname, universities } = loaderData;
+
   return (
     <div className="w-full max-w-2xl">
       {/* Card */}
@@ -42,6 +109,7 @@ export default function VendorProfile() {
                 type="text"
                 name="surname"
                 placeholder="Enter your surname"
+                defaultValue={surname}
                 required
                 className="rounded-xl border border-border bg-background px-4 py-3 text-sm placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -54,6 +122,7 @@ export default function VendorProfile() {
                 type="text"
                 name="firstName"
                 placeholder="Enter your first name"
+                defaultValue={firstName}
                 required
                 className="rounded-xl border border-border bg-background px-4 py-3 text-sm placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -67,6 +136,7 @@ export default function VendorProfile() {
               type="email"
               name="email"
               placeholder="your@email.com"
+              defaultValue={userEmail}
               disabled
               className="rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/60"
             />
@@ -104,23 +174,23 @@ export default function VendorProfile() {
             </span>
           </label>
 
-          {/* Location */}
+
+          {/* University */}
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-foreground">
-              Primary Location <span className="text-red-500">*</span>
+              University <span className="text-red-500">*</span>
             </span>
             <select
-              name="location"
+              name="university"
               required
               className="rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">Select your primary campus</option>
-              <option value="unilag">University of Lagos</option>
-              <option value="ui">University of Ibadan</option>
-              <option value="oau">Obafemi Awolowo University</option>
-              <option value="unn">University of Nigeria, Nsukka</option>
-              <option value="abu">Ahmadu Bello University</option>
-              <option value="multiple">Multiple Locations</option>
+              <option value="">Select your university</option>
+              {universities?.map((uni) => (
+                <option key={uni.id} value={uni.id}>
+                  {uni.name}
+                </option>
+              ))}
             </select>
           </label>
 

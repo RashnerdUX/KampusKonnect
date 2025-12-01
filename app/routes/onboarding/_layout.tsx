@@ -1,5 +1,7 @@
 import React from 'react'
-import { Outlet, useLocation } from 'react-router'
+import { Outlet, useLocation, data } from 'react-router'
+import type { Route } from '../onboarding/+types/_layout'
+import { requireAuth } from '~/utils/requireAuth'
 
 const ONBOARDING_STEPS = [
   { path: '/onboarding/role', label: 'Choose Role' },
@@ -12,6 +14,11 @@ export const meta = () => {
     { title: 'Onboarding - Kampus Konnect' },
     { name: 'description', content: 'Complete your profile to get started.' },
   ]
+}
+
+export async function loader({request}: Route.LoaderArgs){
+    const { user, headers} = await requireAuth(request);
+    return data({ user }, { headers: headers });
 }
 
 export default function OnboardingLayout() {

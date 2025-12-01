@@ -1,6 +1,8 @@
 import React from 'react'
-import { Link } from 'react-router'
+import type { Route } from './+types/role'
+import { redirect, Form } from 'react-router'
 import { FaGraduationCap, FaStore, FaArrowRight } from 'react-icons/fa'
+import { createSupabaseServerClient } from '~/utils/supabase.server'
 
 export const meta = () => {
   return [
@@ -9,22 +11,59 @@ export const meta = () => {
   ]
 }
 
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData()
+  const role = formData.get('role') as string
+
+  console.log('Here\'s the selected role:', role)
+
+  if (role !== 'student' && role !== 'vendor') {
+    console.error('Invalid role selected:', role)
+    return redirect('/onboarding/role')
+  }
+
+  const { supabase, headers } = createSupabaseServerClient(request)
+  const { data: { user } } = await supabase.auth.getUser()
+
+    // If the user isn't logged in, refer to login
+  if (!user) {
+    return redirect('/login', { headers })
+  }
+
+  // Update the user role in the database
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ role: role })
+    .eq('id', user.id)
+
+    console.log("Updated the student's role to this", role)
+    
+    if (error) {
+        console.error('Error updating user role:', error)
+        return redirect('/onboarding/role', { headers })
+    }
+
+  if (role === 'student') {
+    return redirect('/onboarding/student/profile', { headers })
+  } else if (role === 'vendor') {
+    return redirect('/onboarding/vendor/profile', { headers })
+  }
+}
+
 interface RoleCardProps {
   icon: React.ReactNode
   title: string
   description: string
   features: string[]
-  to: string
   variant: 'student' | 'vendor'
 }
 
-const RoleCard = ({ icon, title, description, features, to, variant }: RoleCardProps) => {
+const RoleCard = ({ icon, title, description, features, variant }: RoleCardProps) => {
   const isStudent = variant === 'student'
 
   return (
-    <Link
-      to={to}
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 bg-card p-6 transition-all hover:shadow-xl ${
+    <div
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border-2 bg-card p-6 text-left transition-all hover:shadow-xl ${
         isStudent
           ? 'border-blue-200 hover:border-blue-400 dark:border-blue-800 dark:hover:border-blue-600'
           : 'border-orange-200 hover:border-orange-400 dark:border-orange-800 dark:hover:border-orange-600'
@@ -40,7 +79,7 @@ const RoleCard = ({ icon, title, description, features, to, variant }: RoleCardP
       />
 
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-1 flex-col">
         {/* Icon */}
         <div
           className={`mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ${
@@ -57,7 +96,7 @@ const RoleCard = ({ icon, title, description, features, to, variant }: RoleCardP
         <p className="mb-4 text-sm text-foreground/70">{description}</p>
 
         {/* Features */}
-        <ul className="mb-6 space-y-2">
+        <ul className="mb-6 flex-1 space-y-2">
           {features.map((feature, index) => (
             <li key={index} className="flex items-center gap-2 text-sm text-foreground/80">
               <span
@@ -80,7 +119,7 @@ const RoleCard = ({ icon, title, description, features, to, variant }: RoleCardP
           <FaArrowRight className="h-4 w-4" />
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
 
@@ -94,35 +133,49 @@ export default function RoleSelection() {
       </div>
 
       {/* Role Cards */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <RoleCard
-          icon={<FaGraduationCap className="h-8 w-8" />}
-          title="Student"
-          description="Discover products and services from campus vendors."
-          features={[
-            'Browse products from verified vendors',
-            'Get exclusive student discounts',
-            'Connect with campus businesses',
-            'Save favorites and track orders',
-          ]}
-          to="/onboarding/student/profile"
-          variant="student"
-        />
+      <Form method="post">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <button
+            type="submit"
+            name="role"
+            value="student"
+            className="h-full w-full cursor-pointer"
+          >
+            <RoleCard
+              icon={<FaGraduationCap className="h-8 w-8" />}
+              title="Student"
+              description="Discover products and services from campus vendors."
+              features={[
+                'Browse products from verified vendors',
+                'Get exclusive student discounts',
+                'Connect with campus businesses',
+                'Save favorites and track orders',
+              ]}
+              variant="student"
+            />
+          </button>
 
-        <RoleCard
-          icon={<FaStore className="h-8 w-8" />}
-          title="Vendor"
-          description="Sell your products and services to campus students."
-          features={[
-            'Create your online store',
-            'Reach thousands of students',
-            'Manage products and orders',
-            'Get verified seller badge',
-          ]}
-          to="/onboarding/vendor/profile"
-          variant="vendor"
-        />
-      </div>
+          <button
+            type="submit"
+            name="role"
+            value="vendor"
+            className="h-full w-full cursor-pointer"
+          >
+            <RoleCard
+              icon={<FaStore className="h-8 w-8" />}
+              title="Vendor"
+              description="Sell your products and services to campus students."
+              features={[
+                'Create your online store',
+                'Reach thousands of students',
+                'Manage products and orders',
+                'Get verified seller badge',
+              ]}
+              variant="vendor"
+            />
+          </button>
+        </div>
+      </Form>
 
       {/* Note */}
       <p className="mt-8 text-center text-sm text-foreground/60">

@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
+import type { Route } from './+types/products'
 import { FaPlus, FaFilter, FaSort, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
-import { useNavigate } from 'react-router'
+import { useNavigate, redirect, useSearchParams } from 'react-router'
+import { createSupabaseServerClient } from '~/utils/supabase.server'
 
-import ProductRow, { type ProductRowProps, type ProductStatus } from '~/components/dashboard/ProductRow'
+import ProductRow from '~/components/dashboard/ProductRow'
 
 export const meta = () => {
   return [
@@ -12,28 +14,123 @@ export const meta = () => {
   ]
 }
 
-// Sample data – replace with loader data
-const sampleProducts: Omit<ProductRowProps, 'onDelete' | 'onEdit' | 'selected' | 'onSelect'>[] = [
-  { id: '1', name: 'Mens T-shirt', imageUrl: '', category: 'Clothes', status: 'out-of-stock', stock: 449, price: 172 },
-  { id: '2', name: 'Leather Hand Bag', imageUrl: '', category: 'Bag', status: 'in-stock', stock: 223, price: 112 },
-  { id: '3', name: 'Pure Leather Male Shoe', imageUrl: '', category: 'Shoe', status: 'coming-soon', stock: 98, price: 152 },
-  { id: '4', name: 'Stylish Shoe', imageUrl: '', category: 'Shoe', status: 'out-of-stock', stock: 74, price: 195 },
-  { id: '5', name: 'Nike Airforce X7', imageUrl: '', category: 'Shoe', status: 'in-stock', stock: 243, price: 170 },
-  { id: '6', name: 'Man Watch', imageUrl: '', category: 'Watch', status: 'coming-soon', stock: 87, price: 142 },
-  { id: '7', name: 'Casual Sunglass', imageUrl: '', category: 'Sunglass', status: 'out-of-stock', stock: 12, price: 170 },
-]
+export const loader = async ({ request }: Route.LoaderArgs) => {
+  const { supabase, headers } = createSupabaseServerClient(request)
+  const url = new URL(request.url)
 
-export const loader = async () => {
-  return null
+  // Get pagination params from URL
+  const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10))
+  const perPage = Math.min(50, Math.max(10, parseInt(url.searchParams.get('perPage') ?? '10', 10)))
+  const search = url.searchParams.get('search') ?? ''
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return redirect('/login', { headers })
+  }
+
+  // Get the store associated with this user
+  const { data: store, error: storeError } = await supabase
+    .from('stores')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (storeError || !store) {
+    console.error('Error fetching store:', storeError)
+    return redirect('/onboarding/vendor/store', { headers })
+  }
+
+  // Build the query
+  let query = supabase
+    .from('store_listings')
+    .select(`
+      id,
+      title,
+      description,
+      price,
+      image_url,
+      is_active,
+      created_at,
+      category:categories(id, name),
+      stock_quantity
+    `, { count: 'exact' })
+    .eq('store_id', store.id)
+
+  // Apply search filter if provided
+  if (search) {
+    query = query.ilike('title', `%${search}%`)
+  }
+
+  // Calculate offset
+  const from = (page - 1) * perPage
+  const to = from + perPage - 1
+
+  // Fetch paginated products
+  const { data: products, error: productsError, count } = await query
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (productsError) {
+    console.error('Error fetching products:', productsError)
+    return {
+      products: [],
+      store,
+      pagination: { page, perPage, totalItems: 0, totalPages: 0 },
+      search,
+    }
+  }
+
+  const totalItems = count ?? 0
+  const totalPages = Math.ceil(totalItems / perPage)
+
+  return {
+    products: products ?? [],
+    store,
+    pagination: { page, perPage, totalItems, totalPages },
+    search,
+  }
 }
 
-export const Products = () => {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [currentPage, setCurrentPage] = useState(1)
-  const [perPage, setPerPage] = useState(10)
+export const Products = ({ loaderData }: Route.ComponentProps) => {
+  const { products, pagination, search } = loaderData ?? {
+    products: [],
+    pagination: { page: 1, perPage: 10, totalItems: 0, totalPages: 0 },
+    search: '',
+  }
 
-  const totalPages = Math.ceil(sampleProducts.length / perPage)
-  const paginatedProducts = sampleProducts.slice((currentPage - 1) * perPage, currentPage * perPage)
+  const { page, perPage, totalPages, totalItems } = pagination
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+
+  const updateParams = (updates: Record<string, string | number>) => {
+    const newParams = new URLSearchParams(searchParams)
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        newParams.set(key, String(value))
+      } else {
+        newParams.delete(key)
+      }
+    })
+    setSearchParams(newParams)
+  }
+
+  const handlePageChange = (newPage: number) => {
+    updateParams({ page: newPage })
+  }
+
+  const handlePerPageChange = (newPerPage: number) => {
+    updateParams({ perPage: newPerPage, page: 1 })
+  }
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    const searchValue = formData.get('search') as string
+    updateParams({ search: searchValue, page: 1 })
+  }
 
   const toggleSelect = (id: string, checked: boolean) => {
     setSelectedIds((prev) => {
@@ -46,28 +143,30 @@ export const Products = () => {
 
   const toggleAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(sampleProducts.map((p) => p.id)))
+      setSelectedIds(new Set(products.map((p) => p.id)))
     } else {
       setSelectedIds(new Set())
     }
   }
 
-  const allSelected = sampleProducts.length > 0 && selectedIds.size === sampleProducts.length
-
-  const navigate = useNavigate();
+  const allSelected = products.length > 0 && selectedIds.size === products.length
 
   return (
     <div className="flex flex-col gap-4">
       {/* Top controls */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <label className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm focus-within:ring-2 focus-within:ring-primary">
-          <FaSearch className="text-foreground/50" aria-hidden="true" />
-          <input
-            type="search"
-            placeholder="Search..."
-            className="w-40 bg-transparent font-medium text-foreground placeholder:text-foreground/40 focus:outline-none sm:w-56"
-          />
-        </label>
+        <form onSubmit={handleSearch}>
+          <label className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm focus-within:ring-2 focus-within:ring-primary">
+            <FaSearch className="text-foreground/50" aria-hidden="true" />
+            <input
+              type="search"
+              name="search"
+              placeholder="Search..."
+              defaultValue={search}
+              className="w-40 bg-transparent font-medium text-foreground placeholder:text-foreground/40 focus:outline-none sm:w-56"
+            />
+          </label>
+        </form>
 
         <div className="flex items-center gap-2">
           <button
@@ -92,6 +191,11 @@ export const Products = () => {
         </div>
       </div>
 
+      {/* Results summary */}
+      <p className="text-sm text-foreground/60">
+        Showing {products.length} of {totalItems} products
+      </p>
+
       {/* Table */}
       <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
         <table className="w-full min-w-[800px] text-left text-sm">
@@ -114,102 +218,110 @@ export const Products = () => {
             </tr>
           </thead>
           <tbody>
-            {paginatedProducts.map((product) => (
-              <ProductRow
-                key={product.id}
-                {...product}
-                selected={selectedIds.has(product.id)}
-                onSelect={toggleSelect}
-                onDelete={(id) => console.log('delete', id)}
-                onEdit={(id) => console.log('edit', id)}
-              />
-            ))}
+            {products.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-8 text-center text-foreground/60">
+                  No products found. Add your first product to get started.
+                </td>
+              </tr>
+            ) : (
+              products.map((product) => (
+                <ProductRow
+                  key={product.id}
+                  id={product.id}
+                  name={product.title}
+                  imageUrl={product.image_url ?? null}
+                  category={product.category?.name ?? 'Uncategorized'}
+                  status={product.is_active ? 'in-stock' : 'out-of-stock'}
+                  stock={product.stock_quantity ?? 0}
+                  price={product.price ?? 0}
+                  selected={selectedIds.has(product.id)}
+                  onSelect={toggleSelect}
+                  onDelete={(id) => console.log('delete', id)}
+                  onEdit={(id) => navigate(`/vendor/products/${id}/edit`)}
+                />
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Pagination */}
-      <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-foreground/70">
-        
-        {/* Set the number of items per page */}
-        <div className="flex items-center gap-2">
-          <span>Show</span>
-          <select
-            value={perPage}
-            onChange={(e) => {
-              setPerPage(Number(e.target.value))
-              setCurrentPage(1)
-            }}
-            className="rounded border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-          </select>
-          <span>per page</span>
-        </div>
+      {totalPages > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-foreground/70">
+          {/* Items per page */}
+          <div className="flex items-center gap-2">
+            <span>Show</span>
+            <select
+              value={perPage}
+              onChange={(e) => handlePerPageChange(Number(e.target.value))}
+              className="rounded border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <span>per page</span>
+          </div>
 
-        {/* Page navigation */}
-        <div className="flex items-center gap-1">
-          {/* Previous button */}
-          <button
-            type="button"
-            className="rounded border border-border p-1.5 transition hover:bg-muted disabled:opacity-50"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          >
-            <FaChevronLeft className="h-3 w-3" />
-          </button>
+          {/* Page navigation */}
+          <div className="flex items-center gap-1">
+            {/* Previous button */}
+            <button
+              type="button"
+              className="rounded border border-border p-1.5 transition hover:bg-muted disabled:opacity-50"
+              disabled={page === 1}
+              onClick={() => handlePageChange(page - 1)}
+            >
+              <FaChevronLeft className="h-3 w-3" />
+            </button>
 
-          {/* Dynamic page buttons */}
-          {(() => {
-            const pages: (number | 'ellipsis')[] = []
-            if (totalPages <= 7) {
-              // Show all pages if 7 or fewer
-              for (let i = 1; i <= totalPages; i++) pages.push(i)
-            } else {
-              // Always show first page
-              pages.push(1)
-              if (currentPage > 3) pages.push('ellipsis')
-              // Show pages around current
-              for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
-                pages.push(i)
+            {/* Dynamic page buttons */}
+            {(() => {
+              const pages: (number | 'ellipsis')[] = []
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i)
+              } else {
+                pages.push(1)
+                if (page > 3) pages.push('ellipsis')
+                for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+                  pages.push(i)
+                }
+                if (page < totalPages - 2) pages.push('ellipsis')
+                pages.push(totalPages)
               }
-              if (currentPage < totalPages - 2) pages.push('ellipsis')
-              // Always show last page
-              pages.push(totalPages)
-            }
-            return pages.map((page, idx) =>
-              page === 'ellipsis' ? (
-                <span key={`ellipsis-${idx}`} className="px-1">…</span>
-              ) : (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => setCurrentPage(page)}
-                  className={`rounded px-3 py-1 font-medium transition duration-200 ${
-                    currentPage === page
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border border-border hover:bg-muted'
-                  }`}
-                >
-                  {page}
-                </button>
+              return pages.map((p, idx) =>
+                p === 'ellipsis' ? (
+                  <span key={`ellipsis-${idx}`} className="px-1">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => handlePageChange(p)}
+                    className={`rounded px-3 py-1 font-medium transition duration-200 ${
+                      page === p
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border border-border hover:bg-muted'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
               )
-            )
-          })()}
+            })()}
 
-          {/* Next button */}
-          <button
-            type="button"
-            className="rounded border border-border p-1.5 transition hover:bg-muted disabled:opacity-50"
-            disabled={currentPage >= totalPages}
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          >
-            <FaChevronRight className="h-3 w-3" />
-          </button>
+            {/* Next button */}
+            <button
+              type="button"
+              className="rounded border border-border p-1.5 transition hover:bg-muted disabled:opacity-50"
+              disabled={page >= totalPages}
+              onClick={() => handlePageChange(page + 1)}
+            >
+              <FaChevronRight className="h-3 w-3" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

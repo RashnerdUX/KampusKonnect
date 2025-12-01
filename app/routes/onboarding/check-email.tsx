@@ -4,7 +4,7 @@ import { FaEnvelope, FaArrowLeft, FaRedo } from 'react-icons/fa'
 
 export const meta = () => {
   return [
-    { title: 'Check Your Email - Kampus Konnect' },
+    { title: 'Check Your Email - Campex' },
     { name: 'description', content: 'Please verify your email address to continue.' },
   ]
 }

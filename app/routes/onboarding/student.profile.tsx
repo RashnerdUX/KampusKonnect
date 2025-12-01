@@ -1,6 +1,9 @@
 import React from 'react'
-import { Form, Link } from 'react-router'
+import type { Route } from './+types/student.profile';
+import { Form, Link, data, redirect } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaUser } from 'react-icons/fa'
+import { createSupabaseServerClient } from '~/utils/supabase.server'
+import { requireAuth } from '~/utils/requireAuth'
 
 export const meta = () => {
   return [
@@ -9,12 +12,73 @@ export const meta = () => {
   ]
 }
 
-export const action = async () => {
-  // TODO: Save student profile to database
-  return null
+export const action = async ({ request }: Route.ActionArgs) => {
+      const formData = await request.formData();
+    // Get all data provided from the form
+    const surname = formData.get("surname") as string;
+    const firstName = formData.get("firstName") as string;
+    const phone = formData.get("phone") as string;
+    const whatsapp = formData.get("whatsapp") as string;
+    const university = formData.get("university") as string;
+
+
+    const { supabase, headers } = createSupabaseServerClient(request);
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return redirect("/login", { headers });
+    }
+
+    // Update the vendor profile in the database
+    console.log("Updating the user profile now");
+
+    const { data, error } = await supabase
+        .from('user_profiles')
+        .update({
+            surname: surname,
+            first_name: firstName,
+            phone_number: phone,
+            whatsapp_number: whatsapp,
+            university_id: university,
+        })
+        .eq('id', user.id)
+        .select()
+
+    if (error) {
+        console.error("Error updating vendor profile:", error);
+        return redirect("/onboarding/vendor/profile", { headers  });
+    }        
+  
+    console.log("Updated the User profile")
+  return redirect("/onboarding/student/interests", { headers  });
 }
 
-export default function StudentProfile() {
+export const loader = async ({ request }: Route.LoaderArgs) => {
+    // Get default data
+    const { user, headers} = await requireAuth(request); 
+    const userEmail = user.email;
+    const firstName = user.user_metadata.first_name;
+    const surname = user.user_metadata.surname;
+    
+    const {supabase} = createSupabaseServerClient(request);
+    
+    // Get the list of universities
+    const { data: universities, error } = await supabase
+            .from('universities')
+            .select('id, name');
+    
+    if (error) {
+        console.error("Error fetching universities:", error);
+    }
+        
+    return data({ userEmail, firstName, surname, universities: universities ?? [] }, { headers: headers });
+}
+
+export default function StudentProfile({loaderData}:Route.ComponentProps) {
+
+    const { userEmail, firstName, surname, universities } = loaderData;
+
   return (
     <div className="w-full max-w-2xl">
       {/* Card */}
@@ -42,6 +106,7 @@ export default function StudentProfile() {
                 type="text"
                 name="surname"
                 placeholder="Enter your surname"
+                defaultValue={surname}
                 required
                 className="rounded-xl border border-border bg-background px-4 py-3 text-sm placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -54,6 +119,7 @@ export default function StudentProfile() {
                 type="text"
                 name="firstName"
                 placeholder="Enter your first name"
+                defaultValue={firstName}
                 required
                 className="rounded-xl border border-border bg-background px-4 py-3 text-sm placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -71,12 +137,11 @@ export default function StudentProfile() {
               className="rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">Select your university</option>
-              <option value="unilag">University of Lagos</option>
-              <option value="ui">University of Ibadan</option>
-              <option value="oau">Obafemi Awolowo University</option>
-              <option value="unn">University of Nigeria, Nsukka</option>
-              <option value="abu">Ahmadu Bello University</option>
-              <option value="other">Other</option>
+                {universities.map((university: {id: string, name: string}) => (
+                  <option key={university.id} value={university.id}>
+                    {university.name}
+                  </option>
+                ))}
             </select>
           </label>
 

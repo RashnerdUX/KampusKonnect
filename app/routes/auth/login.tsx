@@ -36,7 +36,28 @@ export async function action({ request} : Route.ActionArgs) {
         return { error: error.message };
     }
 
+    // Check if user has completed onboarding
+    const {data: { user }} = await supabase.auth.getUser();
+
+    if (!user) {
+      return redirect('/login?error=no_user', { headers });
+    }
     console.log("Login successful:", data);
+
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('onboarding_complete, role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || !profile.onboarding_complete) {
+      return redirect('/onboarding/role', { headers });
+    }
+
+    if (profile && profile.role === 'vendor') {
+      return redirect('/vendor/dashboard', { headers });
+    }
+
   return redirect("/marketplace", { headers });
 }
 
