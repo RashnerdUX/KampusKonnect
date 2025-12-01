@@ -54,7 +54,7 @@ export async function action({ request} : Route.ActionArgs) {
     }
 
     if (profile && profile.role === 'vendor') {
-      return redirect('/vendor/dashboard', { headers });
+      return redirect('/vendor', { headers });
     }
 
   return redirect("/marketplace", { headers });
