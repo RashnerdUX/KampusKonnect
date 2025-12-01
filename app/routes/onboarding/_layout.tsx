@@ -1,7 +1,7 @@
 import React from 'react'
 import { Outlet, useLocation, data } from 'react-router'
 import type { Route } from '../onboarding/+types/_layout'
-import { requireAuth } from '~/utils/requireAuth'
+import { requireAuth } from '~/utils/requireAuth.server'
 
 const ONBOARDING_STEPS = [
   { path: '/onboarding/role', label: 'Choose Role' },

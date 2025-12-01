@@ -3,7 +3,7 @@ import type { Route } from './+types/vendor.profile'
 import { Form, Link, redirect, data } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaStore } from 'react-icons/fa'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
-import { requireAuth } from '~/utils/requireAuth'
+import { requireAuth } from '~/utils/requireAuth.server'
 
 export const meta = () => {
   return [

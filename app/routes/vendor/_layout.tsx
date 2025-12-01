@@ -6,7 +6,7 @@ import SideNavigationBar from '~/components/dashboard/SideNavigationBar';
 import DashboardTopBar from '~/components/dashboard/DashboardTopBar';
 import { redirect } from "react-router";
 import { createSupabaseServerClient } from '~/utils/supabase.server';
-import { requireAuth } from '~/utils/requireAuth';
+import { requireAuth } from '~/utils/requireAuth.server';
 
 export const meta = () => {
     return [

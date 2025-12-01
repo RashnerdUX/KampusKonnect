@@ -2,7 +2,7 @@ import React from 'react';
 import type { Route } from "../marketplace/+types/_layout";
 import { Outlet } from "react-router";
 import { MarketPlaceNavbar } from "~/components/marketplace/MarketPlaceNavBar";
-import { getOptionalAuth } from '~/utils/optionalAuth';
+import { getOptionalAuth } from '~/utils/optionalAuth.server';
 import { Footer } from '~/components/Footer';
 
 export async function loader({ request }: Route.LoaderArgs) {

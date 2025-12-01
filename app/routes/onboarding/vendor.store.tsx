@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react'
 import type { Route } from './+types/vendor.store';
 import { Form, Link, data, redirect } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaCamera, FaCloudUploadAlt } from 'react-icons/fa'
-import { requireAuth } from '~/utils/requireAuth'
+import { requireAuth } from '~/utils/requireAuth.server'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 import type constants from 'constants';
 

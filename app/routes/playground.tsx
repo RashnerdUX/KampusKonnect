@@ -1,5 +1,5 @@
 import type { Route } from "./+types/playground";
-import { requireAuth } from "~/utils/requireAuth";
+import { requireAuth } from "~/utils/requireAuth.server";
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
