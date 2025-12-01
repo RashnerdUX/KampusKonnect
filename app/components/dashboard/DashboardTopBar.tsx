@@ -43,31 +43,33 @@ export const DashboardTopBar = ({ user, onMenuClick }: DashboardTopBarProps) => 
         </header>
 
         {/* Desktop Header */}
-        <header className="hidden lg:flex gap-4 rounded-2xl bg-card px-6 py-2.5 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+        <header className="hidden lg:flex gap-4 rounded-2xl bg-card px-6 py-2.5 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
 
           {/* Display Message */}
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold text-foreground"> Hi, {displayName}. Welcome back</h1>
-            <p className="text-sm text-foreground/70">Here's what's happening with your store today.</p>
+          <div className="flex flex-col gap-1 shrink-0">
+            <h1 className="text-xl font-semibold text-foreground xl:text-2xl"> Hi, {displayName}. Welcome back</h1>
+            <p className="text-sm text-foreground/70 hidden xl:block">Here's what's happening with your store today.</p>
           </div>
 
           {/* The Actions */}
-          <div className="flex flex-1 items-center gap-4 justify-end">
-            <DashboardSearchBar className="max-w-[50%]" />
-            <div className="hidden items-center gap-3 lg:flex bg-foreground/5 rounded-full p-2">
-              <button type="button" className="rounded-full border border-border p-2 text-foreground/70 transition hover:bg-background hover:text-foreground">
+          <div className="flex flex-1 items-center gap-3 justify-end">
+            {/* Search bar - hidden on lg, visible on xl */}
+            <DashboardSearchBar className="hidden xl:flex max-w-xs 2xl:max-w-md" />
+            
+            <div className="flex items-center gap-2 bg-foreground/5 rounded-full p-1.5 xl:p-2">
+              <button type="button" className="rounded-full border border-border p-1.5 xl:p-2 text-foreground/70 transition hover:bg-background hover:text-foreground">
                 <AiOutlineBell className="size-4" aria-hidden="true" />
                 <span className="sr-only">Notifications</span>
               </button>
-              <button type="button" className="rounded-full border border-border p-2 text-foreground/70 transition hover:bg-background hover:text-foreground">
+              <button type="button" className="rounded-full border border-border p-1.5 xl:p-2 text-foreground/70 transition hover:bg-background hover:text-foreground">
                 <AiOutlineQuestionCircle className="size-4" aria-hidden="true" />
                 <span className="sr-only">Help center</span>
               </button>
               <ThemeToggle />
             </div>
-            <div className='hidden items-center gap-3 lg:flex bg-foreground/5 rounded-full py-2 pr-4 pl-2'>
-              <img src="/images/avatar-placeholder.png" alt="user-avatar" className='m-2 rounded-full size-4 border border-border' />
-              <span className='text-foreground/70'>{displayName}</span>
+            <div className='flex items-center gap-2 bg-foreground/5 rounded-full py-1.5 pr-3 pl-1.5 xl:py-2 xl:pr-4 xl:pl-2'>
+              <img src="/images/avatar-placeholder.png" alt="user-avatar" className='rounded-full size-6 xl:size-8 border border-border' />
+              <span className='text-foreground/70 text-sm hidden xl:block'>{displayName}</span>
             </div>
           </div>
         </header>

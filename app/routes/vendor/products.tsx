@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import type { Route } from './+types/products'
-import { FaPlus, FaFilter, FaSort, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { FaPlus, FaFilter, FaSort, FaSearch, FaChevronLeft, FaChevronRight, FaEdit, FaTrash } from 'react-icons/fa'
 import { useNavigate, redirect, useSearchParams } from 'react-router'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 
@@ -154,8 +154,9 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
   return (
     <div className="flex flex-col gap-4">
       {/* Top controls */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <form onSubmit={handleSearch}>
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        {/* Search */}
+        <form onSubmit={handleSearch} className="w-full sm:w-auto">
           <label className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm focus-within:ring-2 focus-within:ring-primary">
             <FaSearch className="text-foreground/50" aria-hidden="true" />
             <input
@@ -163,30 +164,34 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
               name="search"
               placeholder="Search..."
               defaultValue={search}
-              className="w-40 bg-transparent font-medium text-foreground placeholder:text-foreground/40 focus:outline-none sm:w-56"
+              className="w-full bg-transparent font-medium text-foreground placeholder:text-foreground/40 focus:outline-none sm:w-40 lg:w-56"
             />
           </label>
         </form>
 
+        {/* Action buttons */}
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted sm:gap-2 sm:px-4 sm:text-sm"
           >
-            <FaSort className="h-4 w-4" /> Sort
+            <FaSort className="h-3 w-3 sm:h-4 sm:w-4" /> 
+            <span className="hidden xs:inline">Sort</span>
           </button>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted sm:gap-2 sm:px-4 sm:text-sm"
           >
-            <FaFilter className="h-4 w-4" /> Filter
+            <FaFilter className="h-3 w-3 sm:h-4 sm:w-4" /> 
+            <span className="hidden xs:inline">Filter</span>
           </button>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 cursor-pointer sm:gap-2 sm:px-4 sm:text-sm"
             onClick={() => navigate('/vendor/products/add')}
           >
-            <FaPlus className="h-4 w-4" /> Add Product
+            <FaPlus className="h-3 w-3 sm:h-4 sm:w-4" /> 
+            <span className="hidden sm:inline">Add Product</span>
           </button>
         </div>
       </div>
@@ -196,9 +201,80 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
         Showing {products.length} of {totalItems} products
       </p>
 
-      {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
-        <table className="w-full min-w-[800px] text-left text-sm">
+      {/* Mobile Cards View */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {products.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-8 text-center text-foreground/60">
+            No products found. Add your first product to get started.
+          </div>
+        ) : (
+          products.map((product) => (
+            <div
+              key={product.id}
+              className="flex gap-3 rounded-xl border border-border bg-card p-3 shadow-sm"
+            >
+              {/* Product Image */}
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xs text-foreground/50">
+                    N/A
+                  </div>
+                )}
+              </div>
+
+              {/* Product Info */}
+              <div className="flex flex-1 flex-col gap-1">
+                <h3 className="font-medium text-foreground line-clamp-1">{product.title}</h3>
+                <p className="text-xs text-foreground/60">{product.category?.name ?? 'Uncategorized'}</p>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                      product.is_active
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    }`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${product.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                    {product.is_active ? 'In Stock' : 'Out of Stock'}
+                  </span>
+                  <span className="text-xs text-foreground/60">Qty: {product.stock_quantity ?? 0}</span>
+                </div>
+              </div>
+
+              {/* Price & Actions */}
+              <div className="flex flex-col items-end justify-between">
+                <span className="font-bold text-foreground">₦{(product.price ?? 0).toLocaleString()}</span>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/vendor/products/${product.id}/edit`)}
+                    className="rounded-lg p-2 text-foreground/60 transition hover:bg-muted hover:text-foreground"
+                  >
+                    <FaEdit className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => console.log('delete', product.id)}
+                    className="rounded-lg p-2 text-foreground/60 transition hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                  >
+                    <FaTrash className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card shadow-sm md:block">
+        <table className="w-full text-left text-sm">
           <thead className="border-b border-border text-xs uppercase tracking-wide text-foreground/60">
             <tr>
               <th className="px-4 py-3">
@@ -248,7 +324,7 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
 
       {/* Pagination */}
       {totalPages > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-foreground/70">
+        <div className="flex flex-col gap-3 text-sm text-foreground/70 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           {/* Items per page */}
           <div className="flex items-center gap-2">
             <span>Show</span>
@@ -279,7 +355,7 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
             {/* Dynamic page buttons */}
             {(() => {
               const pages: (number | 'ellipsis')[] = []
-              if (totalPages <= 7) {
+              if (totalPages <= 5) {
                 for (let i = 1; i <= totalPages; i++) pages.push(i)
               } else {
                 pages.push(1)
@@ -298,7 +374,7 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
                     key={p}
                     type="button"
                     onClick={() => handlePageChange(p)}
-                    className={`rounded px-3 py-1 font-medium transition duration-200 ${
+                    className={`rounded px-2.5 py-1 text-xs font-medium transition duration-200 sm:px-3 sm:text-sm ${
                       page === p
                         ? 'bg-primary text-primary-foreground'
                         : 'border border-border hover:bg-muted'
@@ -326,4 +402,4 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
   )
 }
 
-export default Products
+export default Products;
