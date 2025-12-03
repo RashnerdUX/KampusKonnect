@@ -353,7 +353,7 @@ export const EditProduct = ({ loaderData, actionData }: Route.ComponentProps) =>
                 <select
                   id="productCategory"
                   name="productCategory"
-                  className="input-field bg-foreground/5"
+                  className="input-field bg-background/80"
                   value={productCategory}
                   onChange={(e) => setProductCategory(e.target.value)}
                   required

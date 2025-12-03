@@ -35,7 +35,7 @@ export const DashboardTopBar = ({ user, onMenuClick }: DashboardTopBarProps) => 
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <img 
-              src="/images/avatar-placeholder.png" 
+              src="/images/vendor-placeholder.png" 
               alt="user-avatar" 
               className="h-8 w-8 rounded-full border border-border" 
             />
@@ -68,7 +68,7 @@ export const DashboardTopBar = ({ user, onMenuClick }: DashboardTopBarProps) => 
               <ThemeToggle />
             </div>
             <div className='flex items-center gap-2 bg-foreground/5 rounded-full py-1.5 pr-3 pl-1.5 xl:py-2 xl:pr-4 xl:pl-2'>
-              <img src="/images/avatar-placeholder.png" alt="user-avatar" className='rounded-full size-6 xl:size-8 border border-border' />
+              <img src="/images/vendor-placeholder.png" alt="user-avatar" className='rounded-full size-6 xl:size-8 border border-border' />
               <span className='text-foreground/70 text-sm hidden xl:block'>{displayName}</span>
             </div>
           </div>

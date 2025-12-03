@@ -41,6 +41,24 @@ export const loader =  async ({request}: Route.LoaderArgs) => {
 
     const { user, headers } = await requireAuth(request);
 
+    // Redirect non-vendor users to marketplace
+    const { supabase } = createSupabaseServerClient(request);
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      return redirect('/marketplace', { headers });
+    }
+
+    if (profile.role !== 'vendor') {
+      console.log('Non-vendor user attempted to access vendor dashboard.');
+      return redirect('/marketplace', { headers });
+    }
+
     return data({ user }, { headers });
 }
 
