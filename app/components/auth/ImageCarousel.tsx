@@ -16,9 +16,9 @@ interface ImageCarouselProps {
 export const ImageCarousel = ({ items }: ImageCarouselProps) => {
 
     const defaultItems: ImageCarouselItem[] = [
-        { src: '/images/register-illustration.jpg', alt: 'Carousel Image 1', index: 0, text: 'Delicious Meals', caption: 'Tasty and affordable meals from campus vendors.' },
-        { src: '/images/carousel2.jpg', alt: 'Carousel Image 2', index: 1, text: 'Quick Delivery', caption: 'Get your food delivered fast and fresh.' },
-        { src: '/images/carousel3.jpg', alt: 'Carousel Image 3', index: 2, text: 'Variety of Options', caption: 'Choose from a wide range of campus vendors.' },
+        { src: '/images/find-vendors.jpg', alt: 'Carousel Image 1', index: 0, text: 'Connect', caption: 'Connect easily with fellow students and vendors on your campus.' },
+        { src: '/images/order-delivery.jpg', alt: 'Carousel Image 2', index: 1, text: 'Quick Delivery', caption: 'Get your orders delivered quickly and reliably.' },
+        { src: '/images/reduced-costs.jpg', alt: 'Carousel Image 3', index: 2, text: 'Reduced Costs', caption: 'Cut down on expenses by buying and selling directly within your campus community.' },
     ]
 
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -44,11 +44,11 @@ export const ImageCarousel = ({ items }: ImageCarouselProps) => {
     <>
         <div className='relative hidden h-full lg:flex items-end rounded-xl bg-cover bg-center' style={{ backgroundImage: `url('${currentItem.src}')` }}>
             {/* Overlay */}
-            <div className="absolute inset-0 bg-black/40 rounded-xl"></div>
+            <div className="absolute inset-0 bg-black/20 rounded-xl"></div>
             {/* Bottom text */}
             <div className="relative p-6 text-white flex flex-col gap-6">
                 <div className='flex flex-col gap-1'>
-                    <h2 className="text-2xl font-bold">{currentItem.text}</h2>
+                    <h2 className="text-4xl font-bold">{currentItem.text}</h2>
                     <p className="text-sm">{currentItem.caption}</p>
                 </div>
                 <div className='flex items-center'>

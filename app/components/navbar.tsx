@@ -29,7 +29,7 @@ export const Navbar = () => {
             Campex
           </Link>
           <div className="space-x-6 flex justify-center items-center">
-            <NavLink to="/landing" className="navlink">Home</NavLink>
+            <NavLink to="/" className="navlink">Home</NavLink>
             <NavLink to="/marketplace" className="navlink">Marketplace</NavLink>
             <NavLink to="/about" className="navlink">About</NavLink>
             <NavLink to="/blog" className="navlink">Blog</NavLink>
