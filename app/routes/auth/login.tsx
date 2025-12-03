@@ -36,24 +36,26 @@ export async function action({ request} : Route.ActionArgs) {
         return data({ error: loginError.message }, { headers });
     }
 
-    // Check if user has completed onboarding
-    const {data: { user }} = await supabase.auth.getUser();
+    // Check if the user has completed onboarding. Use the user retrieved from loginData
+    const user = loginData.user;
 
-    if (!user) {
-      return redirect('/login?error=no_user', { headers });
-    }
     console.log("Login successful:", loginData);
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('onboarding_complete, role')
       .eq('id', user.id)
       .single()
 
-    if (!profile || !profile.onboarding_complete) {
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
       return redirect('/onboarding/role', { headers });
     }
 
-    if (profile && profile.role === 'vendor') {
+    if (profile.onboarding_complete === false) {
+      return redirect('/onboarding/role', { headers });
+    }
+
+    if (profile.role === 'vendor') {
       return redirect('/vendor', { headers });
     }
 
