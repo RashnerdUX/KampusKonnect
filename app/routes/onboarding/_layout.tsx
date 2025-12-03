@@ -1,7 +1,8 @@
 import React from 'react'
-import { Outlet, useLocation, data } from 'react-router'
+import { Outlet, useLocation, data, redirect } from 'react-router'
 import type { Route } from '../onboarding/+types/_layout'
 import { requireAuth } from '~/utils/requireAuth.server'
+import { createSupabaseServerClient } from '~/utils/supabase.server'
 
 const ONBOARDING_STEPS = [
   { path: '/onboarding/role', label: 'Choose Role' },
@@ -18,6 +19,27 @@ export const meta = () => {
 
 export async function loader({request}: Route.LoaderArgs){
     const { user, headers} = await requireAuth(request);
+
+    // Check if user has already completed onboarding
+    const { supabase } = await createSupabaseServerClient(request);
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('onboarding_complete, role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      return redirect('/onboarding/role', { headers });
+    }
+
+    if (profile.onboarding_complete) {
+      if (profile.role === 'vendor') {
+        return redirect('/vendor', { headers });
+      }
+      return redirect('/marketplace', { headers });
+    }
+    
     return data({ user }, { headers: headers });
 }
 
