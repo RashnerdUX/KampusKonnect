@@ -140,6 +140,18 @@ export const loader = async ({request}: Route.LoaderArgs) => {
         }
         return redirect('/onboarding/role', { headers })
     }
+
+    // Check if user has already created a store
+    const { data: storeData, error: storeError } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (storeData) {
+      // Take user to vendor dashboard if store exists
+        return redirect('/vendor', { headers })
+    }
     
     // Get store categories
     const { data: store_categories, error } = await supabase
