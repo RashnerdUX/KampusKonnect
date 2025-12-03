@@ -99,7 +99,7 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
                 <p className='text-base sm:text-lg md:text-xl lg:text-2xl text-foreground/70'>Discover the best campus deals and connect with trusted vendors on Campex, your ultimate marketplace for student essentials.</p>
               </div>
               <div>
-                <a className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center' href='#waitlist'>
+                <a className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center' href='/register'>
                   Get Started
                   <FaArrowRightLong className='inline-block ml-4 text-primary-foreground' />
                 </a>

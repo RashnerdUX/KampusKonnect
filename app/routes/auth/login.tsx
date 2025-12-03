@@ -73,10 +73,14 @@ export default function Login({actionData}:Route.ComponentProps) {
   return (
 <div className='relative min-h-screen flex flex-col md:m-auto items-center justify-center p-4 lg:p-8 bg-gradient-to-br from-primary/5 via-background to-primary/10'>
       <main className='w-full max-w-6xl'>
-        <div className=''>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 rounded-xl overflow-hidden shadow-lg px-10 py-6">
-              {/* The Image carousel */}
-              <ImageCarousel />
+              <div className="hidden lg:block relative">
+                <img src="/images/find-vendors.jpg" alt="Login Illustration" className="rounded-xl h-auto max-h-[80vh] w-full object-cover" />
+                <div className="absolute bottom-4 left-4 text-white p-4 rounded-md max-w-sm">
+                  <h2 className="text-4xl font-semibold">Welcome to Campex</h2>
+                  <p className="text-sm mt-1">Easily find and connect with trusted vendors on your campus.</p>
+                </div>
+              </div>
             <div className='flex flex-col'>
               {/* The Registration Form */}
               <div className='flex flex-col items-center justify-center mb-4'>
@@ -117,7 +121,6 @@ export default function Login({actionData}:Route.ComponentProps) {
               </div>
             </div>
           </div>
-        </div>
       </main>
     </div>
   )
