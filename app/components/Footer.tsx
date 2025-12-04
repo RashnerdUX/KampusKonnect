@@ -2,6 +2,7 @@ import React from 'react'
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
 import { Link } from 'react-router';
 import { DividerLine } from './utility/DividerLine';
+import { ThemeToggle } from './ThemeToggle';
 
 export const Footer = () => {
 
@@ -123,7 +124,6 @@ export const Footer = () => {
                             ))}
                         </div>
                     </div>
-
                 </div>
             </div>
             <DividerLine />
@@ -143,6 +143,11 @@ export const Footer = () => {
                         ))}
                     </div>
                 </div>
+            </div>
+
+            {/* Theme toggle fixed to the bottom right */}
+            <div className='absolute bottom-2 right-4'>
+                <ThemeToggle />
             </div>
         </div>
     </div>

@@ -3,14 +3,13 @@ import { createSupabaseServerClient } from "./supabase.server";
 export async function getOptionalAuth(request: Request) {
   const { supabase, headers } = createSupabaseServerClient(request)
   
-//   For optional auth, use getSession()
-  const { data: { session } } = await supabase.auth.getSession()
+//   For optional auth, use getUser() for checking session without redirects
+  const { data: { user } } = await supabase.auth.getUser()
   
   return {
-    session,
-    user: session?.user ?? null,
+    user,
     supabase,
     headers,
-    isAuthenticated: !!session,
+    isAuthenticated: !!user,
   }
 }

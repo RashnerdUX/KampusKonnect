@@ -1,22 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Route } from "../products/+types/index";
-import { FaFilter } from "react-icons/fa6";
+import { FaFilter, FaSort } from "react-icons/fa6";
 import { RxDividerVertical } from "react-icons/rx";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate, data } from "react-router";
+import { createSupabaseServerClient } from "~/utils/supabase.server";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { storeListings, stockVendors } from "~/utils/stockdata";
 import ProductCard from "~/components/marketplace/ProductCard";
 import FilterControls, {
   parseFiltersFromSearch,
   createDefaultFilters,
   FILTER_QUERY_KEYS,
   RATING_OPTIONS,
-  CATEGORY_OPTIONS,
-  UNIVERSITY_OPTIONS,
 } from "~/components/marketplace/ProductFilter";
 import type { Filters, FilterMultiKey, RatingFilterKey } from "~/components/marketplace/ProductFilter";
 
 const SORT_QUERY_KEY = "sort";
+const ITEMS_PER_PAGE = 15;
 
 const SORT_OPTIONS = [
   { value: "relevance", label: "Sort by Relevance" },
@@ -36,65 +36,118 @@ const isSortValue = (value: string): value is SortValue =>
 export const meta = () => {
   return [
     { title: "Discover and purchase products from your favorite campus vendors with Campex" },
-    { name: "description", content: ""},
-    { name: "keywords", content: ""}
+    { name: "description", content: "Browse products from campus vendors"},
+    { name: "keywords", content: "campus, marketplace, products, vendors"}
   ]
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-    const url = new URL(request.url);
-    const pageParam = Number(url.searchParams.get("page") ?? 1);
-    const sortParam = url.searchParams.get(SORT_QUERY_KEY) ?? DEFAULT_SORT;
-    const sort = isSortValue(sortParam) ? sortParam : DEFAULT_SORT;
-    const filters = parseFiltersFromSearch(url.search);
+  const url = new URL(request.url);
+  const { supabase, headers } = createSupabaseServerClient(request);
 
-    const ITEMS_PER_PAGE = 12;
-    const totalItems = storeListings.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
-    const currentPage = Math.min(Math.max(1, Number.isNaN(pageParam) ? 1 : pageParam), totalPages);
+  // Parse URL params
+  const pageParam = Number(url.searchParams.get("page") ?? 1);
+  const sortParam = url.searchParams.get(SORT_QUERY_KEY) ?? DEFAULT_SORT;
+  const sort = isSortValue(sortParam) ? sortParam : DEFAULT_SORT;
+  const filters = parseFiltersFromSearch(url.search);
 
-    // Simulate sorting on the backend during development
-    const vendorReviewMap = new Map(stockVendors.map((vendor) => [vendor.id, vendor.reviewCount ?? 0]));
-    let sortedListings = [...storeListings];
+  // Build the base query
+  let query = supabase
+    .from('store_listings')
+    .select(`
+      id,
+      title,
+      price,
+      image_url,
+      created_at,
+      is_active,
+      category:categories(id, name),
+      store:stores(id, business_name)
+    `, { count: 'exact' })
+    .eq('is_active', true);
 
-    if (sort !== "relevance") {
-      sortedListings = [...storeListings].sort((a, b) => {
-        switch (sort) {
-          case "price-low-high":
-            return a.price - b.price;
-          case "price-high-low":
-            return b.price - a.price;
-          case "newest":
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          case "popular": {
-            const aPopularity = vendorReviewMap.get(a.store_id) ?? 0;
-            const bPopularity = vendorReviewMap.get(b.store_id) ?? 0;
-            if (bPopularity !== aPopularity) {
-              return bPopularity - aPopularity;
-            }
-            return b.price - a.price;
-          }
-          default:
-            return 0;
-        }
-      });
+  // Apply price filters
+  if (filters.priceMin) {
+    const minPrice = parseFloat(filters.priceMin);
+    if (!isNaN(minPrice)) {
+      query = query.gte('price', minPrice);
     }
+  }
+  if (filters.priceMax) {
+    const maxPrice = parseFloat(filters.priceMax);
+    if (!isNaN(maxPrice)) {
+      query = query.lte('price', maxPrice);
+    }
+  }
 
-    // Simulate a paginated response from the backend during development
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const products = sortedListings.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  // Apply sorting
+  switch (sort) {
+    case "price-low-high":
+      query = query.order('price', { ascending: true });
+      break;
+    case "price-high-low":
+      query = query.order('price', { ascending: false });
+      break;
+    case "newest":
+      query = query.order('created_at', { ascending: false });
+      break;
+    case "popular":
+      // For now, order by created_at as popularity metric isn't implemented
+      query = query.order('created_at', { ascending: false });
+      break;
+    default:
+      // relevance - default order
+      query = query.order('created_at', { ascending: false });
+  }
 
-    return {
-        products,
-        pagination: {
-            currentPage,
-            totalPages,
-            totalItems,
-            pageSize: ITEMS_PER_PAGE,
-        },
-        filters,
-        sort,
-    };
+  // Calculate pagination range (use pageParam initially, will be clamped after we get count)
+  const requestedPage = Math.max(1, Number.isNaN(pageParam) ? 1 : pageParam);
+  const from = (requestedPage - 1) * ITEMS_PER_PAGE;
+  const to = from + ITEMS_PER_PAGE - 1;
+
+  // Fetch paginated products with count in a single query
+  const { data: products, count: totalItems, error: productsError } = await query.range(from, to);
+
+  if (productsError) {
+    console.error('Error fetching products:', productsError);
+  }
+
+  const total = totalItems ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
+  const currentPage = Math.min(requestedPage, totalPages);
+
+  // Fetch filter options from database
+  const { data: universities } = await supabase
+    .from('universities')
+    .select('id, name')
+    .order('name');
+
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name')
+    .order('name');
+
+  const { data: vendors } = await supabase
+    .from('stores')
+    .select('id, business_name')
+    .order('business_name');
+
+  return data({
+    products: products ?? [],
+    pagination: {
+      currentPage,
+      totalPages,
+      totalItems: total,
+      pageSize: ITEMS_PER_PAGE,
+    },
+    filters,
+    sort,
+    filterOptions: {
+      universities: universities?.map(u => u.name) ?? [],
+      categories: categories?.map(c => c.name) ?? [],
+      vendors: vendors?.map(v => v.business_name) ?? [],
+    },
+  }, { headers });
 }
 
 export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
@@ -103,7 +156,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { products, pagination, filters: serverFilters, sort } = loaderData;
+  const { products, pagination, filters: serverFilters, sort, filterOptions } = loaderData;
   const { currentPage, totalPages, totalItems } = pagination;
   const [filters, setFilters] = useState<Filters>(() => serverFilters ?? createDefaultFilters());
   const [selectedSort, setSelectedSort] = useState<SortValue>(sort ?? DEFAULT_SORT);
@@ -120,19 +173,18 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
     }
   }, [sort]);
 
-  const vendorOptions = useMemo(() => stockVendors.map((vendor) => vendor.name), []);
-
   const visiblePageNumbers = (() => {
-    const delta = 2;
+    const delta = 1; // Show only 1 page on each side of current
     let start = Math.max(1, currentPage - delta);
     let end = Math.min(totalPages, currentPage + delta);
 
-    if (currentPage <= delta + 1) {
-      end = Math.min(totalPages, 1 + delta * 2);
-    }
-
-    if (currentPage >= totalPages - delta) {
-      start = Math.max(1, totalPages - delta * 2);
+    // Ensure we show at least 3 pages when possible
+    if (end - start < 2 && totalPages >= 3) {
+      if (start === 1) {
+        end = Math.min(3, totalPages);
+      } else if (end === totalPages) {
+        start = Math.max(1, totalPages - 2);
+      }
     }
 
     const pages: number[] = [];
@@ -234,9 +286,9 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
           <FilterControls
             filters={filters}
             options={{
-              universities: UNIVERSITY_OPTIONS,
-              categories: CATEGORY_OPTIONS,
-              vendors: vendorOptions,
+              universities: filterOptions.universities,
+              categories: filterOptions.categories,
+              vendors: filterOptions.vendors,
               ratingOptions: RATING_OPTIONS,
             }}
             onPriceChange={handlePriceChange}
@@ -251,17 +303,38 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
 
             <div className="relative">
                 <div className="flex items-start justify-between">
-                    <div className="flex flex-col gap-1 md:gap-2">
-                        <h1 className="text-2xl md:text-3xl lg:text-4xl text-foreground font-bold">Products</h1>
-                        <p className="text-foreground/80 mt-1 text-sm md:text-base">
-                          Showing <span>{totalItems}</span> products
-                        </p>
+                    <div className="flex items-baseline justify-between w-full md:w-auto">
+                        <div className="flex flex-col gap-1 md:gap-2">
+                          <h1 className="text-2xl md:text-3xl lg:text-4xl text-foreground font-bold">Products</h1>
+                          <p className="text-foreground/80 mt-1 text-sm md:text-base">
+                            Showing <span>{totalItems}</span> products
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-center gap-2 md:hidden">
+                          {/* Filter button */}
+                          <button
+                              type="button"
+                              onClick={() => setShowFilters(true)}
+                              className="flex items-center gap-2 p-2 text-sm font-semibold"
+                          >
+                            <span aria-hidden="true"><FaFilter className="size-4" /></span>
+                          </button>
+                          {/* Sort button */}
+                          <button
+                              type="button"
+                              onClick={() => setShowSortOptions(true)}
+                              className="flex items-center gap-2 p-2 text-sm font-semibold"
+                          >
+                            <span aria-hidden="true"><FaSort className="size-4" /></span>
+                          </button>
+                        </div>
                     </div>
                         
                     {/* Sort by button */}
                     <div className="hidden md:block relative rounded-lg border border-foreground/20 px-2 py-1">
                         <select
-                          className="text-sm font-semibold"
+                          className="text-sm font-semibold bg-transparent"
                           value={selectedSort}
                           onChange={(event) => handleSortChange(event.target.value as SortValue)}
                         >
@@ -276,38 +349,57 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
 
                 {/* Main Products view */}
                 <div className="flex flex-col gap-6">
-                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 xl:grid-cols-5 py-4 md:py-6 lg:py-8">
-                      {/* product cards */}
+                  {products.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 xl:grid-cols-5 py-4 md:py-6 lg:py-8">
                       {products.map((product) => (
-                        <ProductCard key={product.id} id={product.id} name={product.title} storeName={product.store_id} price={product.price} imageUrl={product.image_url} />
+                        <ProductCard 
+                          key={product.id} 
+                          id={product.id} 
+                          name={product.title} 
+                          storeName={product.store?.business_name ?? 'Unknown Store'} 
+                          price={product.price ?? 0} 
+                          imageUrl={product.image_url} 
+                        />
                       ))}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <p className="text-lg font-medium text-foreground/70">No products found</p>
+                      <p className="mt-2 text-sm text-foreground/50">Try adjusting your filters or search criteria</p>
+                      <button
+                        type="button"
+                        onClick={handleResetFilters}
+                        className="mt-4 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                      >
+                        Clear Filters
+                      </button>
+                    </div>
+                  )}
 
                   {/* Pagination Control */}
                   {totalPages > 1 && (
-                    <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border px-4 py-3 text-sm">
+                    <div className="flex items-center justify-center gap-2 py-4 text-sm">
                       <button
                         type="button"
                         onClick={() => handlePageChange(currentPage - 1)}
-                        className="rounded-lg border border-border/70 px-3 py-1 font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg border border-border/70 p-2 font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={currentPage === 1}
+                        aria-label="Previous page"
                       >
-                        Previous
+                        <ChevronLeft size={18} />
                       </button>
 
-                      <div className="flex items-center gap-2">
-                        {visiblePageNumbers[0] !== 1 && (
+                      <div className="flex items-center gap-1">
+                        {visiblePageNumbers[0] > 1 && (
                           <>
                             <button
                               type="button"
                               onClick={() => handlePageChange(1)}
-                              className={`rounded-lg px-3 py-1 font-semibold transition hover:bg-muted ${
-                                currentPage === 1 ? "bg-primary text-primary-foreground" : "border border-border/70"
-                              }`}
+                              className="rounded-lg border border-border/70 px-3 py-1.5 font-semibold transition hover:bg-muted"
                             >
                               1
                             </button>
-                            {visiblePageNumbers[0] > 2 && <span className="px-1">…</span>}
+                            {visiblePageNumbers[0] > 2 && <span className="px-1 text-muted-foreground">…</span>}
                           </>
                         )}
 
@@ -316,23 +408,25 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
                             key={page}
                             type="button"
                             onClick={() => handlePageChange(page)}
-                            className={`rounded-lg px-3 py-1 font-semibold transition hover:bg-muted ${
-                              currentPage === page ? "bg-primary text-primary-foreground" : "border border-border/70"
+                            className={`rounded-lg px-3 py-1.5 font-semibold transition ${
+                              currentPage === page 
+                                ? "bg-primary text-primary-foreground" 
+                                : "border border-border/70 hover:bg-muted"
                             }`}
                           >
                             {page}
                           </button>
                         ))}
 
-                        {visiblePageNumbers[visiblePageNumbers.length - 1] !== totalPages && (
+                        {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages && (
                           <>
-                            {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && <span className="px-1">…</span>}
+                            {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && (
+                              <span className="px-1 text-muted-foreground">…</span>
+                            )}
                             <button
                               type="button"
                               onClick={() => handlePageChange(totalPages)}
-                              className={`rounded-lg px-3 py-1 font-semibold transition hover:bg-muted ${
-                                currentPage === totalPages ? "bg-primary text-primary-foreground" : "border border-border/70"
-                              }`}
+                              className="rounded-lg border border-border/70 px-3 py-1.5 font-semibold transition hover:bg-muted"
                             >
                               {totalPages}
                             </button>
@@ -343,37 +437,14 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
                       <button
                         type="button"
                         onClick={() => handlePageChange(currentPage + 1)}
-                        className="rounded-lg border border-border/70 px-3 py-1 font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg border border-border/70 p-2 font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={currentPage === totalPages}
+                        aria-label="Next page"
                       >
-                        Next
+                        <ChevronRight size={18} />
                       </button>
                     </div>
                   )}
-                </div>
-
-                {/* Floating action buttons */}
-                <div className="md:hidden absolute mt-auto flex items-center justify-center mx-auto bg-card rounded-full max-w-[160px] shadow-xs px-2">
-                    {/* Filter button */}
-                    <button
-                        type="button"
-                        onClick={() => setShowFilters(true)}
-                        className="flex items-center gap-2 p-2 text-sm font-semibold"
-                    >
-                      <span>Filters</span>
-                      <span aria-hidden="true"><FaFilter className="size-4" /></span>
-                    </button>
-                    {/* Line divider */}
-                    <RxDividerVertical className="h-4 w-px bg-card-foreground mx-2" />
-                    {/* Sort button */}
-                    <button
-                        type="button"
-                        onClick={() => setShowSortOptions(true)}
-                        className="flex items-center gap-2 p-2 text-sm font-semibold"
-                    >
-                      <span>Sort</span>
-                      <span aria-hidden="true">⇅</span>
-                    </button>
                 </div>
             </div>
         </main>
@@ -382,7 +453,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
       {showFilters && (
         <div className="fixed inset-0 z-50 flex items-end bg-black/40 md:hidden" onClick={() => setShowFilters(false)}>
           <div
-            className="w-full rounded-t-3xl bg-white p-6 shadow-xl"
+            className="w-full rounded-t-3xl bg-card p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-end">
@@ -394,9 +465,9 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
               <FilterControls
                 filters={filters}
                 options={{
-                  universities: UNIVERSITY_OPTIONS,
-                  categories: CATEGORY_OPTIONS,
-                  vendors: vendorOptions,
+                  universities: filterOptions.universities,
+                  categories: filterOptions.categories,
+                  vendors: filterOptions.vendors,
                   ratingOptions: RATING_OPTIONS,
                 }}
                 onPriceChange={handlePriceChange}
@@ -420,7 +491,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
       {showSortOptions && (
         <div className="fixed inset-0 z-50 flex items-end bg-black/40 md:hidden" onClick={() => setShowSortOptions(false)}>
           <div
-            className="w-full rounded-t-3xl bg-white p-6 shadow-xl"
+            className="w-full rounded-t-3xl bg-card p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">

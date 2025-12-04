@@ -1,15 +1,26 @@
 import React, {useState, useEffect} from 'react'
-import { useNavigate, NavLink } from 'react-router'
-import { Menu, X } from 'lucide-react'
+import { useNavigate, NavLink, Link } from 'react-router'
+import { Menu, X, ChevronDown, ChevronUp } from 'lucide-react'
 import type { User } from "@supabase/supabase-js";
 
 
 // Navbar Component for the marketplace
 import { IoPersonOutline } from "react-icons/io5";
+import { BsPerson, BsPersonCheck } from "react-icons/bs";
+import { FaCartFlatbed } from "react-icons/fa6";
+import { FaSearch } from "react-icons/fa";
 import { CustomNavigationMenu } from './CustomNavigationMenu';
 
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  emoji?: string | null;
+}
+
 interface MarketPlaceNavbarProps { 
-  user: User | null; 
+  user: User | null;
+  categories?: Category[];
 }
 
 export interface desktopLinks {
@@ -18,11 +29,19 @@ export interface desktopLinks {
       children?: desktopLinks[];
 }
 
-export const MarketPlaceNavbar = ({ user }: MarketPlaceNavbarProps) => {
+export const MarketPlaceNavbar = ({ user, categories = [] }: MarketPlaceNavbarProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
     const [isUserNameAvailable, setIsUserNameAvailable] = useState<boolean>(false)
     const [username, setUsername] = useState<string | null>(null);
+    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
     const navigate = useNavigate()
+
+    const toggleSection = (section: string) => {
+      setExpandedSections(prev => ({
+        ...prev,
+        [section]: !prev[section]
+      }));
+    }
 
     const openMobileMenu = () => {
         setIsMobileMenuOpen(true)
@@ -39,62 +58,95 @@ export const MarketPlaceNavbar = ({ user }: MarketPlaceNavbarProps) => {
       setIsUserNameAvailable(!!username);
     }, [user])
 
+    // Build category children from prop
+    const categoryChildren = categories.map(cat => ({
+      name: cat.emoji ? `${cat.emoji} ${cat.name}` : cat.name,
+      path: `/marketplace/categories/${cat.slug}`
+    }));
+
     const desktopLinks: desktopLinks[] = [
       { name: 'Home', path: '/marketplace' },
-      { name: 'Browse Vendors', path: '/vendors' },
-      { name: 'Categories', path: '/categories', children: [
-        { name: 'Food & Beverages', path: '/categories/food-beverages' },
-        { name: 'Books & Stationery', path: '/categories/books-stationery' },
-        { name: 'Electronics', path: '/categories/electronics' },
-        { name: 'Clothing & Accessories', path: '/categories/clothing-accessories' },
-        { name: 'Health & Wellness', path: '/categories/health-wellness' },
-        { name: 'Services', path: '/categories/services' },
+      { name: 'Browse Products', path: '/marketplace/products' },
+      { name: 'Browse Vendors', path: '/marketplace/vendors' },
+      { name: 'Categories', path: '/marketplace/categories', children: categoryChildren.length > 0 ? categoryChildren : [
+        { name: 'Loading...', path: '#' }
       ]},
       { name: 'About', path: '/about' },
       { name: 'Blog', path: '/blog' },
     ]
 
-    const categories = [
-      'Food & Beverages',
-      'Books & Stationery',
-      'Electronics',
-      'Clothing & Accessories',
-      'Health & Wellness',
-      'Services',
+    // Mobile nav links structure
+    const mobileLinks = [
+      { name: 'Home', path: '/marketplace' },
+      { name: 'Browse Products', path: '/marketplace/products' },
+      { name: 'Browse Vendors', path: '/marketplace/vendors' },
+      { 
+        name: 'Categories', 
+        children: categories.map(cat => ({
+          name: cat.emoji ? `${cat.emoji} ${cat.name}` : cat.name,
+          path: `/marketplace/categories/${cat.slug}`
+        }))
+      },
+      { name: 'About', path: '/about' },
+      { name: 'Blog', path: '/blog' },
     ]
 
     
   return (
     <>
-      <nav className="bg-background px-[35px] lg:px-[99px] py-[30px] border-b border-border">
+      <nav className="bg-background px-[24px] md:px-[56px] lg:px-[99px] py-4 lg:py-[24px] border-b border-border">
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex justify-between items-center">
+        <div className="hidden lg:flex justify-between items-center">
           {/* TODO: Ensure you change to index route once the app is deployed */}
-          <div className="text-2xl font-bold" onClick={() => navigate('/landing')}>Campex</div>
-          <div className='flex space-x-12 items-center justify-center'>
+          <div className='flex md:gap-4 lg:gap-6 items-center justify-center'>
+            <a href='/marketplace' className="text-2xl font-bold" >Campex</a>
             <div className="space-x-6 flex justify-center items-center">
               <CustomNavigationMenu desktopLinks={desktopLinks} />
             </div>
-            <div className="space-x-4 flex justify-center items-center">
-                  <button type="button" disabled={isUserNameAvailable} className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-6 md:w-auto rounded-full transition-colors" onClick={() => {
-                    if (isUserNameAvailable) return;
-                    console.log('Navigating to login');
-                    navigate('/login');
-                  }}>
-                    <IoPersonOutline className="inline mb-1 mr-2" size={16} />
-                    {isUserNameAvailable ? `Hi, ${username}` : 'Log In/Sign Up'}
-                  </button>
-            </div>
+          </div>
+          
+          <div className='flex md:gap-4 lg:gap-6 items-center justify-center'>
+            <Link to={"/marketplace/search"}>
+              <FaSearch size={20} />
+            </Link>
+            <Link to={"/marketplace/wishlist"}>
+              <FaCartFlatbed size={24} />
+            </Link>
+            {isUserNameAvailable ? (
+              <Link to={"/marketplace/profile"} className='flex gap-2 items-center'>
+                <BsPersonCheck size={24} />
+                <span className='text-foreground/90 text-lg font-bold'> Hi, {username}</span>
+              </Link>
+            ) : (
+              <Link to={"/register"}  className='flex gap-2 items-center' >
+                <BsPerson size={24} />
+                <span className='text-foreground/90 text-lg font-bold'> Login/Register </span>
+              </Link>
+            )}
           </div>
         </div>
 
         {/* Mobile Menu */}
-        <div className="md:hidden flex justify-between items-center">
-          <div className="text-2xl font-bold" onClick={() => navigate('/landing')}>Campex</div>
-          <button onClick={openMobileMenu}>
-            <Menu size={24} />
-          </button>
+        <div className="lg:hidden flex justify-between items-center">
+          <div className='flex items-center w-full gap-2'>
+            <button onClick={openMobileMenu}>
+              <Menu size={24} />
+            </button>
+            <a href='/marketplace' className="text-2xl font-bold" >Campex</a>
+          </div>
+          
+          <div className='flex items-center justify-end gap-4 text-foreground/90'>
+            <Link to={"/marketplace/search"}>
+              <FaSearch size={20} />
+            </Link>
+            <Link to={"/marketplace/wishlist"}>
+              <FaCartFlatbed size={24} />
+            </Link>
+            <Link to={"/marketplace/profile"}>
+              {isUserNameAvailable ? <BsPersonCheck size={24} /> : <BsPerson size={24} />}
+            </Link>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -104,28 +156,90 @@ export const MarketPlaceNavbar = ({ user }: MarketPlaceNavbarProps) => {
             {/* Mobile Menu */}
             <div className={`bg-background w-3/4 max-w-xs h-full p-6 relative flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
               <div className="flex justify-between items-center mb-6">
-                <div className="text-2xl font-bold" onClick={() => {navigate('/landing'); closeMobileMenu();}}>
-                  {/* TODO: Replace with logo */}
-                  Campex</div>
-                <button onClick={closeMobileMenu} autoFocus>
+                {isUserNameAvailable ? (
+                  <div className="text-xl font-semibold text-foreground">
+                    Hi, {username} 👋
+                  </div>
+                ) : (
+                  <div className="text-lg text-muted-foreground">
+                    Welcome!
+                  </div>
+                )}
+                <button onClick={closeMobileMenu} autoFocus aria-label="Close menu">
                   <X size={24} />
                 </button>
               </div>
-              <nav className="flex flex-col flex-1">
-                <div className='flex flex-col space-y-4 flex-1'>
-                  <NavLink to="/landing" className="navlink" onClick={closeMobileMenu}>Home</NavLink>
-                  <NavLink to="/marketplace" className="navlink" onClick={closeMobileMenu}>Marketplace</NavLink>
-                  <NavLink to="/about" className="navlink" onClick={closeMobileMenu}>About</NavLink>
-                  <NavLink to="/blog" className="navlink" onClick={closeMobileMenu}>Blog</NavLink>
+              
+              <nav className="flex flex-col flex-1 overflow-y-auto">
+                <div className='flex flex-col space-y-1 flex-1'>
+                  {mobileLinks.map((link) => (
+                    <div key={link.name}>
+                      {link.children ? (
+                        // Accordion for nested items
+                        <div>
+                          <button
+                            onClick={() => toggleSection(link.name)}
+                            className="w-full flex items-center justify-between py-3 px-2 text-left navlink hover:bg-muted/50 rounded-md transition-colors"
+                          >
+                            <span>{link.name}</span>
+                            {expandedSections[link.name] ? (
+                              <ChevronUp size={18} className="text-muted-foreground" />
+                            ) : (
+                              <ChevronDown size={18} className="text-muted-foreground" />
+                            )}
+                          </button>
+                          {expandedSections[link.name] && (
+                            <div className="ml-4 pl-2 border-l border-border space-y-1">
+                              {link.children.length > 0 ? (
+                                link.children.map((child) => (
+                                  <NavLink
+                                    key={child.path}
+                                    to={child.path}
+                                    className="block py-2 px-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-colors"
+                                    onClick={closeMobileMenu}
+                                  >
+                                    {child.name}
+                                  </NavLink>
+                                ))
+                              ) : (
+                                <span className="block py-2 px-2 text-sm text-muted-foreground italic">
+                                  No categories yet
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        // Regular link
+                        <NavLink
+                          to={link.path!}
+                          className="block py-3 px-2 navlink hover:bg-muted/50 rounded-md transition-colors"
+                          onClick={closeMobileMenu}
+                        >
+                          {link.name}
+                        </NavLink>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className='mt-auto w-full flex flex-col space-y-2'>
-                  <button className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors" onClick={() => {navigate('/login'); closeMobileMenu();}}>
-                    Log In
-                  </button>
-                  <button className="bg-primary text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors" onClick={() => {navigate('/register'); closeMobileMenu();}}>
-                    Get Started
-                  </button>
-                </div>
+                
+                {/* Show login/register only if user is not signed in */}
+                {!isUserNameAvailable && (
+                  <div className='mt-auto pt-4 border-t border-border w-full flex flex-col space-y-2'>
+                    <button 
+                      className="bg-transparent border-2 border-foreground text-foreground font-medium text-base px-4 py-2 rounded-full transition-colors hover:bg-muted" 
+                      onClick={() => {navigate('/login'); closeMobileMenu();}}
+                    >
+                      Log In
+                    </button>
+                    <button 
+                      className="bg-primary text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors hover:bg-primary/90" 
+                      onClick={() => {navigate('/register'); closeMobileMenu();}}
+                    >
+                      Get Started
+                    </button>
+                  </div>
+                )}
               </nav>
             </div>
           </div>

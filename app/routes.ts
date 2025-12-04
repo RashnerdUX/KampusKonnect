@@ -5,13 +5,12 @@ export default [
   index("routes/landingpage.tsx"),
   route("join-waitlist/success", "routes/waitlist_success.tsx"),
 
-  // The Application Routes
-  route("app", "routes/home.tsx"),
-
   // Authentication
   route("login", "routes/auth/login.tsx"),
   route("register", "routes/auth/register.tsx"),
   route("auth/callback", "routes/auth/auth.callback.tsx"),
+  route("auth/reset-password", "routes/auth/reset-password.tsx"),
+  route("auth/update-password", "routes/auth/update-password.tsx"),
 
   // Onboarding Routes
   route("onboarding/check-email", "routes/onboarding/check-email.tsx"),
@@ -30,14 +29,13 @@ export default [
     route("products", "routes/marketplace/products/_layout.tsx", {id: "products-layout"}, [
       index("routes/marketplace/products/index.tsx"),
       route(":productId", "routes/marketplace/products/$productId.tsx"),
-      ])
+      ]),
+    route("vendors", "routes/marketplace/vendors/_layout.tsx", {id: "vendors-layout"}, [
+      index("routes/marketplace/vendors/index.tsx"),
+      route(":vendorId", "routes/marketplace/vendors/vendor.$id.tsx"),
+      ]),
     ]
   ),
-
-  // Vendor Routes
-  route("vendor/new", "routes/vendor.new.tsx"),
-  route("vendor/:id", "routes/vendor.$id.tsx"),
-  route("vendor/:id/review", "routes/vendor.$id.review.tsx"),
 
   // Vendor Dashboard Routes
   route("vendor", "routes/vendor/_layout.tsx", {id: "VendorLayout"}, [

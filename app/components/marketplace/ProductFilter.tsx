@@ -136,7 +136,7 @@ export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti,
 
       <section className="space-y-3">
         <p className="text-sm font-medium text-muted-foreground">Universities</p>
-        <div className="space-y-2">
+        <div className="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
           {options.universities.map((university) => (
             <label key={university} className="flex items-center gap-2 text-sm">
               <input
@@ -148,12 +148,15 @@ export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti,
               <span className="text-foreground/90">{university}</span>
             </label>
           ))}
+          {options.universities.length === 0 && (
+            <p className="text-xs text-foreground/50">No universities available</p>
+          )}
         </div>
       </section>
 
       <section className="space-y-3">
         <p className="text-sm font-medium text-muted-foreground">Categories</p>
-        <div className="space-y-2">
+        <div className="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
           {options.categories.map((category) => (
             <label key={category} className="flex items-center gap-2 text-sm">
               <input
@@ -165,12 +168,15 @@ export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti,
               <span className="text-foreground/90">{category}</span>
             </label>
           ))}
+          {options.categories.length === 0 && (
+            <p className="text-xs text-foreground/50">No categories available</p>
+          )}
         </div>
       </section>
 
       <section className="space-y-3">
         <p className="text-sm font-medium text-muted-foreground">Vendors</p>
-        <div className="space-y-2">
+        <div className="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
           {options.vendors.map((vendor) => (
             <label key={vendor} className="flex items-center gap-2 text-sm">
               <input
@@ -182,6 +188,9 @@ export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti,
               <span className="text-foreground/90">{vendor}</span>
             </label>
           ))}
+          {options.vendors.length === 0 && (
+            <p className="text-xs text-foreground/50">No vendors available</p>
+          )}
         </div>
       </section>
 

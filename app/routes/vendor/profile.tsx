@@ -370,7 +370,7 @@ export const VendorProfile = ({ loaderData }: Route.ComponentProps) => {
         <h1 className="text-2xl font-bold text-foreground">Store Profile</h1>
         <div className="flex items-center gap-2">
           <Link
-            to={`/marketplace/stores/${store.id}`}
+            to={`/marketplace/vendors/${store.id}`}
             target="_blank"
             className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
           >
