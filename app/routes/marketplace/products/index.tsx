@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Route } from "../products/+types/index";
-import { FaFilter } from "react-icons/fa6";
+import { FaFilter, FaSort } from "react-icons/fa6";
 import { RxDividerVertical } from "react-icons/rx";
 import { useLocation, useNavigate, data } from "react-router";
 import { createSupabaseServerClient } from "~/utils/supabase.server";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import ProductCard from "~/components/marketplace/ProductCard";
 import FilterControls, {
@@ -179,16 +180,17 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
   }, [sort]);
 
   const visiblePageNumbers = (() => {
-    const delta = 2;
+    const delta = 1; // Show only 1 page on each side of current
     let start = Math.max(1, currentPage - delta);
     let end = Math.min(totalPages, currentPage + delta);
 
-    if (currentPage <= delta + 1) {
-      end = Math.min(totalPages, 1 + delta * 2);
-    }
-
-    if (currentPage >= totalPages - delta) {
-      start = Math.max(1, totalPages - delta * 2);
+    // Ensure we show at least 3 pages when possible
+    if (end - start < 2 && totalPages >= 3) {
+      if (start === 1) {
+        end = Math.min(3, totalPages);
+      } else if (end === totalPages) {
+        start = Math.max(1, totalPages - 2);
+      }
     }
 
     const pages: number[] = [];
@@ -307,11 +309,32 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
 
             <div className="relative">
                 <div className="flex items-start justify-between">
-                    <div className="flex flex-col gap-1 md:gap-2">
-                        <h1 className="text-2xl md:text-3xl lg:text-4xl text-foreground font-bold">Products</h1>
-                        <p className="text-foreground/80 mt-1 text-sm md:text-base">
-                          Showing <span>{totalItems}</span> products
-                        </p>
+                    <div className="flex items-baseline justify-between w-full md:w-auto">
+                        <div className="flex flex-col gap-1 md:gap-2">
+                          <h1 className="text-2xl md:text-3xl lg:text-4xl text-foreground font-bold">Products</h1>
+                          <p className="text-foreground/80 mt-1 text-sm md:text-base">
+                            Showing <span>{totalItems}</span> products
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-center gap-2 md:hidden">
+                          {/* Filter button */}
+                          <button
+                              type="button"
+                              onClick={() => setShowFilters(true)}
+                              className="flex items-center gap-2 p-2 text-sm font-semibold"
+                          >
+                            <span aria-hidden="true"><FaFilter className="size-4" /></span>
+                          </button>
+                          {/* Sort button */}
+                          <button
+                              type="button"
+                              onClick={() => setShowSortOptions(true)}
+                              className="flex items-center gap-2 p-2 text-sm font-semibold"
+                          >
+                            <span aria-hidden="true"><FaSort className="size-4" /></span>
+                          </button>
+                        </div>
                     </div>
                         
                     {/* Sort by button */}
@@ -361,29 +384,28 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
 
                   {/* Pagination Control */}
                   {totalPages > 1 && (
-                    <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border px-4 py-3 text-sm">
+                    <div className="flex items-center justify-center gap-2 py-4 text-sm">
                       <button
                         type="button"
                         onClick={() => handlePageChange(currentPage - 1)}
-                        className="rounded-lg border border-border/70 px-3 py-1 font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg border border-border/70 p-2 font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={currentPage === 1}
+                        aria-label="Previous page"
                       >
-                        Previous
+                        <ChevronLeft size={18} />
                       </button>
 
-                      <div className="flex items-center gap-2">
-                        {visiblePageNumbers[0] !== 1 && (
+                      <div className="flex items-center gap-1">
+                        {visiblePageNumbers[0] > 1 && (
                           <>
                             <button
                               type="button"
                               onClick={() => handlePageChange(1)}
-                              className={`rounded-lg px-3 py-1 font-semibold transition hover:bg-muted ${
-                                currentPage === 1 ? "bg-primary text-primary-foreground" : "border border-border/70"
-                              }`}
+                              className="rounded-lg border border-border/70 px-3 py-1.5 font-semibold transition hover:bg-muted"
                             >
                               1
                             </button>
-                            {visiblePageNumbers[0] > 2 && <span className="px-1">…</span>}
+                            {visiblePageNumbers[0] > 2 && <span className="px-1 text-muted-foreground">…</span>}
                           </>
                         )}
 
@@ -392,23 +414,25 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
                             key={page}
                             type="button"
                             onClick={() => handlePageChange(page)}
-                            className={`rounded-lg px-3 py-1 font-semibold transition hover:bg-muted ${
-                              currentPage === page ? "bg-primary text-primary-foreground" : "border border-border/70"
+                            className={`rounded-lg px-3 py-1.5 font-semibold transition ${
+                              currentPage === page 
+                                ? "bg-primary text-primary-foreground" 
+                                : "border border-border/70 hover:bg-muted"
                             }`}
                           >
                             {page}
                           </button>
                         ))}
 
-                        {visiblePageNumbers[visiblePageNumbers.length - 1] !== totalPages && (
+                        {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages && (
                           <>
-                            {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && <span className="px-1">…</span>}
+                            {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && (
+                              <span className="px-1 text-muted-foreground">…</span>
+                            )}
                             <button
                               type="button"
                               onClick={() => handlePageChange(totalPages)}
-                              className={`rounded-lg px-3 py-1 font-semibold transition hover:bg-muted ${
-                                currentPage === totalPages ? "bg-primary text-primary-foreground" : "border border-border/70"
-                              }`}
+                              className="rounded-lg border border-border/70 px-3 py-1.5 font-semibold transition hover:bg-muted"
                             >
                               {totalPages}
                             </button>
@@ -419,37 +443,14 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
                       <button
                         type="button"
                         onClick={() => handlePageChange(currentPage + 1)}
-                        className="rounded-lg border border-border/70 px-3 py-1 font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg border border-border/70 p-2 font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={currentPage === totalPages}
+                        aria-label="Next page"
                       >
-                        Next
+                        <ChevronRight size={18} />
                       </button>
                     </div>
                   )}
-                </div>
-
-                {/* Floating action buttons */}
-                <div className="md:hidden absolute mt-auto flex items-center justify-center mx-auto bg-card rounded-full max-w-[160px] shadow-xs px-2">
-                    {/* Filter button */}
-                    <button
-                        type="button"
-                        onClick={() => setShowFilters(true)}
-                        className="flex items-center gap-2 p-2 text-sm font-semibold"
-                    >
-                      <span>Filters</span>
-                      <span aria-hidden="true"><FaFilter className="size-4" /></span>
-                    </button>
-                    {/* Line divider */}
-                    <RxDividerVertical className="h-4 w-px bg-card-foreground mx-2" />
-                    {/* Sort button */}
-                    <button
-                        type="button"
-                        onClick={() => setShowSortOptions(true)}
-                        className="flex items-center gap-2 p-2 text-sm font-semibold"
-                    >
-                      <span>Sort</span>
-                      <span aria-hidden="true">⇅</span>
-                    </button>
                 </div>
             </div>
         </main>
