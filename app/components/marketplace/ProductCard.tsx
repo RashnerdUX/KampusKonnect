@@ -22,17 +22,17 @@ export const ProductCard = ({ id, name, storeName, price, imageUrl, rating, badg
         </div>
 
         {/* The text container */}
-        <div className='flex flex-1 items-end justify-between p-4'>
+        <div className='flex flex-1 items-end justify-between p-2 lg:p-4'>
           {/* Main text */}
           <div className='flex flex-col gap-1 min-w-0 flex-1'>
             <span className='text-xs text-foreground/70 truncate'>{storeName}</span>
-            <span className='font-medium text-foreground text-xl line-clamp-2'>{name}</span>
-            <span className='mt-1 font-bold text-foreground text-2xl'>₦ {price.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
+            <span className='font-medium text-foreground text-base lg:text-xl line-clamp-2'>{name}</span>
+            <span className='mt-1 font-bold text-foreground text-lg lg:text-2xl'>₦ {price}</span>
           </div>
 
           {/* Review text */}
           <div className='flex items-center justify-center gap-1 flex-shrink-0 ml-2'> 
-            <span className='text-foreground/90 text-base'>{rating ?? '0.0'}</span>
+            <span className='text-foreground/90 text-sm lg:text-base'>{rating ?? '0.0'}</span>
             <svg className='size-4 text-yellow-300 dark:text-yellow-500' viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
             </svg>
