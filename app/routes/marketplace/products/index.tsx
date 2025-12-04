@@ -2,21 +2,20 @@ import { useEffect, useMemo, useState } from "react";
 import type { Route } from "../products/+types/index";
 import { FaFilter } from "react-icons/fa6";
 import { RxDividerVertical } from "react-icons/rx";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate, data } from "react-router";
+import { createSupabaseServerClient } from "~/utils/supabase.server";
 
-import { storeListings, stockVendors } from "~/utils/stockdata";
 import ProductCard from "~/components/marketplace/ProductCard";
 import FilterControls, {
   parseFiltersFromSearch,
   createDefaultFilters,
   FILTER_QUERY_KEYS,
   RATING_OPTIONS,
-  CATEGORY_OPTIONS,
-  UNIVERSITY_OPTIONS,
 } from "~/components/marketplace/ProductFilter";
 import type { Filters, FilterMultiKey, RatingFilterKey } from "~/components/marketplace/ProductFilter";
 
 const SORT_QUERY_KEY = "sort";
+const ITEMS_PER_PAGE = 15;
 
 const SORT_OPTIONS = [
   { value: "relevance", label: "Sort by Relevance" },
@@ -36,65 +35,124 @@ const isSortValue = (value: string): value is SortValue =>
 export const meta = () => {
   return [
     { title: "Discover and purchase products from your favorite campus vendors with Campex" },
-    { name: "description", content: ""},
-    { name: "keywords", content: ""}
+    { name: "description", content: "Browse products from campus vendors"},
+    { name: "keywords", content: "campus, marketplace, products, vendors"}
   ]
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-    const url = new URL(request.url);
-    const pageParam = Number(url.searchParams.get("page") ?? 1);
-    const sortParam = url.searchParams.get(SORT_QUERY_KEY) ?? DEFAULT_SORT;
-    const sort = isSortValue(sortParam) ? sortParam : DEFAULT_SORT;
-    const filters = parseFiltersFromSearch(url.search);
+  const url = new URL(request.url);
+  const { supabase, headers } = createSupabaseServerClient(request);
 
-    const ITEMS_PER_PAGE = 12;
-    const totalItems = storeListings.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
-    const currentPage = Math.min(Math.max(1, Number.isNaN(pageParam) ? 1 : pageParam), totalPages);
+  // Parse URL params
+  const pageParam = Number(url.searchParams.get("page") ?? 1);
+  const sortParam = url.searchParams.get(SORT_QUERY_KEY) ?? DEFAULT_SORT;
+  const sort = isSortValue(sortParam) ? sortParam : DEFAULT_SORT;
+  const filters = parseFiltersFromSearch(url.search);
 
-    // Simulate sorting on the backend during development
-    const vendorReviewMap = new Map(stockVendors.map((vendor) => [vendor.id, vendor.reviewCount ?? 0]));
-    let sortedListings = [...storeListings];
+  // Build the base query
+  let query = supabase
+    .from('store_listings')
+    .select(`
+      id,
+      title,
+      price,
+      image_url,
+      created_at,
+      is_active,
+      category:categories(id, name),
+      store:stores(id, business_name)
+    `, { count: 'exact' })
+    .eq('is_active', true);
 
-    if (sort !== "relevance") {
-      sortedListings = [...storeListings].sort((a, b) => {
-        switch (sort) {
-          case "price-low-high":
-            return a.price - b.price;
-          case "price-high-low":
-            return b.price - a.price;
-          case "newest":
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          case "popular": {
-            const aPopularity = vendorReviewMap.get(a.store_id) ?? 0;
-            const bPopularity = vendorReviewMap.get(b.store_id) ?? 0;
-            if (bPopularity !== aPopularity) {
-              return bPopularity - aPopularity;
-            }
-            return b.price - a.price;
-          }
-          default:
-            return 0;
-        }
-      });
+  // Apply price filters
+  if (filters.priceMin) {
+    const minPrice = parseFloat(filters.priceMin);
+    if (!isNaN(minPrice)) {
+      query = query.gte('price', minPrice);
     }
+  }
+  if (filters.priceMax) {
+    const maxPrice = parseFloat(filters.priceMax);
+    if (!isNaN(maxPrice)) {
+      query = query.lte('price', maxPrice);
+    }
+  }
 
-    // Simulate a paginated response from the backend during development
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const products = sortedListings.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  // Apply sorting
+  switch (sort) {
+    case "price-low-high":
+      query = query.order('price', { ascending: true });
+      break;
+    case "price-high-low":
+      query = query.order('price', { ascending: false });
+      break;
+    case "newest":
+      query = query.order('created_at', { ascending: false });
+      break;
+    case "popular":
+      // For now, order by created_at as popularity metric isn't implemented
+      query = query.order('created_at', { ascending: false });
+      break;
+    default:
+      // relevance - default order
+      query = query.order('created_at', { ascending: false });
+  }
 
-    return {
-        products,
-        pagination: {
-            currentPage,
-            totalPages,
-            totalItems,
-            pageSize: ITEMS_PER_PAGE,
-        },
-        filters,
-        sort,
-    };
+  // Get total count first for pagination
+  const { count: totalItems, error: countError } = await query;
+
+  if (countError) {
+    console.error('Error fetching product count:', countError);
+  }
+
+  const total = totalItems ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
+  const currentPage = Math.min(Math.max(1, Number.isNaN(pageParam) ? 1 : pageParam), totalPages);
+
+  // Calculate pagination range
+  const from = (currentPage - 1) * ITEMS_PER_PAGE;
+  const to = from + ITEMS_PER_PAGE - 1;
+
+  // Fetch paginated products
+  const { data: products, error: productsError } = await query.range(from, to);
+
+  if (productsError) {
+    console.error('Error fetching products:', productsError);
+  }
+
+  // Fetch filter options from database
+  const { data: universities } = await supabase
+    .from('universities')
+    .select('id, name')
+    .order('name');
+
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name')
+    .order('name');
+
+  const { data: vendors } = await supabase
+    .from('stores')
+    .select('id, business_name')
+    .order('business_name');
+
+  return data({
+    products: products ?? [],
+    pagination: {
+      currentPage,
+      totalPages,
+      totalItems: total,
+      pageSize: ITEMS_PER_PAGE,
+    },
+    filters,
+    sort,
+    filterOptions: {
+      universities: universities?.map(u => u.name) ?? [],
+      categories: categories?.map(c => c.name) ?? [],
+      vendors: vendors?.map(v => v.business_name) ?? [],
+    },
+  }, { headers });
 }
 
 export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
@@ -103,7 +161,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { products, pagination, filters: serverFilters, sort } = loaderData;
+  const { products, pagination, filters: serverFilters, sort, filterOptions } = loaderData;
   const { currentPage, totalPages, totalItems } = pagination;
   const [filters, setFilters] = useState<Filters>(() => serverFilters ?? createDefaultFilters());
   const [selectedSort, setSelectedSort] = useState<SortValue>(sort ?? DEFAULT_SORT);
@@ -119,8 +177,6 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
       setSelectedSort(DEFAULT_SORT);
     }
   }, [sort]);
-
-  const vendorOptions = useMemo(() => stockVendors.map((vendor) => vendor.name), []);
 
   const visiblePageNumbers = (() => {
     const delta = 2;
@@ -234,9 +290,9 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
           <FilterControls
             filters={filters}
             options={{
-              universities: UNIVERSITY_OPTIONS,
-              categories: CATEGORY_OPTIONS,
-              vendors: vendorOptions,
+              universities: filterOptions.universities,
+              categories: filterOptions.categories,
+              vendors: filterOptions.vendors,
               ratingOptions: RATING_OPTIONS,
             }}
             onPriceChange={handlePriceChange}
@@ -261,7 +317,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
                     {/* Sort by button */}
                     <div className="hidden md:block relative rounded-lg border border-foreground/20 px-2 py-1">
                         <select
-                          className="text-sm font-semibold"
+                          className="text-sm font-semibold bg-transparent"
                           value={selectedSort}
                           onChange={(event) => handleSortChange(event.target.value as SortValue)}
                         >
@@ -276,12 +332,32 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
 
                 {/* Main Products view */}
                 <div className="flex flex-col gap-6">
-                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 xl:grid-cols-5 py-4 md:py-6 lg:py-8">
-                      {/* product cards */}
+                  {products.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 xl:grid-cols-5 py-4 md:py-6 lg:py-8">
                       {products.map((product) => (
-                        <ProductCard key={product.id} id={product.id} name={product.title} storeName={product.store_id} price={product.price} imageUrl={product.image_url} />
+                        <ProductCard 
+                          key={product.id} 
+                          id={product.id} 
+                          name={product.title} 
+                          storeName={product.store?.business_name ?? 'Unknown Store'} 
+                          price={product.price ?? 0} 
+                          imageUrl={product.image_url} 
+                        />
                       ))}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <p className="text-lg font-medium text-foreground/70">No products found</p>
+                      <p className="mt-2 text-sm text-foreground/50">Try adjusting your filters or search criteria</p>
+                      <button
+                        type="button"
+                        onClick={handleResetFilters}
+                        className="mt-4 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                      >
+                        Clear Filters
+                      </button>
+                    </div>
+                  )}
 
                   {/* Pagination Control */}
                   {totalPages > 1 && (
@@ -382,7 +458,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
       {showFilters && (
         <div className="fixed inset-0 z-50 flex items-end bg-black/40 md:hidden" onClick={() => setShowFilters(false)}>
           <div
-            className="w-full rounded-t-3xl bg-white p-6 shadow-xl"
+            className="w-full rounded-t-3xl bg-card p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-end">
@@ -394,9 +470,9 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
               <FilterControls
                 filters={filters}
                 options={{
-                  universities: UNIVERSITY_OPTIONS,
-                  categories: CATEGORY_OPTIONS,
-                  vendors: vendorOptions,
+                  universities: filterOptions.universities,
+                  categories: filterOptions.categories,
+                  vendors: filterOptions.vendors,
                   ratingOptions: RATING_OPTIONS,
                 }}
                 onPriceChange={handlePriceChange}
@@ -420,7 +496,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
       {showSortOptions && (
         <div className="fixed inset-0 z-50 flex items-end bg-black/40 md:hidden" onClick={() => setShowSortOptions(false)}>
           <div
-            className="w-full rounded-t-3xl bg-white p-6 shadow-xl"
+            className="w-full rounded-t-3xl bg-card p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
