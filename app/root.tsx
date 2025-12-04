@@ -6,77 +6,9 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Container, Typography, Box } from '@mui/material';
 
 import type { Route } from "./+types/root";
 import "./app.css";
-
-// Create Material-UI theme
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#2563eb', // Blue
-    },
-    secondary: {
-      main: '#16a34a', // Green
-    },
-    background: {
-      default: '#f8fafc',
-      paper: '#ffffff',
-    },
-  },
-  typography: {
-    fontFamily: '"Asap Condensed", "Playfair Display", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 700,
-    },
-    h2: {
-      fontWeight: 700,
-    },
-    h3: {
-      fontWeight: 700,
-    },
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-  },
-  shape: {
-    borderRadius: 12,
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          textTransform: 'none',
-          fontWeight: 500,
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-        },
-      },
-    },
-  },
-});
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -103,15 +35,15 @@ export const links: Route.LinksFunction = () => [
     href: "/apple-touch-icon.png",
   },
   {
-    rel:"icon",
-    type:"image/png",
-    sizes:"32x32",
+    rel: "icon",
+    type: "image/png",
+    sizes: "32x32",
     href: "/favicon-32x32.png",
   },
   {
-    rel:"icon",
-    type:"image/png",
-    sizes:"16x16",
+    rel: "icon",
+    type: "image/png",
+    sizes: "16x16",
     href: "/favicon-16x16.png",
   },
   {
@@ -129,11 +61,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          {children}
-        </ThemeProvider>
+      <body className="bg-background text-foreground">
+        {children}
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -162,34 +91,16 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Container maxWidth="md" sx={{ py: 8 }}>
-        <Box textAlign="center">
-          <Typography variant="h1" component="h1" gutterBottom fontSize="4rem">
-            {message}
-          </Typography>
-          <Typography variant="h6" color="text.secondary" paragraph>
-            {details}
-          </Typography>
-          {stack && (
-            <Box 
-              component="pre" 
-              sx={{ 
-                textAlign: 'left',
-                p: 2, 
-                bgcolor: 'grey.100', 
-                borderRadius: 1, 
-                overflow: 'auto',
-                fontSize: '0.875rem',
-                fontFamily: 'monospace'
-              }}
-            >
-              <code>{stack}</code>
-            </Box>
-          )}
-        </Box>
-      </Container>
-    </ThemeProvider>
+    <main className="flex min-h-dvh items-center justify-center p-4">
+      <div className="max-w-md text-center">
+        <h1 className="mb-4 text-6xl font-bold text-foreground">{message}</h1>
+        <p className="mb-6 text-lg text-foreground/70">{details}</p>
+        {stack && (
+          <pre className="overflow-auto rounded-lg bg-muted p-4 text-left text-sm">
+            <code>{stack}</code>
+          </pre>
+        )}
+      </div>
+    </main>
   );
 }

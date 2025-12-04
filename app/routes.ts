@@ -5,9 +5,6 @@ export default [
   index("routes/landingpage.tsx"),
   route("join-waitlist/success", "routes/waitlist_success.tsx"),
 
-  // The Application Routes
-  route("app", "routes/home.tsx"),
-
   // Authentication
   route("login", "routes/auth/login.tsx"),
   route("register", "routes/auth/register.tsx"),
@@ -33,11 +30,6 @@ export default [
       ])
     ]
   ),
-
-  // Vendor Routes
-  route("vendor/new", "routes/vendor.new.tsx"),
-  route("vendor/:id", "routes/vendor.$id.tsx"),
-  route("vendor/:id/review", "routes/vendor.$id.review.tsx"),
 
   // Vendor Dashboard Routes
   route("vendor", "routes/vendor/_layout.tsx", {id: "VendorLayout"}, [
