@@ -3,6 +3,7 @@ import type { Route } from './+types/update-password';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
 import { Form, Link, data, redirect } from 'react-router';
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import type { EmailOtpType, MobileOtpType } from '@supabase/supabase-js';
 
 export const meta = () => {
   return [
@@ -11,15 +12,34 @@ export const meta = () => {
   ];
 };
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const { supabase, headers } = createSupabaseServerClient(request);
-  
-  // Check if user has a valid session (from the reset link)
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  // The user should have a session after clicking the reset link
-  // If no session, they may have accessed this page directly
-  return data({ hasSession: !!session }, { headers });
+  const url = new URL(request.url);
+  const token = url.searchParams.get('token_hash');
+  const type = url.searchParams.get('type') as EmailOtpType | null;
+
+  // If no token in params, redirect to request reset page
+  if (!type || !token) {
+    return redirect('/auth/reset-password', { headers });
+  }
+
+  const validTypes: EmailOtpType[] = ['recovery', 'email_change'];
+  if (!validTypes.includes(type as EmailOtpType)) {
+    return data({ hasSession: false }, { headers });
+  }
+
+  // Verify the password reset token
+  const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+    type: type as EmailOtpType,
+    token_hash: token,
+  });
+
+  if (verifyError || !verifyData.session) {
+    console.error('Error verifying password reset token:', verifyError);
+    return data({ hasSession: false }, { headers });
+  }
+
+  return data({ hasSession: true }, { headers });
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -59,7 +79,7 @@ export async function action({ request }: Route.ActionArgs) {
 export default function UpdatePassword({ loaderData, actionData }: Route.ComponentProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { hasSession } = loaderData;
+  const hasSession = loaderData?.hasSession;
   const success = actionData?.success;
 
   return (

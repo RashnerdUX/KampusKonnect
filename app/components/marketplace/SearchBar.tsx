@@ -33,7 +33,7 @@ interface CustomSelectProps {
 export const CustomSelect = ({ id, value, onValueChange, placeholderLabel, items }: CustomSelectProps) => {
   return (
     <Select.Root value={value} onValueChange={onValueChange}>
-      <Select.Trigger id={id} className="flex w-full items-center justify-between rounded-lg border border-foreground/30 bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">
+      <Select.Trigger id={id} className="flex w-full items-center justify-between rounded-lg border border-foreground/30 bg-card px-4 py-3 text-sm font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">
         <Select.Value placeholder={placeholderLabel} />
         <Select.Icon className="text-foreground/60">▾</Select.Icon>
       </Select.Trigger>
@@ -45,7 +45,7 @@ export const CustomSelect = ({ id, value, onValueChange, placeholderLabel, items
           sideOffset={6}
           align="start"
           avoidCollisions={false}
-          className="z-50 min-w-[var(--radix-select-trigger-width)] rounded-lg border border-foreground/20 bg-background shadow-lg"
+          className="z-50 min-w-[var(--radix-select-trigger-width)] rounded-lg border border-foreground/20 bg-card shadow-lg"
         >
           <Select.Viewport className="py-2">
             {items.map((item) => (
@@ -106,11 +106,11 @@ export const SearchBar = ({ onSearch, placeholder, categories = [], universities
 
   return (
     <div className="max-w-xl sm:max-w-2xl md:max-w-3xl lg:max-w-5xl">
-      <div className="flex flex-col md:flex-row items-center bg-white rounded-xl shadow-md p-4 sm:p-6 lg:p-8 gap-4">
+      <div className="flex flex-col md:flex-row items-center bg-card rounded-xl shadow-md p-4 sm:p-6 lg:p-8 gap-4">
         <div className='flex flex-col md:flex-row lg:w-[60%] w-full md:gap-4'>
           <div className="flex flex-col gap-2 w-full">
             <label htmlFor="search" className="text-base font-medium">Search</label>
-            <div className="relative flex items-center bg-gray-100 rounded-lg overflow-hidden">
+            <div className="relative flex items-center bg-foreground/5 rounded-lg overflow-hidden">
               <input
                 type="search"
                 id="search"

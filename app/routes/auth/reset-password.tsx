@@ -22,9 +22,7 @@ export async function action({ request }: Route.ActionArgs) {
   const { supabase, headers } = createSupabaseServerClient(request);
 
   // Send password reset email
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${new URL(request.url).origin}/auth/update-password`,
-  });
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
 
   if (error) {
     console.error('Error sending reset email:', error);

@@ -100,27 +100,21 @@ export async function loader({ request }: Route.LoaderArgs) {
       query = query.order('created_at', { ascending: false });
   }
 
-  // Get total count first for pagination
-  const { count: totalItems, error: countError } = await query;
-
-  if (countError) {
-    console.error('Error fetching product count:', countError);
-  }
-
-  const total = totalItems ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
-  const currentPage = Math.min(Math.max(1, Number.isNaN(pageParam) ? 1 : pageParam), totalPages);
-
-  // Calculate pagination range
-  const from = (currentPage - 1) * ITEMS_PER_PAGE;
+  // Calculate pagination range (use pageParam initially, will be clamped after we get count)
+  const requestedPage = Math.max(1, Number.isNaN(pageParam) ? 1 : pageParam);
+  const from = (requestedPage - 1) * ITEMS_PER_PAGE;
   const to = from + ITEMS_PER_PAGE - 1;
 
-  // Fetch paginated products
-  const { data: products, error: productsError } = await query.range(from, to);
+  // Fetch paginated products with count in a single query
+  const { data: products, count: totalItems, error: productsError } = await query.range(from, to);
 
   if (productsError) {
     console.error('Error fetching products:', productsError);
   }
+
+  const total = totalItems ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
+  const currentPage = Math.min(requestedPage, totalPages);
 
   // Fetch filter options from database
   const { data: universities } = await supabase

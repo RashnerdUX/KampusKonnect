@@ -54,7 +54,11 @@ export const VendorCard = ({id, name, tagline, university, logoUrl, rating, cate
                         </span>
                     </div>
                 </div>
-                <a href={`https://wa.me/${+2349036720188}`} className='flex items-center gap-2 py-2 px-4 rounded-full bg-[#25D366] text-white w-full justify-center hover:bg-[#1ebe5d] transition-colors'>
+                <a 
+                    href={`https://wa.me/${+2349036720188}`} 
+                    className='flex items-center gap-2 py-2 px-4 rounded-full bg-[#25D366] text-white w-full justify-center hover:bg-[#1ebe5d] transition-colors'
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <FaWhatsapp /> Contact Vendor 
                 </a>
             </div>

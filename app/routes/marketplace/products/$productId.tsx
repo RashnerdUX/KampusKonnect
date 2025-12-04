@@ -67,16 +67,18 @@ export async function loader({params, request}: Route.LoaderArgs) {
 
   // If related products were gotten, we need the product data for each cuz the DB only returns their ID
   const relatedProductsIds = related_products_view?.related_product_ids ?? [];
-  const relatedProducts: typeof product[]= []
+  const relatedProducts: (typeof product)[]= []
 
-  const { data: relatedProductsData, error: relatedProductsError } = await supabase
-    .from('product_detail_view')
-    .select('*')
-    .in('id', relatedProductsIds );
-  if (relatedProductsError) {
-      console.error('Error fetching related products details:', relatedProductsError);
-  } else {
-      relatedProducts.push(...(relatedProductsData));
+  if (relatedProductsIds.length > 0) {
+      const { data: relatedProductsData, error: relatedProductsError } = await supabase
+        .from('product_detail_view')
+        .select('*')
+        .in('id', relatedProductsIds );
+      if (relatedProductsError) {
+          console.error('Error fetching related products details:', relatedProductsError);
+      } else {
+          relatedProducts.push(...(relatedProductsData));
+      }
   }
 
     return data({product, relatedProducts}, { headers });
@@ -205,9 +207,8 @@ const ProductPage = ({loaderData}: Route.ComponentProps) => {
               <div className='mx-4 flex gap-6 snap-x snap-mandatory no-scrollbar-new'>
                 {/* Placeholder for related products */}
                 {relatedProducts.map((product, index) => (
-                  <div className='snap-start shrink-0 w-64'>
+                  <div key={product.id || index} className='snap-start shrink-0 w-64'>
                     <ProductCard
-                      key={index}
                       id={product.id ?? ""}
                       name={product.title ?? ""}
                       storeName={product.store_name ?? ""}

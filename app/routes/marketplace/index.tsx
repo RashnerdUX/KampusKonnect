@@ -69,24 +69,29 @@ export const loader = async ({request}: Route.LoaderArgs) => {
   ]);
 
   // Handle errors
+  if (featuredResult.error) {
+    console.error('Error fetching featured products:', featuredResult.error);
+    throw new Response("Error fetching featured products", { status: 500 });
+  }
+  
   if (latestResult.error) {
     console.error('Error fetching latest products:', latestResult.error);
-    throw new Response("Error fetching latest products", { status: 404 });
+    throw new Response("Error fetching latest products", { status: 500 });
   }
 
   if (popularResult.error) {
     console.error('Error fetching popular products:', popularResult.error);
-    throw new Response("Error fetching popular products", { status: 404 });
+    throw new Response("Error fetching popular products", { status: 500 });
   }
 
   if (recommendedResult.error) {
     console.error('Error fetching recommended products:', recommendedResult.error);
-    throw new Response("Error fetching recommended products", { status: 404 });
+    throw new Response("Error fetching recommended products", { status: 500 });
   }
 
   if (vendorsResult.error) {
     console.error('Error fetching top vendors:', vendorsResult.error);
-    throw new Response("Error fetching top vendors", { status: 404 });
+    throw new Response("Error fetching top vendors", { status: 500 });
   }
   
   return data(
