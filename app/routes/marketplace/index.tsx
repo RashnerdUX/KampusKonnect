@@ -5,9 +5,8 @@ import { ProductCategoryCard } from '~/components/marketplace/ProductCategoryCar
 import ProductCard from '~/components/marketplace/ProductCard';
 import { HomeSectionProductView } from '~/components/marketplace/HomeSectionProductView';
 import { VendorCard } from '~/components/marketplace/VendorCard';
-import { Link } from 'react-router';
-
-import { stockProducts, featuredProducts, stockVendors } from '~/utils/stockdata';
+import { Link, data } from 'react-router';
+import { createSupabaseServerClient } from '~/utils/supabase.server';
 
 
 export const meta = (_args: Route.MetaArgs) => {
@@ -18,7 +17,79 @@ export const meta = (_args: Route.MetaArgs) => {
   ]
 }
 
-export const IndexPage = () => {
+export const loader = async ({request}: Route.LoaderArgs) => {
+  
+  // Create the client
+  const { supabase, headers } = createSupabaseServerClient(request);
+
+  // Get the featured products
+  const { data: featured_products_view, error: featured_products_error } = await supabase
+    .from('featured_products_view')
+    .select('*')
+    .limit(4);  
+          
+
+  // Get the latest products
+  const { data: latest_products_view, error: latest_products_error } = await supabase
+    .from('latest_products_view')
+    .select('*')
+    .range(0, 9)
+  if (latest_products_error) {
+    console.error('Error fetching latest products:', latest_products_error);
+    throw new Response("Error fetching latest products", { status: 404 });
+  }       
+
+  // Get popular products
+  // No logic to get which products are popular yet so let's list based on how they were uploaded
+  const { data: popularProducts, error: popularProductsError } = await supabase
+    .from('popular_products_view')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(0, 9);
+  
+  if (popularProductsError) {
+    console.error('Error fetching popular products:', popularProductsError);
+    throw new Response("Error fetching popular products", { status: 404 });
+  }
+
+  // Get recommended products for user
+  const { data: recommendedProducts, error: recommendedProductsError } = await supabase.rpc('recommended_products_for_user', {
+    viewer_university_id: "13ccf813-ad11-46c9-93d4-a3018f0493a3"
+  });
+  if (recommendedProductsError) {
+    console.error('Error fetching recommended products:', recommendedProductsError);
+    throw new Response("Error fetching recommended products", { status: 404 });
+  }
+
+  // Get top vendors
+  // TODO: Create a view later when we can rank vendors on ratings. 
+  const { data: vendors_data, error: vendors_error } = await supabase
+    .from('stores')
+    .select('*')
+    .order('created_at', { ascending: true })
+    .limit(8);
+
+  if (vendors_error) {
+    console.error('Error fetching top vendors:', vendors_error);
+    throw new Response("Error fetching top vendors", { status: 404 });
+  }
+  console.log('Vendors data:', vendors_data);
+  
+  return data(
+    {
+      featuredProducts: featured_products_view,
+      latestProducts: latest_products_view,
+      popularProducts: popularProducts,
+      recommendedProducts: recommendedProducts,
+      topVendors: vendors_data,
+    },
+    { headers }
+  );
+}
+
+export const IndexPage = ({loaderData}: Route.ComponentProps) => {
+
+  const { featuredProducts, latestProducts, popularProducts, topVendors, recommendedProducts } = loaderData
 
   const productCategories = [
     { name: 'Food & Beverages', image: '/images/categories/food&beverages.jpg', link: '/categories/food-beverages' },
@@ -77,27 +148,39 @@ export const IndexPage = () => {
             {/* Featured products grid */}
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
               {/* Placeholder for featured products */}
-              {featuredProducts.map((product, index) => (
-                <ProductCard
-                  key={index}
-                  id={product.id}
-                  name={product.name}
-                  storeName={product.storeName}
-                  price={product.price}
-                  imageUrl={product.imageUrl}
-                />
-              ))}
+              {featuredProducts && featuredProducts.length > 0 ? (
+                featuredProducts.map((product: any) => (
+                  <ProductCard
+                    key={product.product_id}
+                    id={product.product_id}
+                    name={product.product_name}
+                    storeName={product.store_name}
+                    price={product.price}
+                    imageUrl={product.product_image}
+                    rating={product.total_reviews}
+                    applyBadge={product.applybadge}
+                    badgeText={product.badgetext}
+                  />
+                ))
+              ) : (
+                <p className='text-center text-white font-bold'>No featured products available.</p>
+              )}
             </div>
           </div>
         </section>
 
+        <section id="latest" className='relative mt-6 sm:mt-8 md:mt-10 lg:mt-12'>
+          {/* Popular products section */}
+          <HomeSectionProductView sectionTitle="New Listings" seeAllLink="products?sort=latest" productData={latestProducts} />
+        </section>
+
         <section id="popular" className='relative mt-6 sm:mt-8 md:mt-10 lg:mt-12'>
           {/* Popular products section */}
-          <HomeSectionProductView sectionTitle="Popular Items" seeAllLink="/products?sort=popular" productData={stockProducts} />
+          <HomeSectionProductView sectionTitle="Popular Items" seeAllLink="products?sort=popular" productData={popularProducts} />
         </section>
 
         <section id='for-you' className='relative mt-6 sm:mt-8 md:mt-10 lg:mt-12'>
-          <HomeSectionProductView sectionTitle="For You" seeAllLink="/products?sort=featured" productData={stockProducts} />
+          <HomeSectionProductView sectionTitle="For You" seeAllLink="products?sort=featured" productData={recommendedProducts} />
         </section>
 
         <section id='vendors' className='relative mt-6 sm:mt-8 md:mt-10 lg:mt-12'>
@@ -110,23 +193,18 @@ export const IndexPage = () => {
             <div className='relative'>
               <div className='-mx-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]'>
                 <div className='mx-4 flex gap-6 snap-x snap-mandatory no-scrollbar-new'>
-                  {stockVendors.map((vendor, index) => (
+                  {topVendors.map((vendor, index) => (
                     <div className='snap-start shrink-0 w-64' key={index}>
-                      <Link to={`/marketplace/vendors/${vendor.id}`}>
                         <VendorCard
                           id={vendor.id}
-                          name={vendor.name}
-                          tagline={vendor.tagline}
-                          description={vendor.description}
-                          location={vendor.location}
-                          logoUrl={vendor.logoUrl}
-                          coverUrl={vendor.coverUrl}
-                          rating={vendor.rating}
-                          reviewCount={vendor.reviewCount}
-                          category={vendor.category}
-                          verified={vendor.verified}
+                          name={vendor.business_name}
+                          tagline="Active on Campus"
+                          university="Unknown"
+                          logoUrl={vendor.logo_url ?? ""}
+                          rating={vendor.total_reviews ?? 0}
+                          category="Unknown"
+                          verified={vendor.verified_badge ?? false}
                         />
-                      </Link>
                     </div>
                   ))}
                 </div>

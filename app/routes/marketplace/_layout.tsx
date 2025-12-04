@@ -6,7 +6,7 @@ import { getOptionalAuth } from '~/utils/optionalAuth.server';
 import { Footer } from '~/components/Footer';
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const {session, user, headers} = await getOptionalAuth(request);
+  const {user, headers} = await getOptionalAuth(request);
   
   return { user, headers: headers };
 }
