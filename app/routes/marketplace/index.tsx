@@ -1,13 +1,18 @@
 import React from 'react'
 import type { Route } from "../marketplace/+types/index";
-import SearchBar from '~/components/marketplace/SearchBar';
+import SearchBar, { type CategoryOption, type UniversityOption } from '~/components/marketplace/SearchBar';
 import { ProductCategoryCard } from '~/components/marketplace/ProductCategoryCard';
 import ProductCard from '~/components/marketplace/ProductCard';
 import { HomeSectionProductView } from '~/components/marketplace/HomeSectionProductView';
 import { VendorCard } from '~/components/marketplace/VendorCard';
-import { Link, data } from 'react-router';
+import { Link, data, useOutletContext, useNavigate } from 'react-router';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
 import { HeroIllustrations } from '~/components/marketplace/HeroIllustrations';
+
+interface MarketplaceContext {
+  categories: CategoryOption[];
+  universities: UniversityOption[];
+}
 
 
 export const meta = (_args: Route.MetaArgs) => {
@@ -23,65 +28,74 @@ export const loader = async ({request}: Route.LoaderArgs) => {
   // Create the client
   const { supabase, headers } = createSupabaseServerClient(request);
 
-  // Get the featured products
-  const { data: featured_products_view, error: featured_products_error } = await supabase
-    .from('featured_products_view')
-    .select('*')
-    .limit(4);  
-          
+  // Fetch all data in parallel
+  const [
+    featuredResult,
+    latestResult,
+    popularResult,
+    recommendedResult,
+    vendorsResult
+  ] = await Promise.all([
+    // Get the featured products
+    supabase
+      .from('featured_products_view')
+      .select('*')
+      .limit(4),
+    
+    // Get the latest products
+    supabase
+      .from('latest_products_view')
+      .select('*')
+      .range(0, 9),
+    
+    // Get popular products
+    supabase
+      .from('popular_products_view')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(0, 9),
+    
+    // Get recommended products for user
+    supabase.rpc('recommended_products_for_user', {
+      viewer_university_id: "13ccf813-ad11-46c9-93d4-a3018f0493a3"
+    }),
+    
+    // Get top vendors
+    supabase
+      .from('stores')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(8)
+  ]);
 
-  // Get the latest products
-  const { data: latest_products_view, error: latest_products_error } = await supabase
-    .from('latest_products_view')
-    .select('*')
-    .range(0, 9)
-  if (latest_products_error) {
-    console.error('Error fetching latest products:', latest_products_error);
+  // Handle errors
+  if (latestResult.error) {
+    console.error('Error fetching latest products:', latestResult.error);
     throw new Response("Error fetching latest products", { status: 404 });
-  }       
+  }
 
-  // Get popular products
-  // No logic to get which products are popular yet so let's list based on how they were uploaded
-  const { data: popularProducts, error: popularProductsError } = await supabase
-    .from('popular_products_view')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .range(0, 9);
-  
-  if (popularProductsError) {
-    console.error('Error fetching popular products:', popularProductsError);
+  if (popularResult.error) {
+    console.error('Error fetching popular products:', popularResult.error);
     throw new Response("Error fetching popular products", { status: 404 });
   }
 
-  // Get recommended products for user
-  const { data: recommendedProducts, error: recommendedProductsError } = await supabase.rpc('recommended_products_for_user', {
-    viewer_university_id: "13ccf813-ad11-46c9-93d4-a3018f0493a3"
-  });
-  if (recommendedProductsError) {
-    console.error('Error fetching recommended products:', recommendedProductsError);
+  if (recommendedResult.error) {
+    console.error('Error fetching recommended products:', recommendedResult.error);
     throw new Response("Error fetching recommended products", { status: 404 });
   }
 
-  // Get top vendors
-  // TODO: Create a view later when we can rank vendors on ratings. 
-  const { data: vendors_data, error: vendors_error } = await supabase
-    .from('stores')
-    .select('*')
-    .order('created_at', { ascending: true })
-    .limit(8);
-
-  if (vendors_error) {
-    console.error('Error fetching top vendors:', vendors_error);
+  if (vendorsResult.error) {
+    console.error('Error fetching top vendors:', vendorsResult.error);
     throw new Response("Error fetching top vendors", { status: 404 });
   }
   
   return data(
     {
-      featuredProducts: featured_products_view,
-      latestProducts: latest_products_view,
-      popularProducts: popularProducts,
-      recommendedProducts: recommendedProducts,
-      topVendors: vendors_data,
+      featuredProducts: featuredResult.data,
+      latestProducts: latestResult.data,
+      popularProducts: popularResult.data,
+      recommendedProducts: recommendedResult.data,
+      topVendors: vendorsResult.data,
     },
     { headers }
   );
@@ -90,6 +104,17 @@ export const loader = async ({request}: Route.LoaderArgs) => {
 export const IndexPage = ({loaderData}: Route.ComponentProps) => {
 
   const { featuredProducts, latestProducts, popularProducts, topVendors, recommendedProducts } = loaderData
+  const { categories, universities } = useOutletContext<MarketplaceContext>();
+  const navigate = useNavigate();
+
+  const handleSearch = (query: string, category: string, university: string) => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (category && category !== 'all') params.set('category', category);
+    if (university && university !== 'all') params.set('university', university);
+    
+    navigate(`/marketplace/products?${params.toString()}`);
+  };
 
   const productCategories = [
     { name: 'Food & Beverages', image: '/images/categories/food&beverages.jpg', link: '/categories/food-beverages' },
@@ -120,7 +145,11 @@ export const IndexPage = ({loaderData}: Route.ComponentProps) => {
             {/* The search bar */}
             <div className='md:absolute md:inset-x-0 lg:bottom-0 flex items-center justify-center px-4'>
               <div className='w-full max-w-5xl mx-auto lg:translate-y-1/2'>
-                  <SearchBar />
+                  <SearchBar 
+                    categories={categories} 
+                    universities={universities}
+                    onSearch={handleSearch}
+                  />
               </div>
             </div>
         </section>

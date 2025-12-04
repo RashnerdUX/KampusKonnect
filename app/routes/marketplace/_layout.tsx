@@ -6,27 +6,45 @@ import { getOptionalAuth } from '~/utils/optionalAuth.server';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
 import { Footer } from '~/components/Footer';
 
+export interface University {
+  id: string;
+  name: string;
+  short_code: string | null;
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const {user, headers} = await getOptionalAuth(request);
   
-  // Fetch categories for navigation
+  // Fetch categories and universities for navigation/search
   const { supabase } = createSupabaseServerClient(request);
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name, slug, emoji')
-    .order('name', { ascending: true });
   
-  return { user, categories: categories as Category[] ?? [], headers: headers };
+  const [categoriesResult, universitiesResult] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('id, name, slug, emoji')
+      .order('name', { ascending: true }),
+    supabase
+      .from('universities')
+      .select('id, name, short_code')
+      .order('name', { ascending: true })
+  ]);
+  
+  return { 
+    user, 
+    categories: categoriesResult.data as Category[] ?? [], 
+    universities: universitiesResult.data as University[] ?? [],
+    headers: headers 
+  };
 }
 
 export default function MarketplaceLayout({loaderData}: Route.ComponentProps) {
 
-  const {user, categories} = loaderData;
+  const {user, categories, universities} = loaderData;
   
   return (
     <div className="min-h-screen bg-background">
       <MarketPlaceNavbar user={user} categories={categories} />
-      <Outlet />
+      <Outlet context={{ categories, universities }} />
       <footer id="footer" className='relative py-6 bg-footer-background text-footer-foreground'>
         {/* Footer content */}
         <Footer />
