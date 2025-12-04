@@ -7,6 +7,7 @@ import { HomeSectionProductView } from '~/components/marketplace/HomeSectionProd
 import { VendorCard } from '~/components/marketplace/VendorCard';
 import { Link, data } from 'react-router';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
+import { HeroIllustrations } from '~/components/marketplace/HeroIllustrations';
 
 
 export const meta = (_args: Route.MetaArgs) => {
@@ -73,7 +74,6 @@ export const loader = async ({request}: Route.LoaderArgs) => {
     console.error('Error fetching top vendors:', vendors_error);
     throw new Response("Error fetching top vendors", { status: 404 });
   }
-  console.log('Vendors data:', vendors_data);
   
   return data(
     {
@@ -104,13 +104,16 @@ export const IndexPage = ({loaderData}: Route.ComponentProps) => {
   return (
     <>
       <main>
-        <section id="marketplace-hero" className="relative bg-secondary pt-16 pb-10 lg:pb-28 lg:pt-20">
+        <section id="marketplace-hero" className="relative bg-footer-background pt-16 pb-10 lg:pb-28 lg:pt-20 overflow-x-clip">
+            {/* Floating Illustrations */}
+            <HeroIllustrations />
+            
             {/* The main container for hero */}
-              <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12 lg:mb-0'>
+              <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12 lg:mb-0 relative z-10'>
                 {/* Text content for the hero section */}
                 <div className='max-w-xl md:max-w-2xl mx-auto'>
-                  <h1 className=' text-secondary-foreground text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-display'> Shop smarter with Campex</h1>
-                  <p className='mt-4 text-lg text-secondary-foreground/80'>Discover a world of campus essentials at unbeatable prices. From textbooks to tech gadgets, find everything you need in one place.</p>
+                  <h1 className=' text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-display'> Shop smarter with Campex</h1>
+                  <p className='mt-4 text-lg text-footer-foreground/80'>Discover a world of campus essentials at unbeatable prices. From textbooks to tech gadgets, find everything you need in one place.</p>
                 </div>
               </div>
 
