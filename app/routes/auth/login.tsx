@@ -97,9 +97,14 @@ export default function Login({actionData}:Route.ComponentProps) {
                         <input type="password" name="password" placeholder="Password" required className='input-field'/>
 
                         {/* Remember Me  */}
-                        <div className="flex items-center gap-3 pt-2">
-                          <input className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" id="remember-me" type="checkbox"/>
-                          <label className="text-sm text-gray-600 dark:text-gray-400" htmlFor="terms"> Remember me</label>
+                        <div className="flex items-center justify-between pt-2">
+                          <div className="flex items-center gap-3">
+                            <input className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" id="remember-me" type="checkbox"/>
+                            <label className="text-sm text-gray-600 dark:text-gray-400" htmlFor="remember-me"> Remember me</label>
+                          </div>
+                          <Link to="/auth/reset-password" className="text-sm text-gray-600 dark:text-gray-400 hover:text-foreground transition-colors">
+                            Forgot password?
+                          </Link>
                         </div>
 
                         <button type="submit" className='auth-button'>Login</button>

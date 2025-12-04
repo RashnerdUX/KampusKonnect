@@ -9,6 +9,8 @@ export default [
   route("login", "routes/auth/login.tsx"),
   route("register", "routes/auth/register.tsx"),
   route("auth/callback", "routes/auth/auth.callback.tsx"),
+  route("auth/reset-password", "routes/auth/reset-password.tsx"),
+  route("auth/update-password", "routes/auth/update-password.tsx"),
 
   // Onboarding Routes
   route("onboarding/check-email", "routes/onboarding/check-email.tsx"),
