@@ -113,7 +113,7 @@ const ProductPage = ({loaderData}: Route.ComponentProps) => {
                 <div className='flex flex-col'>
                   <div className='mb-4'>
                     {/* Store Name and university */}
-                    <Link to={`/marketplace/vendor/${product.store_id}`} className='text-sm md:text-base text-foreground/80 font-medium hover:underline'>
+                    <Link to={`/marketplace/vendors/${product.store_id}`} className='text-sm md:text-base text-foreground/80 font-medium hover:underline'>
                       {product.store_name} - {product.store_university}
                     </Link>
                   </div>

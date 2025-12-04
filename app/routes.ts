@@ -27,7 +27,11 @@ export default [
     route("products", "routes/marketplace/products/_layout.tsx", {id: "products-layout"}, [
       index("routes/marketplace/products/index.tsx"),
       route(":productId", "routes/marketplace/products/$productId.tsx"),
-      ])
+      ]),
+    route("vendors", "routes/marketplace/vendors/_layout.tsx", {id: "vendors-layout"}, [
+      index("routes/marketplace/vendors/index.tsx"),
+      route(":vendorId", "routes/marketplace/vendors/vendor.$id.tsx"),
+      ]),
     ]
   ),
 
