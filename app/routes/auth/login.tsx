@@ -4,9 +4,9 @@ import { createSupabaseServerClient } from '~/utils/supabase.server';
 import { redirect, Form, Link, data } from 'react-router';
 
 // Component imports
-import ImageCarousel from '~/components/auth/ImageCarousel';
 import AuthFormDivider from '~/components/utility/AuthFormDivider';
 import { handleGoogleLogin } from '~/utils/social_login';
+import ThemeToggle from '~/components/ThemeToggle';
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
@@ -99,18 +99,18 @@ export default function Login({actionData}:Route.ComponentProps) {
                         {/* Remember Me  */}
                         <div className="flex items-center justify-between pt-2">
                           <div className="flex items-center gap-3">
-                            <input className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" id="remember-me" type="checkbox"/>
-                            <label className="text-sm text-gray-600 dark:text-gray-400" htmlFor="remember-me"> Remember me</label>
+                            <input className="h-4 w-4 rounded border-border text-primary focus:ring-primary" id="remember-me" type="checkbox"/>
+                            <label className="text-sm text-foreground/80" htmlFor="remember-me"> Remember me</label>
                           </div>
-                          <Link to="/auth/reset-password" className="text-sm text-gray-600 dark:text-gray-400 hover:text-foreground transition-colors">
+                          <Link to="/auth/reset-password" className="text-sm text-foreground/80 hover:text-primary transition-colors">
                             Forgot password?
                           </Link>
                         </div>
 
                         <button type="submit" className='auth-button'>Login</button>
-                        <p className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                        <p className="mt-2 text-center text-sm text-foreground/80">
                           Don't have an account yet? 
-                          <Link to="/register" className="ml-1 font-medium text-gray-900 dark:text-gray-200">Register here</Link>
+                          <Link to="/register" className="ml-1 font-medium text-foreground/80 hover:text-primary transition-colors duration-200">Register here</Link>
                         </p>
                     </div>
                 </Form>
@@ -129,6 +129,11 @@ export default function Login({actionData}:Route.ComponentProps) {
             </div>
           </div>
       </main>
+
+      {/* Theme toggle fixed to the bottom right */}
+      <div className='absolute bottom-4 right-4'>
+        <ThemeToggle />
+      </div>
     </div>
   )
 }
