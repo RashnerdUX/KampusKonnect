@@ -179,7 +179,7 @@ export default function PrivacyPage() {
                   If you have any questions about this Privacy Policy or our data practices, please contact us at:
                 </p>
                 <p className="text-primary font-medium mt-2">
-                  privacy@campex.ng
+                  <a href="mailto:info@shopwithcampex.com" target="_blank">info@shopwithcampex.com</a>
                 </p>
               </div>
 
