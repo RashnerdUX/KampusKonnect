@@ -110,7 +110,7 @@ export default function Register({actionData}: Route.ComponentProps){
                         {/* Check Terms & Conditions */}
                         <div className="flex items-center gap-3 pt-2">
                           <input className="h-4 w-4 rounded border-border text-primary focus:ring-primary" id="terms" name='terms' type="checkbox"/>
-                          <label className="text-sm text-foreground/80" htmlFor="terms">I agree with the <a className="font-medium text-foreground/80 hover:text-primary hover:underline" href="#">Terms &amp; Condition</a></label>
+                          <label className="text-sm text-foreground/80" htmlFor="terms">I agree with the <a className="font-medium text-foreground/80 hover:text-primary hover:underline" href="/legal/terms" target="_blank">Terms &amp; Condition</a></label>
                         </div>
                         <button type="submit" className='auth-button'>Register</button>
                         <p className="mt-2 text-center text-sm text-foreground/80">
