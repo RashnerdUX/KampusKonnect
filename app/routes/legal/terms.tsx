@@ -164,7 +164,7 @@ export default function TermsPage() {
                   If you have any questions about these Terms and Conditions, please contact us at:
                 </p>
                 <p className="text-primary font-medium mt-2">
-                  legal@campex.ng
+                  <a href="mailto:info@shopwithcampex.com" target="_blank">info@shopwithcampex.com</a>
                 </p>
               </div>
 
