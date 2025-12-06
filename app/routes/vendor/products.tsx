@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import type { Route } from './+types/products'
 import { FaPlus, FaFilter, FaSort, FaSearch, FaChevronLeft, FaChevronRight, FaEdit, FaTrash } from 'react-icons/fa'
-import { useNavigate, redirect, useSearchParams, data } from 'react-router'
+import { useNavigate, redirect, useSearchParams, data, Form, useNavigation } from 'react-router'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 
 import ProductRow from '~/components/dashboard/ProductRow'
@@ -93,7 +93,53 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
   }, { headers })
 }
 
-export const Products = ({ loaderData }: Route.ComponentProps) => {
+export const action = async ({ request }: Route.ActionArgs) => {
+  const { supabase, headers } = createSupabaseServerClient(request)
+  const formData = await request.formData()
+  const intent = formData.get('intent')
+  const productId = formData.get('productId') as string
+
+  if (!supabase) {
+    return data({ success: false, error: 'Supabase client not initialized' }, { headers })
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return redirect('/login', { headers })
+  }
+
+  // Get the user's store to verify ownership
+  const { data: store, error: storeError } = await supabase
+    .from('stores')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (storeError || !store) {
+    return data({ success: false, error: 'Store not found' }, { headers })
+  }
+
+  if (intent === 'delete') {
+    // Delete the product (only if it belongs to the user's store)
+    const { error } = await supabase
+      .from('store_listings')
+      .delete()
+      .eq('id', productId)
+      .eq('store_id', store.id)  // Security: ensure product belongs to user's store
+
+    if (error) {
+      console.error('Error deleting product:', error)
+      return data({ success: false, error: error.message }, { headers })
+    }
+
+    return data({ success: true, error: null }, { headers })
+  }
+
+  return data({ success: false, error: 'Invalid intent' }, { headers })
+}
+
+export const Products = ({ loaderData, actionData }: Route.ComponentProps) => {
   const { products, pagination, search } = loaderData ?? {
     products: [],
     pagination: { page: 1, perPage: 10, totalItems: 0, totalPages: 0 },
@@ -105,6 +151,12 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  const navigation = useNavigation()
+
+  // Check if a delete is in progress
+  const isDeleting = navigation.state === 'submitting' && 
+    navigation.formData?.get('intent') === 'delete'
+  const deletingProductId = navigation.formData?.get('productId') as string | null
 
   const updateParams = (updates: Record<string, string | number>) => {
     const newParams = new URLSearchParams(searchParams)
@@ -154,6 +206,12 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Show action result */}
+      {actionData?.error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          Error: {actionData.error}
+        </div>
+      )}
       {/* Top controls */}
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {/* Search */}
@@ -259,13 +317,16 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
                   >
                     <FaEdit className="h-4 w-4" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => console.log('delete', product.id)}
-                    className="rounded-lg p-2 text-foreground/60 transition hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
-                  >
-                    <FaTrash className="h-4 w-4" />
-                  </button>
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="delete" />
+                    <input type="hidden" name="productId" value={product.id} />
+                    <button
+                      type="submit"
+                      className="rounded-lg p-2 text-foreground/60 transition hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                    >
+                      <FaTrash className="h-4 w-4" />
+                    </button>
+                  </Form>
                 </div>
               </div>
             </div>
@@ -314,8 +375,6 @@ export const Products = ({ loaderData }: Route.ComponentProps) => {
                   price={product.price ?? 0}
                   selected={selectedIds.has(product.id)}
                   onSelect={toggleSelect}
-                  onDelete={(id) => console.log('delete', id)}
-                  onEdit={(id) => navigate(`/vendor/products/${id}/edit`)}
                 />
               ))
             )}

@@ -54,7 +54,7 @@ export const loader =  async ({request}: Route.LoaderArgs) => {
       return redirect('/marketplace', { headers });
     }
 
-    if (profile.role !== 'vendor') {
+    if (profile.role !== 'vendor' && profile.role !== 'admin') {
       console.log('Non-vendor user attempted to access vendor dashboard.');
       return redirect('/marketplace', { headers });
     }

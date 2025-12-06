@@ -27,7 +27,7 @@ export const ProductCard = ({ id, name, storeName, price, imageUrl, rating, badg
           <div className='flex flex-col gap-1 min-w-0 flex-1'>
             <span className='text-xs text-foreground/70 truncate'>{storeName}</span>
             <span className='font-medium text-foreground text-base lg:text-xl line-clamp-2'>{name}</span>
-            <span className='mt-1 font-bold text-foreground text-lg lg:text-2xl'>₦ {price}</span>
+            <span className='mt-1 font-bold text-foreground text-lg lg:text-2xl'>₦ {price.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
           </div>
 
           {/* Review text */}
