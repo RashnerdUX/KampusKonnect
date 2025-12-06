@@ -1,5 +1,6 @@
 import React from 'react'
 import { FaTrash, FaPen } from 'react-icons/fa'
+import { Form, useNavigate } from 'react-router'
 
 export type ProductStatus = 'in-stock' | 'out-of-stock' | 'coming-soon'
 
@@ -11,8 +12,6 @@ export interface ProductRowProps {
   status: ProductStatus
   stock: number
   price: number
-  onDelete?: (id: string) => void
-  onEdit?: (id: string) => void
   selected?: boolean
   onSelect?: (id: string, checked: boolean) => void
 }
@@ -31,12 +30,12 @@ export const ProductRow = ({
   status,
   stock,
   price,
-  onDelete,
-  onEdit,
   selected,
   onSelect,
 }: ProductRowProps) => {
   const { label, color } = statusConfig[status]
+
+  const navigate = useNavigate()
 
   return (
     <tr className="border-b border-border transition hover:bg-muted/40">
@@ -71,17 +70,19 @@ export const ProductRow = ({
       <td className="px-4 py-3 font-medium text-foreground">₦{price.toFixed(2)}</td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onDelete?.(id)}
-            className="rounded p-1.5 text-foreground/60 transition hover:bg-red-100 hover:text-red-600"
-            aria-label="Delete product"
-          >
+          <Form method="post">
+            <input type="hidden" name="intent" value="delete" />
+            <input type="hidden" name="productId" value={id} />
+            <button
+              type="submit"
+              className="rounded-lg p-2 text-foreground/60 transition hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+            >
             <FaTrash className="h-4 w-4" />
-          </button>
+            </button>
+          </Form>
           <button
             type="button"
-            onClick={() => onEdit?.(id)}
+            onClick={() => navigate(`/vendor/products/${id}/edit`)}
             className="rounded p-1.5 text-foreground/60 transition hover:bg-primary/10 hover:text-primary"
             aria-label="Edit product"
           >

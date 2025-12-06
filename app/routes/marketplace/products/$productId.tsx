@@ -103,7 +103,7 @@ const ProductPage = ({loaderData}: Route.ComponentProps) => {
               {/* Product Image */}
               <div className='w-full max-h-[70dvh] overflow-hidden rounded-lg'>
                 {product.image_url ? (
-                  <img src={product.image_url} alt={product.title ?? "Product Image"} className='w-full h-auto object-cover rounded-lg' />
+                  <img src={product.image_url} alt={product.title ?? "Product Image"} className='w-full h-auto object-cover object-center rounded-lg' />
                 ) : (
                   <div className='w-full h-96 bg-gray-200 flex items-center justify-center rounded-lg'>
                     <span className='text-foreground/50'>No Image Available</span>

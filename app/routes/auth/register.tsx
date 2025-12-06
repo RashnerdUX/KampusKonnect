@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from '~/utils/supabase.server';
 import AuthFormDivider from '~/components/utility/AuthFormDivider';
 import ImageCarousel from '~/components/auth/ImageCarousel';
 import { handleGoogleLogin } from '~/utils/social_login';
+import ThemeToggle from '~/components/ThemeToggle';
 
 
 export const meta = ({}: Route.MetaArgs) => {
@@ -108,13 +109,13 @@ export default function Register({actionData}: Route.ComponentProps){
 
                         {/* Check Terms & Conditions */}
                         <div className="flex items-center gap-3 pt-2">
-                          <input className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" id="terms" name='terms' type="checkbox"/>
-                          <label className="text-sm text-gray-600 dark:text-gray-400" htmlFor="terms">I agree with the <a className="font-medium text-gray-900 dark:text-gray-200 hover:underline" href="#">Terms &amp; Condition</a></label>
+                          <input className="h-4 w-4 rounded border-border text-primary focus:ring-primary" id="terms" name='terms' type="checkbox"/>
+                          <label className="text-sm text-foreground/80" htmlFor="terms">I agree with the <a className="font-medium text-foreground/80 hover:text-primary hover:underline" href="#">Terms &amp; Condition</a></label>
                         </div>
                         <button type="submit" className='auth-button'>Register</button>
-                        <p className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                        <p className="mt-2 text-center text-sm text-foreground/80">
                           Already have an account? 
-                          <Link to="/login" className="ml-1 font-medium text-gray-900 dark:text-gray-200">Login here</Link>
+                          <Link to="/login" className="ml-1 font-medium text-foreground/80 hover:text-primary transition-colors duration-200">Login here</Link>
                         </p>
                     </div>
                 </Form>
@@ -134,6 +135,11 @@ export default function Register({actionData}: Route.ComponentProps){
           </div>
         </div>
       </main>
+
+      {/* Theme toggle fixed to the bottom right */}
+      <div className='absolute bottom-4 right-4'>
+        <ThemeToggle />
+      </div>
     </div>
   )
 }

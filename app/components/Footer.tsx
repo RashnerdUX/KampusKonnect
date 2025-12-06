@@ -35,10 +35,10 @@ export const Footer = () => {
     ];
 
     const legalLinks = [
-        { text: "Privacy Policy", url: "/" },
-        { text: "Terms of Service", url: "/" },
-        { text: "Cookie Policy", url: "/" },
-        { text: "Sitemap", url: "/" },
+        { text: "Privacy Policy", url: "/legal/privacy" },
+        { text: "Terms of Service", url: "/legal/terms" },
+        { text: "Cookie Policy", url: "/legal/cookies" },
+        { text: "Sitemap", url: "/sitemap" },
     ];
 
     const userlinks = [

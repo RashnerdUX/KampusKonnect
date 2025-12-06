@@ -47,6 +47,12 @@ export default [
     route("settings", "routes/vendor/settings.tsx"),
   ]),
 
+  // Legal Pages
+  route("legal/terms", "routes/legal/terms.tsx"),
+  route("legal/privacy", "routes/legal/privacy.tsx"),
+  route("legal/cookies", "routes/legal/cookies.tsx"),
+  route("sitemap", "routes/sitemap.tsx"),
+
   // For testing and experimentation
   route("playground", "routes/playground.tsx"),
 ] satisfies RouteConfig;

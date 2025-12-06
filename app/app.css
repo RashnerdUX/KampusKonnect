@@ -108,11 +108,11 @@ body {
 }
 
 .input-field{
-  @apply w-full h-12 px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/90 focus:border-primary/90 mt-2 placeholder:text-foreground/50 text-foreground;
+  @apply w-full h-12 px-4 py-2 bg-background/20 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/90 focus:border-primary/90 mt-2 placeholder:text-foreground/50 text-foreground;
 }
 
 .social-auth-button{
-  @apply flex h-12 w-full items-center justify-center rounded-md bg-white border border-gray-300 text-foreground font-bold text-base hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 mt-4;
+  @apply flex h-12 w-full items-center justify-center rounded-md bg-background border border-gray-300 text-foreground font-bold text-base transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 mt-4;
 }
 
 .carousel-indicator{
