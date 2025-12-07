@@ -190,7 +190,7 @@ export default function CookiePage() {
                   If you have any questions about our use of cookies, please contact us at:
                 </p>
                 <p className="text-primary font-medium mt-2">
-                  privacy@campex.ng
+                  <a href="mailto:info@shopwithcampex.com" target="_blank">info@shopwithcampex.com</a>
                 </p>
               </div>
 

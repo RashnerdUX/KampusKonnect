@@ -54,7 +54,15 @@ export default function PrivacyPage() {
                       <li>Phone number and delivery address</li>
                       <li>University/institution affiliation</li>
                       <li>Profile picture and account preferences</li>
-                      <li>Payment information (processed securely by payment partners)</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">Store Information</h3>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Business name and description</li>
+                      <li>Product details which may include descriptions, prices, images, & videos, and inventory</li>
+                      <li>Business hours and location</li>
+                      <li>Verification and compliance information</li>
                     </ul>
                   </div>
                   <div>
@@ -86,16 +94,34 @@ export default function PrivacyPage() {
                 </ul>
               </div>
 
+              {/* Vendor Verification */}
+              <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
+                <h2 className="text-2xl font-bold mb-4">4. Vendor Verification </h2>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  As a vendor, you may be required to provide additional information for verification purposes, including but not limited to:
+                </p>
+                <ul className="list-disc list-inside text-muted-foreground leading-relaxed space-y-2">
+                  <li><strong>Student ID Card:</strong> To prove that you're a student and are enrolled in the designated university on your profile</li>
+                  <li><strong>Proof of Identity:</strong> To verify your identity and ensure the security of our platform</li>
+                  {/* <li><strong>Payment Processors:</strong> To process secure payments</li> */}
+                  <li><strong>Proof of Business Transactions:</strong> To verify that you've conducted legitimate business activities</li>
+                  <li><strong>Proof of Business Registration (Optional):</strong> To verify your business registration status</li>
+                </ul>
+                <p className="text-muted-foreground leading-relaxed mt-4">
+                  We do not sell your personal information to third parties.
+                </p>
+              </div>
+
               {/* Information Sharing */}
               <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
-                <h2 className="text-2xl font-bold mb-4">4. Information Sharing</h2>
+                <h2 className="text-2xl font-bold mb-4">5. Information Sharing</h2>
                 <p className="text-muted-foreground leading-relaxed mb-4">
                   We may share your information with:
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground leading-relaxed space-y-2">
                   <li><strong>Vendors:</strong> To facilitate transactions and order fulfillment</li>
                   <li><strong>Service Providers:</strong> Who assist us in operating our platform</li>
-                  <li><strong>Payment Processors:</strong> To process secure payments</li>
+                  {/* <li><strong>Payment Processors:</strong> To process secure payments</li> */}
                   <li><strong>Legal Authorities:</strong> When required by law or to protect rights</li>
                   <li><strong>Business Transfers:</strong> In connection with mergers or acquisitions</li>
                 </ul>
@@ -106,7 +132,7 @@ export default function PrivacyPage() {
 
               {/* Data Security */}
               <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
-                <h2 className="text-2xl font-bold mb-4">5. Data Security</h2>
+                <h2 className="text-2xl font-bold mb-4">6. Data Security</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   We implement appropriate technical and organizational measures to protect your personal 
                   information against unauthorized access, alteration, disclosure, or destruction. This 
@@ -117,7 +143,7 @@ export default function PrivacyPage() {
 
               {/* Data Retention */}
               <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
-                <h2 className="text-2xl font-bold mb-4">6. Data Retention</h2>
+                <h2 className="text-2xl font-bold mb-4">7. Data Retention</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   We retain your personal information for as long as your account is active or as needed 
                   to provide you services. We will also retain and use your information to comply with 
@@ -128,7 +154,7 @@ export default function PrivacyPage() {
 
               {/* Your Rights */}
               <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
-                <h2 className="text-2xl font-bold mb-4">7. Your Rights</h2>
+                <h2 className="text-2xl font-bold mb-4">8. Your Rights</h2>
                 <p className="text-muted-foreground leading-relaxed mb-4">
                   Depending on your location, you may have the following rights:
                 </p>
@@ -144,17 +170,17 @@ export default function PrivacyPage() {
 
               {/* Children's Privacy */}
               <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
-                <h2 className="text-2xl font-bold mb-4">8. Children's Privacy</h2>
+                <h2 className="text-2xl font-bold mb-4">9. Children's Privacy</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Campex is not intended for children under the age of 13. We do not knowingly collect 
-                  personal information from children under 13. If you become aware that a child has 
+                  Campex is not intended for children under the age of 18. We do not knowingly collect 
+                  personal information from children under 18. If you become aware that a child has 
                   provided us with personal information, please contact us immediately.
                 </p>
               </div>
 
               {/* Third-Party Links */}
               <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
-                <h2 className="text-2xl font-bold mb-4">9. Third-Party Links</h2>
+                <h2 className="text-2xl font-bold mb-4">10. Third-Party Links</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   Our platform may contain links to third-party websites. We are not responsible for 
                   the privacy practices of these websites. We encourage you to read the privacy policies 
@@ -164,7 +190,7 @@ export default function PrivacyPage() {
 
               {/* Changes to Policy */}
               <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
-                <h2 className="text-2xl font-bold mb-4">10. Changes to This Policy</h2>
+                <h2 className="text-2xl font-bold mb-4">11. Changes to This Policy</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   We may update this Privacy Policy from time to time. We will notify you of any changes 
                   by posting the new policy on this page and updating the "Last updated" date. You are 
@@ -174,12 +200,20 @@ export default function PrivacyPage() {
 
               {/* Contact */}
               <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
-                <h2 className="text-2xl font-bold mb-4">11. Contact Us</h2>
+                <h2 className="text-2xl font-bold mb-4">12. Contact Us</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   If you have any questions about this Privacy Policy or our data practices, please contact us at:
                 </p>
                 <p className="text-primary font-medium mt-2">
-                  privacy@campex.ng
+                  <a href="mailto:info@shopwithcampex.com" target="_blank">info@shopwithcampex.com</a>
+                </p>
+              </div>
+
+              {/* Consent */}
+              <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border">
+                <h2 className="text-2xl font-bold mb-4">13. Consent</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  By using our platform, you consent to our Privacy Policy and agree to its terms.
                 </p>
               </div>
 
