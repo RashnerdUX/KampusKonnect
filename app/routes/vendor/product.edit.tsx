@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import type { Route } from './+types/product.edit'
-import { Form, redirect, data, useNavigate, useSubmit } from 'react-router'
+import { Form, redirect, data, useNavigate, useSubmit, useNavigation } from 'react-router'
 import { FaCloudArrowUp } from 'react-icons/fa6'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 import { compressImageFile } from '~/hooks/useImageCompression'
+import ButtonSpinner from '~/components/ButtonSpinner'
 
 export const meta = ({ data }: Route.MetaArgs) => {
   const productName = data?.product?.title ?? 'Edit Product'
@@ -193,6 +194,8 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
 export const EditProduct = ({ loaderData, actionData }: Route.ComponentProps) => {
   const { product, categories } = loaderData ?? { product: null, categories: [] }
   const navigate = useNavigate()
+  const navigation = useNavigation()
+  
 
   const [imagePreview, setImagePreview] = useState<string | null>(product?.image_url ?? null)
   const [hasNewImage, setHasNewImage] = useState(false)
@@ -204,6 +207,11 @@ export const EditProduct = ({ loaderData, actionData }: Route.ComponentProps) =>
   const [isActive, setIsActive] = useState<boolean>(product?.is_active ?? true)
   const [compressedFile, setCompressedFile] = useState<File | null>(null)
   const [isCompressing, setIsCompressing] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  if (navigation.state === 'submitting' && !isSubmitting) {
+    setIsSubmitting(true)
+  }
 
   const blobUrlRef = useRef<string | null>(null)
   const submit = useSubmit()
@@ -486,9 +494,11 @@ export const EditProduct = ({ loaderData, actionData }: Route.ComponentProps) =>
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-primary px-4 py-2 text-base text-primary-foreground hover:bg-primary/90"
+                className={ `rounded-full bg-primary px-6 py-2 text-base font-medium text-primary-foreground hover:bg-primary/90 flex items-center gap-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}` }
+                disabled={isSubmitting}
               >
-                Save Changes
+                {isSubmitting && <ButtonSpinner />}
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </Form>

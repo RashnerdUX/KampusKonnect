@@ -3,6 +3,7 @@ import type { Route } from './+types/check-email';
 import { Link, Form, redirect, useActionData, useNavigation } from 'react-router'
 import { FaEnvelope, FaArrowLeft, FaRedo, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
+import ButtonSpinner from '~/components/ButtonSpinner';
 
 export const meta = () => {
   return [
@@ -36,7 +37,12 @@ export const action = async ({ request }: Route.ActionArgs) => {
 export default function CheckEmail() {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
-  const isSubmitting = navigation.state === 'submitting'
+  
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  if (navigation.state === 'submitting' && !isSubmitting) {
+    setIsSubmitting(true);
+  }
 
   // Auto-hide success message after 5 seconds
   const [showMessage, setShowMessage] = useState(false)
@@ -116,26 +122,7 @@ export default function CheckEmail() {
               >
                 {isSubmitting ? (
                   <>
-                    <svg
-                      className="h-4 w-4 animate-spin"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                      />
-                    </svg>
+                    <ButtonSpinner />
                     Sending...
                   </>
                 ) : (

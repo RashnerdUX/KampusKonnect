@@ -1,12 +1,13 @@
 import React, {useState} from 'react'
 import type { Route } from './+types/register';
-import { Form, Link, redirect } from 'react-router';
+import { Form, Link, redirect, useNavigation } from 'react-router';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
 
 import AuthFormDivider from '~/components/utility/AuthFormDivider';
 import ImageCarousel from '~/components/auth/ImageCarousel';
 import { handleGoogleLogin } from '~/utils/social_login';
 import ThemeToggle from '~/components/ThemeToggle';
+import { ButtonSpinner } from '~/components/ButtonSpinner';
 
 
 export const meta = ({}: Route.MetaArgs) => {
@@ -72,13 +73,20 @@ export async function action({ request} : Route.ActionArgs) {
 export default function Register({actionData}: Route.ComponentProps){
 
   const [isGoogleSignIn, setIsGoogleSignIn] = useState<Boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<Boolean>(false);
 
   const registerWithGoogle = async () => {
    const success = await handleGoogleLogin();
+   setIsGoogleSignIn(true);
    if(success){
     setIsGoogleSignIn(success);
    };
     console.log("Google registration completed");
+  }
+
+  const navigation = useNavigation();
+  if (navigation.state === 'submitting' && !isSubmitting || isGoogleSignIn) {
+    setIsSubmitting(true);
   }
 
   return (
@@ -112,7 +120,10 @@ export default function Register({actionData}: Route.ComponentProps){
                           <input className="h-4 w-4 rounded border-border text-primary focus:ring-primary" id="terms" name='terms' type="checkbox"/>
                           <label className="text-sm text-foreground/80" htmlFor="terms">I agree with the <a className="font-medium text-foreground/80 hover:text-primary hover:underline" href="#">Terms &amp; Condition</a></label>
                         </div>
-                        <button type="submit" className='auth-button'>Register</button>
+                        <button type="submit" className={`auth-button ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          {isSubmitting && <ButtonSpinner />}
+                          {isSubmitting ? 'Registering...' : 'Register'}
+                        </button>
                         <p className="mt-2 text-center text-sm text-foreground/80">
                           Already have an account? 
                           <Link to="/login" className="ml-1 font-medium text-foreground/80 hover:text-primary transition-colors duration-200">Login here</Link>

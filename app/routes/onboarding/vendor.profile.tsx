@@ -1,9 +1,10 @@
-import React from 'react'
+import React, {useState} from 'react'
 import type { Route } from './+types/vendor.profile'
-import { Form, Link, redirect, data } from 'react-router'
+import { Form, Link, redirect, data, useNavigation } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaStore } from 'react-icons/fa'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 import { requireAuth } from '~/utils/requireAuth.server'
+import ButtonSpinner from '~/components/ButtonSpinner';
 
 export const meta = () => {
   return [
@@ -79,6 +80,13 @@ export const loader = async({request}: Route.LoaderArgs) => {
 }
 
 export default function VendorProfile({loaderData}: Route.ComponentProps) {
+
+  const navigation = useNavigation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (navigation.state === 'submitting' && !isSubmitting) {
+    setIsSubmitting(true);
+  }
 
     const { userEmail, firstName, surname, universities } = loaderData;
 
@@ -205,9 +213,11 @@ export default function VendorProfile({loaderData}: Route.ComponentProps) {
             </Link>
             <button
               type="submit"
-              className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90"
+              className={ `rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90 flex items-center gap-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}` }
+              disabled={isSubmitting}
             >
-              Continue
+              {isSubmitting && <ButtonSpinner />}
+              {isSubmitting ? 'Submitting...' : 'Continue'}
               <FaArrowRight className="h-4 w-4" />
             </button>
           </div>

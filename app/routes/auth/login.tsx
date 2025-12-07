@@ -1,12 +1,13 @@
-import React from 'react'
+import React, {useState}  from 'react'
 import type { Route } from './+types/login';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
-import { redirect, Form, Link, data } from 'react-router';
+import { redirect, Form, Link, data, useNavigation } from 'react-router';
 
 // Component imports
 import AuthFormDivider from '~/components/utility/AuthFormDivider';
 import { handleGoogleLogin } from '~/utils/social_login';
 import ThemeToggle from '~/components/ThemeToggle';
+import { ButtonSpinner } from '~/components/ButtonSpinner';
 
 export const meta = ({}: Route.MetaArgs) => {
   return [
@@ -64,12 +65,21 @@ export async function action({ request} : Route.ActionArgs) {
 
 export default function Login({actionData}:Route.ComponentProps) {
 
+  const [isGoogleSignIn, setIsGoogleSignIn] = useState<Boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<Boolean>(false);
+
   const loginWithGoogle = async () => {
     const success = await handleGoogleLogin();
+    setIsGoogleSignIn(true);
 
     if (success) {
       console.log("Signed In with Google")
     }
+  }
+
+  const navigation = useNavigation();
+  if (navigation.state === 'submitting' && !isSubmitting || isGoogleSignIn) {
+    setIsSubmitting(true);
   }
 
   return (
@@ -107,7 +117,10 @@ export default function Login({actionData}:Route.ComponentProps) {
                           </Link>
                         </div>
 
-                        <button type="submit" className='auth-button'>Login</button>
+                        <button type="submit" className={`auth-button ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          {isSubmitting && <ButtonSpinner />}
+                          {isSubmitting ? 'Logging in...' : 'Login'}
+                        </button>
                         <p className="mt-2 text-center text-sm text-foreground/80">
                           Don't have an account yet? 
                           <Link to="/register" className="ml-1 font-medium text-foreground/80 hover:text-primary transition-colors duration-200">Register here</Link>

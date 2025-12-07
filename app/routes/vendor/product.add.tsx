@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import type { Route } from './+types/product.add'
-import { Form, redirect, data, useNavigate, useSubmit } from 'react-router'
+import { Form, redirect, data, useNavigate, useSubmit, useNavigation } from 'react-router'
 import { FaCloudArrowUp } from 'react-icons/fa6'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 import { compressImageFile } from '~/hooks/useImageCompression'
+import ButtonSpinner from '~/components/ButtonSpinner'
 
 export const meta = (_args: Route.MetaArgs) => {
   return [
@@ -165,6 +166,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
 
 export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
   const navigate = useNavigate()
+  const navigation = useNavigation()
   const { categories } = loaderData ?? { categories: [] }
 
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -175,6 +177,11 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
   const [stockQuantity, setStockQuantity] = useState<number | null>(null)
   const [compressedFile, setCompressedFile] = useState<File | null>(null)
   const [isCompressing, setIsCompressing] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  if (navigation.state === 'submitting' && !isSubmitting) {
+    setIsSubmitting(true)
+  }
 
   const blobUrlRef = useRef<string | null>(null)
   const submit = useSubmit()
@@ -404,9 +411,11 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-primary px-4 py-2 text-base text-primary-foreground hover:bg-primary/90"
+                className={ `rounded-full bg-primary px-6 py-2 text-base font-medium text-primary-foreground hover:bg-primary/90 flex items-center gap-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}` }
+                disabled={isSubmitting}
               >
-                Publish product
+                {isSubmitting && <ButtonSpinner />}
+                {isSubmitting ? 'Publishing...' : 'Publish product'}
               </button>
             </div>
           </Form>
