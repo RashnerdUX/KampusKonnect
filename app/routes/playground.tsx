@@ -1,10 +1,11 @@
 import type { Route } from "./+types/playground";
 import { createSupabaseServerClient } from "~/utils/supabase.server";
-import { Form, data, redirect } from "react-router";
+import { Form, data, redirect, useNavigation } from "react-router";
 import ThemeToggle from "~/components/ThemeToggle";
 import { useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "~/utils/database.types";
+import ButtonSpinner from "~/components/ButtonSpinner";
 
 // Custom functions that I'll move to an utils folder later
 export const confirmUserOnSupabase = async (supabase: SupabaseClient<Database>, headers: Headers, user_id: string) => {
@@ -131,6 +132,12 @@ export default function Playground({actionData}: Route.ComponentProps) {
 
   const [publicUrl, setPublicUrl] = useState("");
   const [isPublicUrlGenerated, setIsPublicUrlGenerated] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const navigation = useNavigation();
+  if (navigation.state === "submitting" && !isSubmitting) {
+    setIsSubmitting(true);
+  }
 
   if (actionData?.publicUrl && !isPublicUrlGenerated) {
     setPublicUrl(actionData.publicUrl);
@@ -185,6 +192,18 @@ export default function Playground({actionData}: Route.ComponentProps) {
 
               <input type="text" name="public-url" id="public-url" placeholder="Awaiting Public Url" disabled value={isPublicUrlGenerated ? publicUrl : undefined} className="input-field" />
               <button type="submit" className="bg-secondary text-secondary-foreground text-sm font-medium py-4 px-6 rounded-full w-full"> Submit </button>
+            </Form>
+          </div>
+
+          {/* Form to test something */}
+          <div className="flex flex-col items-center justify-center border-2 border-border p-4 m-4 rounded-lg">
+            <h2 className="text-foreground font-bold text-xl font-display"> Another Test Form </h2>
+            <Form method="post" className="flex flex-col items-center gap-4 mt-4 w-full">
+              <input type="text" name="test-input" id="test-input" className="input-field" placeholder="Enter something to test"/>
+              <button type="submit" className={`bg-primary ${isSubmitting ? 'text-primary-foreground/50' : 'text-primary-foreground'} text-sm font-medium py-4 px-6 rounded-full w-full flex gap-2 items-center justify-center`}> 
+                {isSubmitting && <ButtonSpinner />}
+                {isSubmitting ? 'Submitting...' : ' Submit'} 
+              </button>
             </Form>
           </div>
         </div>

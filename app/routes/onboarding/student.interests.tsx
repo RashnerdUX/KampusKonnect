@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import type { Route } from './+types/student.interests';
-import { Form, Link, data, redirect } from 'react-router'
+import { Form, Link, data, redirect, useNavigation } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaCheck } from 'react-icons/fa'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
+import { ButtonSpinner } from '~/components/ButtonSpinner';
 
 export const meta = () => {
   return [
@@ -131,8 +132,14 @@ const CategoryCard = ({ id, label, emoji, description, selected, onToggle }: Cat
 }
 
 export default function StudentInterests({ loaderData }: Route.ComponentProps) {
+  const navigation = useNavigation();
   const { categories } = loaderData
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (navigation.state === 'submitting' && !isSubmitting) {
+    setIsSubmitting(true);
+  }
 
   const toggleCategory = (id: string) => {
     setSelectedIds((prev) => {
@@ -203,10 +210,11 @@ export default function StudentInterests({ loaderData }: Route.ComponentProps) {
             </Link>
             <button
               type="submit"
-              disabled={!isValid}
-              className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isSubmitting}
+              className={`flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              Complete Setup
+              {isSubmitting && <ButtonSpinner />}
+              {isSubmitting ? 'Submitting...' : 'Complete Setup'}
               <FaArrowRight className="h-4 w-4" />
             </button>
           </div>

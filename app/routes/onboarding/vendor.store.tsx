@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect} from 'react'
 import type { Route } from './+types/vendor.store';
-import { Form, Link, data, redirect } from 'react-router'
+import { Form, Link, data, redirect, useSubmit, useNavigation } from 'react-router'
 import { FaArrowLeft, FaArrowRight, FaCamera, FaCloudUploadAlt } from 'react-icons/fa'
 import { requireAuth } from '~/utils/requireAuth.server'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
+import { compressImageFile } from '~/hooks/useImageCompression'
+import ButtonSpinner from '~/components/ButtonSpinner';
 
 export const meta = (_args: Route.MetaArgs) => {
   return [
@@ -166,13 +168,25 @@ export const loader = async ({request}: Route.LoaderArgs) => {
 }
 
 export default function VendorStore({loaderData, actionData}: Route.ComponentProps) {
+  const navigation = useNavigation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (navigation.state === 'submitting' && !isSubmitting) {
+    setIsSubmitting(true);
+  }
+
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [headerPreview, setHeaderPreview] = useState<string | null>(null)
+  const [compressedLogo, setCompressedLogo] = useState<File | null>(null)
+  const [compressedHeader, setCompressedHeader] = useState<File | null>(null)
+  const [isCompressingLogo, setIsCompressingLogo] = useState(false)
+  const [isCompressingHeader, setIsCompressingHeader] = useState(false)
 
   const logoInputRef = useRef<HTMLInputElement>(null)
   const headerInputRef = useRef<HTMLInputElement>(null)
   const logoBlobRef = useRef<string | null>(null)
   const headerBlobRef = useRef<string | null>(null)
+  const submit = useSubmit()
 
 //   The store categories
     const {store_categories} = loaderData;
@@ -190,24 +204,75 @@ export default function VendorStore({loaderData, actionData}: Route.ComponentPro
         }
     }, [])
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setIsCompressingLogo(true)
       if (logoBlobRef.current) URL.revokeObjectURL(logoBlobRef.current)
-      const url = URL.createObjectURL(file)
-      logoBlobRef.current = url
-      setLogoPreview(url)
+
+      try {
+        const compressed = await compressImageFile(file, {
+          maxWidth: 400,
+          maxHeight: 400,
+          quality: 0.85,
+        })
+        setCompressedLogo(compressed)
+        const url = URL.createObjectURL(compressed)
+        logoBlobRef.current = url
+        setLogoPreview(url)
+        console.log(`Logo compressed: ${file.name} (${(file.size / 1024).toFixed(1)}KB) → (${(compressed.size / 1024).toFixed(1)}KB)`)
+      } catch (err) {
+        console.error('Logo compression failed:', err)
+        const url = URL.createObjectURL(file)
+        logoBlobRef.current = url
+        setLogoPreview(url)
+      } finally {
+        setIsCompressingLogo(false)
+      }
     }
   }
 
-  const handleHeaderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeaderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setIsCompressingHeader(true)
       if (headerBlobRef.current) URL.revokeObjectURL(headerBlobRef.current)
-      const url = URL.createObjectURL(file)
-      headerBlobRef.current = url
-      setHeaderPreview(url)
+
+      try {
+        const compressed = await compressImageFile(file, {
+          maxWidth: 1200,
+          maxHeight: 400,
+          quality: 0.85,
+        })
+        setCompressedHeader(compressed)
+        const url = URL.createObjectURL(compressed)
+        headerBlobRef.current = url
+        setHeaderPreview(url)
+        console.log(`Header compressed: ${file.name} (${(file.size / 1024).toFixed(1)}KB) → (${(compressed.size / 1024).toFixed(1)}KB)`)
+      } catch (err) {
+        console.error('Header compression failed:', err)
+        const url = URL.createObjectURL(file)
+        headerBlobRef.current = url
+        setHeaderPreview(url)
+      } finally {
+        setIsCompressingHeader(false)
+      }
     }
+  }
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+
+    // Replace with compressed files if available
+    if (compressedLogo) {
+      formData.set('logoImage', compressedLogo)
+    }
+    if (compressedHeader) {
+      formData.set('headerImage', compressedHeader)
+    }
+
+    submit(formData, { method: 'post', encType: 'multipart/form-data' })
   }
 
   return (
@@ -222,7 +287,7 @@ export default function VendorStore({loaderData, actionData}: Route.ComponentPro
         </div>
 
         {/* Form */}
-        <Form method="post" encType="multipart/form-data" className="flex flex-col gap-6">
+        <Form method="post" encType="multipart/form-data" className="flex flex-col gap-6" onSubmit={handleSubmit}>
           {/* Store Branding Section */}
           <div className="rounded-xl border border-border bg-muted/30 p-4">
             <h2 className="mb-4 text-sm font-semibold text-foreground">Store Branding</h2>
@@ -237,7 +302,12 @@ export default function VendorStore({loaderData, actionData}: Route.ComponentPro
                 onClick={() => headerInputRef.current?.click()}
                 className="relative w-full overflow-hidden rounded-xl border-2 border-dashed border-border bg-background transition hover:border-primary"
               >
-                {headerPreview ? (
+                {isCompressingHeader ? (
+                  <div className="flex aspect-[3/1] flex-col items-center justify-center gap-2">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                    <span className="text-sm text-foreground/70">Uploading image...</span>
+                  </div>
+                ) : headerPreview ? (
                   <div className="aspect-[3/1]">
                     <img src={headerPreview} alt="Header preview" className="h-full w-full object-cover" />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition hover:opacity-100">
@@ -275,7 +345,12 @@ export default function VendorStore({loaderData, actionData}: Route.ComponentPro
                   onClick={() => logoInputRef.current?.click()}
                   className="relative flex h-24 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-background transition hover:border-primary"
                 >
-                  {logoPreview ? (
+                  {isCompressingLogo ? (
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                      <span className="text-xs text-foreground/70">...</span>
+                    </div>
+                  ) : logoPreview ? (
                     <>
                       <img src={logoPreview} alt="Logo preview" className="h-full w-full object-cover" />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition hover:opacity-100">
@@ -370,9 +445,11 @@ export default function VendorStore({loaderData, actionData}: Route.ComponentPro
             </Link>
             <button
               type="submit"
-              className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90"
+              className={`flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isSubmitting}
             >
-              Create Store
+              {isSubmitting && <ButtonSpinner />}
+              {isSubmitting ? 'Creating...' : 'Create Store'}
               <FaArrowRight className="h-4 w-4" />
             </button>
           </div>
