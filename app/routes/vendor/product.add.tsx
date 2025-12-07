@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import type { Route } from './+types/product.add'
-import { Form, redirect, data, useNavigate } from 'react-router'
+import { Form, redirect, data, useNavigate, useSubmit } from 'react-router'
 import { FaCloudArrowUp } from 'react-icons/fa6'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
+import { compressImageFile } from '~/hooks/useImageCompression'
 
 export const meta = (_args: Route.MetaArgs) => {
   return [
@@ -172,23 +173,48 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
   const [productPrice, setProductPrice] = useState<number | null>(null)
   const [productCategory, setProductCategory] = useState<string>('')
   const [stockQuantity, setStockQuantity] = useState<number | null>(null)
+  const [compressedFile, setCompressedFile] = useState<File | null>(null)
+  const [isCompressing, setIsCompressing] = useState(false)
 
   const blobUrlRef = useRef<string | null>(null)
+  const submit = useSubmit()
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (files && files.length > 0) {
       const file = files[0]
+      setIsCompressing(true)
 
       // Revoke previous blob URL if exists
       if (blobUrlRef.current) {
         URL.revokeObjectURL(blobUrlRef.current)
       }
 
-      // Create a new preview URL
-      const previewUrl = URL.createObjectURL(file)
-      blobUrlRef.current = previewUrl
-      setImagePreview(previewUrl)
+      try {
+        // Compress the image before storing
+        const compressed = await compressImageFile(file, {
+          maxWidth: 800,
+          maxHeight: 800,
+          quality: 0.85,
+        })
+        setCompressedFile(compressed)
+
+        // Create a preview URL from compressed file
+        const previewUrl = URL.createObjectURL(compressed)
+        blobUrlRef.current = previewUrl
+        setImagePreview(previewUrl)
+
+        console.log(`Compressed: ${file.name} (${(file.size / 1024).toFixed(1)}KB) → (${(compressed.size / 1024).toFixed(1)}KB)`)
+      } catch (err) {
+        console.error('Compression failed, using original:', err)
+        // Fallback to original file
+        setCompressedFile(file)
+        const previewUrl = URL.createObjectURL(file)
+        blobUrlRef.current = previewUrl
+        setImagePreview(previewUrl)
+      } finally {
+        setIsCompressing(false)
+      }
     }
   }
 
@@ -201,6 +227,18 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
       }
     }
   }, [])
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+
+    // Replace the original file with the compressed one
+    if (compressedFile) {
+      formData.set('imageUpload', compressedFile)
+    }
+
+    submit(formData, { method: 'post', encType: 'multipart/form-data' })
+  }
 
   // Get selected category name for preview
   const selectedCategoryName = categories.find((c) => c.id === productCategory)?.name ?? ''
@@ -223,13 +261,18 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
       <main className="flex flex-col gap-4 lg:flex-row lg:gap-6">
         {/* The form for submission */}
         <div className="flex h-full w-full flex-col gap-4 rounded-2xl bg-card p-4 lg:w-[70%]">
-          <Form method="post" encType="multipart/form-data">
+          <Form method="post" encType="multipart/form-data" onSubmit={handleSubmit}>
             {/* Image Upload */}
             <label
               htmlFor="imageUpload"
               className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border py-12 transition-colors hover:border-primary"
             >
-              {imagePreview ? (
+              {isCompressing ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  <p className="text-sm text-foreground/70">Uploading image...</p>
+                </div>
+              ) : imagePreview ? (
                 <img
                   src={imagePreview}
                   alt="Product Preview"

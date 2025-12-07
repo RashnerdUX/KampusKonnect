@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
 import type { Route } from './+types/profile'
-import { Form, Link, redirect, data } from 'react-router'
+import { Form, Link, redirect, data, useSubmit } from 'react-router'
 import { FaExternalLinkAlt, FaStar, FaPen, FaTimes, FaCamera, FaUser } from 'react-icons/fa'
 
 import VerifiedBadge from '~/components/dashboard/VerifiedBadge'
 import ProfileSection from '~/components/dashboard/ProfileSection'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
+import { compressImageFile } from '~/hooks/useImageCompression'
 
 export const meta = () => {
   return [
@@ -312,10 +313,13 @@ export const VendorProfile = ({ loaderData }: Route.ComponentProps) => {
   const logoInputRef = useRef<HTMLInputElement>(null)
   const headerFormRef = useRef<HTMLFormElement>(null)
   const logoFormRef = useRef<HTMLFormElement>(null)
+  const submit = useSubmit()
 
   // Preview states for images
   const [headerPreview, setHeaderPreview] = useState(store.headerUrl)
   const [logoPreview, setLogoPreview] = useState(store.logoUrl)
+  const [isCompressingHeader, setIsCompressingHeader] = useState(false)
+  const [isCompressingLogo, setIsCompressingLogo] = useState(false)
 
   // Blob URL refs for cleanup
   const headerBlobRef = useRef<string | null>(null)
@@ -329,37 +333,87 @@ export const VendorProfile = ({ loaderData }: Route.ComponentProps) => {
     }
   }, [])
 
-  const handleHeaderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeaderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setIsCompressingHeader(true)
+
       // Revoke previous blob URL
       if (headerBlobRef.current) {
         URL.revokeObjectURL(headerBlobRef.current)
       }
 
-      const url = URL.createObjectURL(file)
-      headerBlobRef.current = url
-      setHeaderPreview(url)
+      try {
+        // Compress the image (larger dimensions for header)
+        const compressed = await compressImageFile(file, {
+          maxWidth: 1200,
+          maxHeight: 400,
+          quality: 0.85,
+        })
 
-      // Auto-submit the form
-      headerFormRef.current?.requestSubmit()
+        const url = URL.createObjectURL(compressed)
+        headerBlobRef.current = url
+        setHeaderPreview(url)
+
+        // Submit form with compressed file
+        const formData = new FormData()
+        formData.set('intent', 'updateHeader')
+        formData.set('headerImage', compressed)
+        submit(formData, { method: 'post', encType: 'multipart/form-data' })
+
+        console.log(`Header compressed: ${file.name} (${(file.size / 1024).toFixed(1)}KB) → (${(compressed.size / 1024).toFixed(1)}KB)`)
+      } catch (err) {
+        console.error('Header compression failed:', err)
+        // Fallback to original
+        const url = URL.createObjectURL(file)
+        headerBlobRef.current = url
+        setHeaderPreview(url)
+        headerFormRef.current?.requestSubmit()
+      } finally {
+        setIsCompressingHeader(false)
+      }
     }
   }
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setIsCompressingLogo(true)
+
       // Revoke previous blob URL
       if (logoBlobRef.current) {
         URL.revokeObjectURL(logoBlobRef.current)
       }
 
-      const url = URL.createObjectURL(file)
-      logoBlobRef.current = url
-      setLogoPreview(url)
+      try {
+        // Compress the logo image
+        const compressed = await compressImageFile(file, {
+          maxWidth: 400,
+          maxHeight: 400,
+          quality: 0.85,
+        })
 
-      // Auto-submit the form
-      logoFormRef.current?.requestSubmit()
+        const url = URL.createObjectURL(compressed)
+        logoBlobRef.current = url
+        setLogoPreview(url)
+
+        // Submit form with compressed file
+        const formData = new FormData()
+        formData.set('intent', 'updateLogo')
+        formData.set('logoImage', compressed)
+        submit(formData, { method: 'post', encType: 'multipart/form-data' })
+
+        console.log(`Logo compressed: ${file.name} (${(file.size / 1024).toFixed(1)}KB) → (${(compressed.size / 1024).toFixed(1)}KB)`)
+      } catch (err) {
+        console.error('Logo compression failed:', err)
+        // Fallback to original
+        const url = URL.createObjectURL(file)
+        logoBlobRef.current = url
+        setLogoPreview(url)
+        logoFormRef.current?.requestSubmit()
+      } finally {
+        setIsCompressingLogo(false)
+      }
     }
   }
 
@@ -391,7 +445,14 @@ export const VendorProfile = ({ loaderData }: Route.ComponentProps) => {
       <div className="relative">
         {/* Header Image */}
         <div className="relative h-48 w-full overflow-hidden rounded-xl bg-gradient-to-r from-primary/20 to-primary/40 md:h-56">
-          {headerPreview ? (
+          {isCompressingHeader ? (
+            <div className="flex h-full w-full items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                <p className="text-sm text-foreground/70">Uploading image...</p>
+              </div>
+            </div>
+          ) : headerPreview ? (
             <img src={headerPreview} alt="Store header" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-foreground/30">
@@ -423,7 +484,11 @@ export const VendorProfile = ({ loaderData }: Route.ComponentProps) => {
         <div className="absolute -bottom-12 left-6 md:left-8">
           <div className="relative">
             <div className="h-24 w-24 overflow-hidden rounded-xl border-4 border-background bg-muted shadow-lg md:h-28 md:w-28">
-              {logoPreview ? (
+              {isCompressingLogo ? (
+                <div className="flex h-full w-full items-center justify-center bg-primary/10">
+                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                </div>
+              ) : logoPreview ? (
                 <img src={logoPreview} alt="Store logo" className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-primary/10 text-3xl font-bold text-primary">
