@@ -29,24 +29,20 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
   const sortBy = url.searchParams.get('sort') || 'newest';
   const page = parseInt(url.searchParams.get('page') || '1', 10);
 
-  // Fetch filter options in parallel
+  // Fetch filter options in parallel with vendors
   const [categoriesResult, universitiesResult] = await Promise.all([
     supabase.from('store_categories').select('id, name').order('name'),
     supabase.from('universities').select('id, name, short_code').order('name')
   ]);
 
-  // Build vendors query with joins
+  // Build vendors query from the view
   let vendorsQuery = supabase
-    .from('stores')
-    .select(`
-      *,
-      store_categories(id, name),
-      user_profiles!inner(university_id, universities(id, name, short_code))
-    `, { count: 'exact' });
+    .from('vendor_view')
+    .select('*', { count: 'exact' });
 
   // Apply search filter
   if (searchQuery) {
-    vendorsQuery = vendorsQuery.ilike('business_name', `%${searchQuery}%`);
+    vendorsQuery = vendorsQuery.ilike('name', `%${searchQuery}%`);
   }
 
   // Apply category filter
@@ -56,16 +52,16 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 
   // Apply university filter
   if (universityFilter) {
-    vendorsQuery = vendorsQuery.eq('user_profiles.university_id', universityFilter);
+    vendorsQuery = vendorsQuery.eq('university_id', universityFilter);
   }
 
   // Apply sorting
   switch (sortBy) {
     case 'name-asc':
-      vendorsQuery = vendorsQuery.order('business_name', { ascending: true });
+      vendorsQuery = vendorsQuery.order('name', { ascending: true });
       break;
     case 'name-desc':
-      vendorsQuery = vendorsQuery.order('business_name', { ascending: false });
+      vendorsQuery = vendorsQuery.order('name', { ascending: false });
       break;
     case 'rating':
       vendorsQuery = vendorsQuery.order('rating', { ascending: false, nullsFirst: false });
@@ -303,17 +299,18 @@ export const VendorsIndex = ({ loaderData }: Route.ComponentProps) => {
         {/* Vendors Grid */}
         {vendors.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-            {vendors.map((vendor: any) => (
+            {vendors.map((vendor) => (
               <VendorCard
-                key={vendor.id}
-                id={vendor.id}
-                name={vendor.business_name}
-                tagline={vendor.description || 'Campus Vendor'}
-                university={vendor.user_profiles?.universities?.short_code || vendor.user_profiles?.universities?.name || 'Unknown'}
-                logoUrl={vendor.logo_url ?? ''}
+                key={vendor.id ?? ''}
+                id={vendor.id ?? ''}
+                name={vendor.name || 'Unnamed Vendor'}
+                whatsappNumber={vendor.whatsapp_number || ''}
+                tagline={vendor.tagline || 'Campus Vendor'}
+                university={vendor.university || 'Unknown'}
+                logoUrl={vendor.logoUrl ?? ''}
                 rating={vendor.rating ?? 0}
-                category={vendor.store_categories?.name || 'General'}
-                verified={vendor.verified_badge ?? false}
+                category={vendor.category || 'General'}
+                verified={vendor.verified ?? false}
               />
             ))}
           </div>

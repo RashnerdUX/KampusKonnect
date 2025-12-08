@@ -62,7 +62,7 @@ export const loader = async ({request}: Route.LoaderArgs) => {
     
     // Get top vendors
     supabase
-      .from('stores')
+      .from('vendor_view')
       .select('*')
       .order('created_at', { ascending: true })
       .limit(8)
@@ -233,14 +233,16 @@ export const IndexPage = ({loaderData}: Route.ComponentProps) => {
                   {topVendors.map((vendor, index) => (
                     <div className='snap-start shrink-0 w-64' key={index}>
                         <VendorCard
-                          id={vendor.id}
-                          name={vendor.business_name}
-                          tagline="Active on Campus"
-                          university="Unknown"
-                          logoUrl={vendor.logo_url ?? ""}
-                          rating={vendor.total_reviews ?? 0}
-                          category="Unknown"
-                          verified={vendor.verified_badge ?? false}
+                          key={vendor.id ?? ''}
+                          id={vendor.id ?? ''}
+                          name={vendor.name || 'Unnamed Vendor'}
+                          whatsappNumber={vendor.whatsapp_number || ''}
+                          tagline={vendor.tagline || 'Campus Vendor'}
+                          university={vendor.university || 'Unknown'}
+                          logoUrl={vendor.logoUrl ?? ''}
+                          rating={vendor.rating ?? 0}
+                          category={vendor.category || 'General'}
+                          verified={vendor.verified ?? false}
                         />
                     </div>
                   ))}
