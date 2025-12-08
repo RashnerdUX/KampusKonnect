@@ -3,29 +3,22 @@ import { FaStar } from "react-icons/fa6";
 import { Progress } from 'radix-ui';
 
 interface RatingsTileProps {
-  ratingValue: number; // This is the actual value like 5 or 4 or 3
-  ratingCount: number; // This refers to the number of users that have given a 5 star rating if ratingValue is 5
+  star: number; // This is the actual value like 5 or 4 or 3
+  count: number; // This refers to the number of users that have given a 5 star rating if ratingValue is 5
+  totalReviews: number;
 }
-
-const dummyRatingsData: RatingsTileProps[] = [
-    { ratingValue: 5, ratingCount: 120 },
-    { ratingValue: 4, ratingCount: 45 },
-    { ratingValue: 3, ratingCount: 20 },
-    { ratingValue: 2, ratingCount: 10 },
-    { ratingValue: 1, ratingCount: 5 },
-]
 
 const TOTAL_REVIEWS = 200; // Example total number of reviews
 
-export const RatingsTile = ({ ratingValue, ratingCount }: RatingsTileProps) => {
+export const RatingsTile = ({ star, count, totalReviews }: RatingsTileProps) => {
   return (
     <div className='flex items-center gap-2'>
         <FaStar className='text-yellow-400 size-6' />
-        <span className='text-base font-bold text-foreground'>{ratingValue}</span>
+        <span className='text-base font-bold text-foreground'>{star}</span>
         <Progress.Root className='w-48 h-2.5 rounded-full bg-foreground/20'>
                 <Progress.Indicator
                     className='h-2.5 rounded-full bg-yellow-400 transition-all duration-300'
-                    style={{ width: `${(ratingCount / TOTAL_REVIEWS) * 100}%` }}
+                    style={{ width: `${(count / TOTAL_REVIEWS) * 100}%` }}
                 />
         </Progress.Root>
     </div>
@@ -43,14 +36,14 @@ export const CustomRatingBar = () => {
 }
 
 interface RatingsTileSectionProps {
-    ratings: RatingsTileProps;
+    ratings: RatingsTileProps[];
 }
 
-export const RatingsTileSection = () => {
+export const RatingsTileSection = ({ratings}: RatingsTileSectionProps) => {
   return (
     <div className='flex flex-col gap-4 w-full'>
-        {dummyRatingsData.map((rating, index) => (
-            <RatingsTile key={index} ratingValue={rating.ratingValue} ratingCount={rating.ratingCount} />
+        {ratings.map((rating, index) => (
+            <RatingsTile key={index} star={rating.star} count={rating.count} totalReviews={rating.totalReviews} />
         ))}
     </div>
   )

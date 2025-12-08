@@ -38,8 +38,7 @@ export async function loader({params, request}: Route.LoaderArgs) {
 
     const { supabase, headers } = createSupabaseServerClient(request);
 
-    // Fetch product details
-    console.log('Fetching product details for ID:', productId);
+    // Fetch product details first (required for the page)
     const { data: product, error: productError } = await supabase
       .from('product_detail_view')
       .select('*')
@@ -51,37 +50,64 @@ export async function loader({params, request}: Route.LoaderArgs) {
       throw new Response("Product Not Found", { status: 404 });
     }
 
-    // Fetch product reviews
-
-
-    // Fetch Related Products
-  const { data: related_products_view, error: related_products_error } = await supabase
-    .from('related_products_view')
-    .select('*')
-    .eq('product_id', productId)
-    .maybeSingle();
-  
-  if (related_products_error) {
-      console.error('Error fetching related products:', related_products_error);
-  }
-
-  // If related products were gotten, we need the product data for each cuz the DB only returns their ID
-  const relatedProductsIds = related_products_view?.related_product_ids ?? [];
-  const relatedProducts: (typeof product)[]= []
-
-  if (relatedProductsIds.length > 0) {
-      const { data: relatedProductsData, error: relatedProductsError } = await supabase
-        .from('product_detail_view')
+    // Fetch reviews summary and related products in parallel
+    const [reviewsSummaryResult, relatedProductsResult] = await Promise.all([
+      supabase
+        .from('product_reviews_summary_view')
         .select('*')
-        .in('id', relatedProductsIds );
-      if (relatedProductsError) {
-          console.error('Error fetching related products details:', relatedProductsError);
-      } else {
-          relatedProducts.push(...(relatedProductsData));
-      }
-  }
+        .eq('product_id', productId)
+        .maybeSingle(),
+      supabase
+        .from('related_products_view')
+        .select('*')
+        .eq('product_id', productId)
+        .maybeSingle()
+    ]);
 
-    return data({product, relatedProducts}, { headers });
+    if (reviewsSummaryResult.error) {
+      console.error('Error fetching product reviews summary:', reviewsSummaryResult.error);
+    }
+
+    if (relatedProductsResult.error) {
+      console.error('Error fetching related products:', relatedProductsResult.error);
+    }
+
+    const reviewsSummary = reviewsSummaryResult.data;
+    const topReviewsIDs = reviewsSummary?.top_reviews ?? [];
+    const relatedProductsIds = relatedProductsResult.data?.related_product_ids ?? [];
+
+    // Fetch top reviews and related products data in parallel
+    const [topReviewsResult, relatedProductsDataResult] = await Promise.all([
+      topReviewsIDs.length > 0
+        ? supabase
+            .from('product_user_reviews_view')
+            .select('*')
+            .in('review_id', topReviewsIDs)
+            .order('created_at', { ascending: false })
+            .limit(4)
+        : Promise.resolve({ data: [], error: null }),
+      relatedProductsIds.length > 0
+        ? supabase
+            .from('product_detail_view')
+            .select('*')
+            .in('id', relatedProductsIds)
+        : Promise.resolve({ data: [], error: null })
+    ]);
+
+    if (topReviewsResult.error) {
+      console.error('Error fetching product user reviews:', topReviewsResult.error);
+    }
+
+    if (relatedProductsDataResult.error) {
+      console.error('Error fetching related products details:', relatedProductsDataResult.error);
+    }
+
+    return data({
+      product,
+      relatedProducts: relatedProductsDataResult.data ?? [],
+      reviewsSummary: reviewsSummary ?? null,
+      topProductReviews: topReviewsResult.data ?? []
+    }, { headers });
 }
 
 export function HydrateFallback(){
@@ -90,7 +116,15 @@ export function HydrateFallback(){
 
 const ProductPage = ({loaderData}: Route.ComponentProps) => {
     
-  const { product, relatedProducts } = loaderData;
+  const { product, relatedProducts, reviewsSummary, topProductReviews } = loaderData;
+
+  const ratingsData = [
+    { star: 5, count: reviewsSummary?.count_5 || 0, totalReviews: reviewsSummary?.total_reviews || 0 },
+    { star: 4, count: reviewsSummary?.count_4 || 0, totalReviews: reviewsSummary?.total_reviews || 0 },
+    { star: 3, count: reviewsSummary?.count_3 || 0, totalReviews: reviewsSummary?.total_reviews || 0 },
+    { star: 2, count: reviewsSummary?.count_2 || 0, totalReviews: reviewsSummary?.total_reviews || 0 },
+    { star: 1, count: reviewsSummary?.count_1 || 0, totalReviews: reviewsSummary?.total_reviews || 0 },
+  ]
 
   return (
     <main>
@@ -168,32 +202,40 @@ const ProductPage = ({loaderData}: Route.ComponentProps) => {
               {/* Reviews Summary */}
               <div className='relative border border-border bg-card flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-lg'>
                   <div className="flex flex-col">
-                    {/* Actual summary */}
                       <div className='flex flex-col items-center'>
                         <FaStar className='text-yellow-400 mb-4 text-2xl md:text-4xl lg:text-6xl' />
                         <h3 className='text-foreground text-3xl md:text-5xl lg:text-7xl font-bold mb-2'>
-                          4.6 <span className='text-foreground/50 font-medium text-base md:text-lg lg:text-xl'> / 5</span>
+                          {reviewsSummary?.average_rating?.toFixed(1) ?? '0.0'} 
+                          <span className='text-foreground/50 font-medium text-base md:text-lg lg:text-xl'> / 5</span>
                         </h3>
-                        <p className='text-foreground/80 text-xs md:text-sm lg:text-base font-medium'>Based on 120 reviews</p>
+                        <p className='text-foreground/80 text-xs md:text-sm lg:text-base font-medium'>
+                          Based on {reviewsSummary?.total_reviews ?? 0} reviews
+                        </p>
                       </div>
                   </div>
                   <div className='flex items-center mx-auto'>
-                    <RatingsTileSection />
+                    <RatingsTileSection ratings={ratingsData} />
                   </div>
               </div>
 
               {/* Reviews List */}
               <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
-                  {dummyReviews.map((review, index) => (
-                    <ReviewCard
-                      key={index}
-                      username={review.username}
-                      name={review.name}
-                      avatarUrl={review.avatarUrl}
-                      review={review.review}
-                      rating={review.rating}
-                    />
-                  ))}
+                  {topProductReviews.length > 0 ? (
+                    topProductReviews.map((review) => (
+                      <ReviewCard
+                        key={review.review_id}
+                        username={review.username ?? 'Anonymous'}
+                        name={review.full_name ?? 'Anonymous'}
+                        avatarUrl={review.avatar_url}
+                        review={review.review_text ?? ''}
+                        rating={review.rating ?? 0}
+                      />
+                    ))
+                  ) : (
+                    <p className='text-foreground/60 col-span-full text-center py-8'>
+                      No reviews yet. Be the first to review this product!
+                    </p>
+                  )}
               </div>
             </div>
           </div>
