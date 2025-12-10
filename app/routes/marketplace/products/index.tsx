@@ -117,20 +117,32 @@ export async function loader({ request }: Route.LoaderArgs) {
   const currentPage = Math.min(requestedPage, totalPages);
 
   // Fetch filter options from database
-  const { data: universities } = await supabase
+  const { data: universities, error: universitiesError } = await supabase
     .from('universities')
     .select('id, name')
     .order('name');
+  
+  if (universitiesError) {
+    console.error('Error fetching universities for filters:', universitiesError);
+  }
 
-  const { data: categories } = await supabase
+  const { data: categories, error: categoriesError } = await supabase
     .from('categories')
     .select('id, name')
     .order('name');
 
-  const { data: vendors } = await supabase
+  if (categoriesError) {
+    console.error('Error fetching categories for filters:', categoriesError);
+  }
+
+  const { data: vendors, error: vendorsError } = await supabase
     .from('stores')
     .select('id, business_name')
     .order('business_name');
+
+  if (vendorsError) {
+    console.error('Error fetching vendors for filters:', vendorsError);
+  }
 
   return data({
     products: products ?? [],

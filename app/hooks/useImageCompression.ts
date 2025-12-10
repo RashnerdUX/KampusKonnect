@@ -2,12 +2,14 @@ import { useState, useCallback } from 'react';
 import { compressImage } from '~/utils/imageCompressor';
 
 interface UseImageCompressionOptions {
+  // Input for the image compression hook
   maxWidth?: number;
   maxHeight?: number;
   quality?: number;
 }
 
 interface UseImageCompressionResult {
+  // Output for the image compression hook
   compressedFile: File | null;
   isCompressing: boolean;
   error: string | null;
