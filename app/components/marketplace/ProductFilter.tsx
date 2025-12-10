@@ -1,45 +1,21 @@
-
-
-
 export type Filters = {
   priceMin: string;
   priceMax: string;
   universities: string[];
   categories: string[];
-  vendors: string[];
   productRating: string;
-  vendorRating: string;
 };
 
-export type FilterMultiKey = "universities" | "categories" | "vendors";
-export type RatingFilterKey = "productRating" | "vendorRating";
+export type FilterMultiKey = "universities" | "categories";
+export type RatingFilterKey = "productRating";
 
 export const createDefaultFilters = (): Filters => ({
   priceMin: "",
   priceMax: "",
   universities: [],
   categories: [],
-  vendors: [],
   productRating: "",
-  vendorRating: "",
 });
-
-export const UNIVERSITY_OPTIONS = [
-  "University of Lagos",
-  "Lagos State University",
-  "University of Ibadan",
-  "Obafemi Awolowo University",
-  "Covenant University",
-];
-
-export const CATEGORY_OPTIONS = [
-  "Food & Beverages",
-  "Books & Stationery",
-  "Electronics",
-  "Clothing & Accessories",
-  "Health & Wellness",
-  "Services",
-];
 
 export const RATING_OPTIONS = [
   { value: "4", label: "4 stars & up" },
@@ -53,9 +29,7 @@ export const FILTER_QUERY_KEYS = [
   "priceMax",
   "university",
   "category",
-  "vendor",
   "productRating",
-  "vendorRating",
 ] as const;
 
 export const parseFiltersFromSearch = (search: string): Filters => {
@@ -66,9 +40,7 @@ export const parseFiltersFromSearch = (search: string): Filters => {
     priceMax: params.get("priceMax") ?? "",
     universities: params.getAll("university"),
     categories: params.getAll("category"),
-    vendors: params.getAll("vendor"),
     productRating: params.get("productRating") ?? "",
-    vendorRating: params.get("vendorRating") ?? "",
   };
 };
 
@@ -77,7 +49,6 @@ export type FilterControlsProps = {
   options: {
     universities: string[];
     categories: string[];
-    vendors: string[];
     ratingOptions: { value: string; label: string }[];
   };
   onPriceChange: (field: "priceMin" | "priceMax", value: string) => void;
@@ -87,9 +58,16 @@ export type FilterControlsProps = {
   groupId?: string;
 };
 
-export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti, onRatingChange, onReset, groupId }: FilterControlsProps) => {
+export const FilterControls = ({ 
+  filters, 
+  options, 
+  onPriceChange, 
+  onToggleMulti, 
+  onRatingChange, 
+  onReset, 
+  groupId 
+}: FilterControlsProps) => {
   const productRatingGroupName = `${groupId ?? "filters"}-product-rating`;
-  const vendorRatingGroupName = `${groupId ?? "filters"}-vendor-rating`;
 
   return (
     <div className="space-y-6">
@@ -104,6 +82,7 @@ export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti,
         </button>
       </div>
 
+      {/* Price Range */}
       <section className="space-y-3">
         <p className="text-sm font-medium text-muted-foreground">Price range</p>
         <div className="flex items-center gap-3">
@@ -134,6 +113,7 @@ export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti,
         </div>
       </section>
 
+      {/* Universities */}
       <section className="space-y-3">
         <p className="text-sm font-medium text-muted-foreground">Universities</p>
         <div className="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
@@ -154,6 +134,7 @@ export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti,
         </div>
       </section>
 
+      {/* Categories */}
       <section className="space-y-3">
         <p className="text-sm font-medium text-muted-foreground">Categories</p>
         <div className="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
@@ -174,26 +155,7 @@ export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti,
         </div>
       </section>
 
-      <section className="space-y-3">
-        <p className="text-sm font-medium text-muted-foreground">Vendors</p>
-        <div className="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
-          {options.vendors.map((vendor) => (
-            <label key={vendor} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={filters.vendors.includes(vendor)}
-                onChange={() => onToggleMulti("vendors", vendor)}
-                className="size-4 rounded border-border"
-              />
-              <span className="text-foreground/90">{vendor}</span>
-            </label>
-          ))}
-          {options.vendors.length === 0 && (
-            <p className="text-xs text-foreground/50">No vendors available</p>
-          )}
-        </div>
-      </section>
-
+      {/* Product Rating */}
       <section className="space-y-3">
         <p className="text-sm font-medium text-muted-foreground">Product rating</p>
         <div className="space-y-2">
@@ -215,35 +177,6 @@ export const FilterControls = ({ filters, options, onPriceChange, onToggleMulti,
                 value={option.value}
                 checked={filters.productRating === option.value}
                 onChange={() => onRatingChange("productRating", option.value)}
-                className="size-4 border-border"
-              />
-              <span className="text-foreground/90">{option.label}</span>
-            </label>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <p className="text-sm font-medium text-muted-foreground">Vendor rating</p>
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
-              name={vendorRatingGroupName}
-              checked={filters.vendorRating === ""}
-              onChange={() => onRatingChange("vendorRating", "")}
-              className="size-4 border-border"
-            />
-            <span className="text-foreground/90">Any rating</span>
-          </label>
-          {options.ratingOptions.map((option) => (
-            <label key={option.value} className="flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                name={vendorRatingGroupName}
-                value={option.value}
-                checked={filters.vendorRating === option.value}
-                onChange={() => onRatingChange("vendorRating", option.value)}
                 className="size-4 border-border"
               />
               <span className="text-foreground/90">{option.label}</span>

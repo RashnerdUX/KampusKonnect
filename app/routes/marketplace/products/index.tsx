@@ -54,9 +54,6 @@ export const meta = ({ loaderData, location }: Route.MetaArgs) => {
   if (filters?.categories?.length) {
     parts.push(filters.categories.join(", "));
   }
-  if (filters?.vendors?.length) {
-    parts.push(`from ${filters.vendors.join(", ")}`);
-  }
   
   if (parts.length > 0) {
     title = `${parts.join(" ")} Products`;
@@ -150,10 +147,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   const currentPage = Math.min(requestedPage, totalPages);
 
   // Fetch filter options
-  const [{ data: universities }, { data: categories }, { data: vendors }] = await Promise.all([
+  const [{ data: universities }, { data: categories }] = await Promise.all([
     supabase.from('universities').select('id, name').order('name'),
     supabase.from('categories').select('id, name').order('name'),
-    supabase.from('stores').select('id, business_name').order('business_name'),
   ]);
 
   return data({
@@ -169,7 +165,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     filterOptions: {
       universities: universities?.map(u => u.name) ?? [],
       categories: categories?.map(c => c.name) ?? [],
-      vendors: vendors?.map(v => v.business_name) ?? [],
     },
   }, { headers });
 }
@@ -265,9 +260,7 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
     if (nextFilters.priceMax) params.set("priceMax", nextFilters.priceMax);
     nextFilters.universities.forEach((value) => params.append("university", value));
     nextFilters.categories.forEach((value) => params.append("category", value));
-    nextFilters.vendors.forEach((value) => params.append("vendor", value));
     if (nextFilters.productRating) params.set("productRating", nextFilters.productRating);
-    if (nextFilters.vendorRating) params.set("vendorRating", nextFilters.vendorRating);
 
     return params;
   };
@@ -327,7 +320,6 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
             options={{
               universities: filterOptions.universities,
               categories: filterOptions.categories,
-              vendors: filterOptions.vendors,
               ratingOptions: RATING_OPTIONS,
             }}
             onPriceChange={handlePriceChange}
@@ -508,7 +500,6 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
                 options={{
                   universities: filterOptions.universities,
                   categories: filterOptions.categories,
-                  vendors: filterOptions.vendors,
                   ratingOptions: RATING_OPTIONS,
                 }}
                 onPriceChange={handlePriceChange}
