@@ -53,6 +53,9 @@ export default [
   route("legal/cookies", "routes/legal/cookies.tsx"),
   route("sitemap", "routes/sitemap.tsx"),
 
+  // API Routes
+  route("api/search", "routes/api.search.tsx"),
+
   // For testing and experimentation
   route("playground", "routes/playground.tsx"),
 ] satisfies RouteConfig;

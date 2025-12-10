@@ -66,6 +66,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     `, { count: 'exact' })
     .eq('is_active', true);
 
+  // If the page is navigated to using search, apply search filter
+  const searchQuery = url.searchParams.get("q")?.trim();
+  if (searchQuery) {
+    query = query.textSearch('search_vector', searchQuery, {
+      type: 'websearch',
+      config: 'english'
+    });
+  }
+
   // Apply price filters
   if (filters.priceMin) {
     const minPrice = parseFloat(filters.priceMin);
@@ -173,6 +182,14 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
   const [filters, setFilters] = useState<Filters>(() => serverFilters ?? createDefaultFilters());
   const [selectedSort, setSelectedSort] = useState<SortValue>(sort ?? DEFAULT_SORT);
 
+  // Check if the user used a specific query to access this page. Whether it is a category or a name search.
+  const searchQuery = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("q")?.trim() ?? "";
+  }, [location.search]);
+
+  const isSearchQuery = searchQuery.length > 0;
+
   useEffect(() => {
     setFilters(serverFilters ?? createDefaultFilters());
   }, [serverFilters]);
@@ -184,6 +201,13 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
       setSelectedSort(DEFAULT_SORT);
     }
   }, [sort]);
+
+  const convertToNormalCase = (str: string) => {
+    if (!str) return '';
+    const firstChar = str.charAt(0).toUpperCase();
+    const rest = str.slice(1).toLowerCase();
+    return firstChar + rest;
+  }
 
   const visiblePageNumbers = (() => {
     const delta = 1; // Show only 1 page on each side of current
@@ -317,7 +341,9 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
                 <div className="flex items-start justify-between">
                     <div className="flex items-baseline justify-between w-full md:w-auto">
                         <div className="flex flex-col gap-1 md:gap-2">
-                          <h1 className="text-2xl md:text-3xl lg:text-4xl text-foreground font-bold">Products</h1>
+                          <h1 className="text-2xl md:text-3xl lg:text-4xl text-foreground font-bold">
+                            {isSearchQuery ? `${convertToNormalCase(searchQuery ?? "")} Results` : `All Products`}
+                          </h1>
                           <p className="text-foreground/80 mt-1 text-sm md:text-base">
                             Showing <span>{totalItems}</span> products
                           </p>

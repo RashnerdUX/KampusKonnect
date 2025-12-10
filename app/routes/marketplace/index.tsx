@@ -134,7 +134,7 @@ export const IndexPage = ({loaderData}: Route.ComponentProps) => {
   return (
     <>
       <main>
-        <section id="marketplace-hero" className="relative bg-footer-background pt-16 pb-10 lg:pb-28 lg:pt-20 overflow-x-clip">
+        <section id="marketplace-hero" className="relative bg-footer-background pt-16 pb-10 lg:pb-28 lg:pt-20 overflow-x-clip z-10">
             {/* Floating Illustrations */}
             <HeroIllustrations />
             
@@ -153,7 +153,6 @@ export const IndexPage = ({loaderData}: Route.ComponentProps) => {
                   <SearchBar 
                     categories={categories} 
                     universities={universities}
-                    onSearch={handleSearch}
                   />
               </div>
             </div>
