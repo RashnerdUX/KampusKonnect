@@ -42,7 +42,10 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 
   // Apply search filter
   if (searchQuery) {
-    vendorsQuery = vendorsQuery.ilike('name', `%${searchQuery}%`);
+    vendorsQuery = vendorsQuery.textSearch('search_vector', searchQuery, {
+      type: 'websearch',
+      config: 'english'
+    })
   }
 
   // Apply category filter

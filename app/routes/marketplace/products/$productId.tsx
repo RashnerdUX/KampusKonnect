@@ -167,7 +167,7 @@ const ProductPage = ({loaderData}: Route.ComponentProps) => {
                   </div>
                   <div className='flex flex-col gap-2 items-center w-full'>
                   <a 
-                    href={`https://wa.me/${product.store_whatsapp_number}?text=I'm%20interested%20in%20buying%20the%20${encodeURIComponent(product.title ?? "this product")}%20that%20you%20have%20listed%20on%20Campus%20Marketplace.`} 
+                    href={`https://wa.me/${product.store_whatsapp_number}?text=I'm%20interested%20in%20buying%20the%20${encodeURIComponent(product.title ?? "this product")}%20that%20you%20have%20listed%20on%20Campex%20Marketplace.`} 
                     target="_blank"
                     rel="noopener noreferrer"
                     className='px-6 py-3 bg-primary text-primary-foreground rounded-full w-full flex gap-2 items-center justify-center'

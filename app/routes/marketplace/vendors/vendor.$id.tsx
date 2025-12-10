@@ -13,6 +13,15 @@ interface StoreCategory {
   count: number;
 }
 
+export const meta = ({ loaderData }: Route.MetaArgs) => {
+  const store = loaderData.store;
+
+  return [
+    { title: `${store.business_name} - Campex Vendor Store` },
+    { name: 'description', content: `Browse products from ${store.business_name} on Campex Marketplace.` },
+  ]
+};
+
 export const loader = async ({ request, params }: Route.LoaderArgs) => {
   const { supabase, headers } = createSupabaseServerClient(request);
   const url = new URL(request.url);
@@ -49,7 +58,10 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 
   // Apply search filter
   if (searchQuery) {
-    productsQuery = productsQuery.ilike('title', `%${searchQuery}%`);
+    productsQuery = productsQuery.textSearch('search_vector', searchQuery, {
+      type: 'websearch',
+      config: 'english'
+    });
   }
 
   // Apply category filter

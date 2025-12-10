@@ -1,4 +1,4 @@
-import { type RouteConfig, index, route } from "@react-router/dev/routes";
+import { type RouteConfig, index, route, layout } from "@react-router/dev/routes";
 
 export default [
   // Landing Page
@@ -26,16 +26,22 @@ export default [
   // Marketplace Routes
   route("marketplace", "routes/marketplace/_layout.tsx", {id: "market-layout"}, [
     index("routes/marketplace/index.tsx"),
+    
+    // Products with layout
     route("products", "routes/marketplace/products/_layout.tsx", {id: "products-layout"}, [
       index("routes/marketplace/products/index.tsx"),
       route(":productId", "routes/marketplace/products/$productId.tsx"),
-      ]),
+      route("university/:slug", "routes/marketplace/products/university.$slug.tsx"),
+      route("category/:slug", "routes/marketplace/products/category.$slug.tsx"),
+      // route("vendor/:slug", "routes/marketplace/products/vendor.$slug.tsx"),
+    ]),
+    
+    // Vendors with layout
     route("vendors", "routes/marketplace/vendors/_layout.tsx", {id: "vendors-layout"}, [
       index("routes/marketplace/vendors/index.tsx"),
       route(":vendorId", "routes/marketplace/vendors/vendor.$id.tsx"),
-      ]),
-    ]
-  ),
+    ]),
+  ]),
 
   // Vendor Dashboard Routes
   route("vendor", "routes/vendor/_layout.tsx", {id: "VendorLayout"}, [
@@ -52,6 +58,9 @@ export default [
   route("legal/privacy", "routes/legal/privacy.tsx"),
   route("legal/cookies", "routes/legal/cookies.tsx"),
   route("sitemap", "routes/sitemap.tsx"),
+
+  // API Routes
+  route("api/search", "routes/api.search.tsx"),
 
   // For testing and experimentation
   route("playground", "routes/playground.tsx"),

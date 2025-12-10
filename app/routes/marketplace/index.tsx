@@ -134,7 +134,7 @@ export const IndexPage = ({loaderData}: Route.ComponentProps) => {
   return (
     <>
       <main>
-        <section id="marketplace-hero" className="relative bg-footer-background pt-16 pb-10 lg:pb-28 lg:pt-20 overflow-x-clip">
+        <section id="marketplace-hero" className="relative bg-footer-background pt-16 pb-10 lg:pb-28 lg:pt-20 overflow-x-clip z-10">
             {/* Floating Illustrations */}
             <HeroIllustrations />
             
@@ -153,7 +153,6 @@ export const IndexPage = ({loaderData}: Route.ComponentProps) => {
                   <SearchBar 
                     categories={categories} 
                     universities={universities}
-                    onSearch={handleSearch}
                   />
               </div>
             </div>
@@ -164,7 +163,7 @@ export const IndexPage = ({loaderData}: Route.ComponentProps) => {
           <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
             <h2 className='text-2xl font-bold mb-8 text-center'>Browse by Category</h2>
 
-            <div className='-mx-4 overflow-x-auto pb-4'>
+            <div className='-mx-4 overflow-x-auto pb-4 no-scrollbar'>
               <div className='mx-4 flex gap-5'>
                 {productCategories.map((category) => (
                   <ProductCategoryCard
