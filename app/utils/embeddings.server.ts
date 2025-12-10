@@ -74,7 +74,15 @@ export async function generateEmbeddingsBatch(texts: string[]): Promise<number[]
   // Clean texts
   const cleanedTexts = texts.map(text => 
     text.trim().replace(/\n+/g, ' ').slice(0, 8000)
-  ).filter(text => text.length > 0);
+  );
+  
+  const emptyIndices = cleanedTexts
+    .map((text, i) => text.length === 0 ? i : -1)
+    .filter(i => i >= 0);
+  
+  if (emptyIndices.length > 0) {
+    throw new Error(`Empty text at indices: ${emptyIndices.join(', ')}`);
+  }
 
   const response = await fetch(OPENAI_API_URL, {
     method: 'POST',

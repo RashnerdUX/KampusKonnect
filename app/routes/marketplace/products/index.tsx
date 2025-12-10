@@ -40,13 +40,8 @@ export const meta = ({ loaderData, location }: Route.MetaArgs) => {
   const parts: string[] = [];
 
   // If there's a search query, reflect that in the title
-  if (location.search.includes("q")){
-    const params = new URLSearchParams(location.search);
-    const query = params.get("q");
-    if (query) {
-      title = `Search results for "${query}"`;
-    }
-  }
+  const params = new URLSearchParams(location.search);
+  const searchQuery = params.get("q")?.trim();
   
   if (filters?.universities?.length) {
     parts.push(filters.universities.join(", "));
@@ -57,6 +52,12 @@ export const meta = ({ loaderData, location }: Route.MetaArgs) => {
   
   if (parts.length > 0) {
     title = `${parts.join(" ")} Products`;
+  }
+
+  if (searchQuery) {
+    title = parts.length > 0 
+      ? `${parts.join(" ")} Products matching "${searchQuery}"`
+      : `Search results for "${searchQuery}"`;
   }
 
   return [
