@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Route } from "../products/+types/index";
 import { FaFilter, FaSort } from "react-icons/fa6";
-import { RxDividerVertical } from "react-icons/rx";
 import { useLocation, useNavigate, data } from "react-router";
 import { createSupabaseServerClient } from "~/utils/supabase.server";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -33,46 +32,74 @@ const DEFAULT_SORT: SortValue = "relevance";
 const isSortValue = (value: string): value is SortValue =>
   SORT_OPTIONS.some((option) => option.value === value);
 
-export const meta = () => {
+export const meta = ({ loaderData, location }: Route.MetaArgs) => {
+  const { filters } = loaderData || {};
+  
+  // Build dynamic title based on active filters
+  let title = "All Products";
+  const parts: string[] = [];
+
+  // If there's a search query, reflect that in the title
+  if (location.search.includes("q")){
+    const params = new URLSearchParams(location.search);
+    const query = params.get("q");
+    if (query) {
+      title = `Search results for "${query}"`;
+    }
+  }
+  
+  if (filters?.universities?.length) {
+    parts.push(filters.universities.join(", "));
+  }
+  if (filters?.categories?.length) {
+    parts.push(filters.categories.join(", "));
+  }
+  if (filters?.vendors?.length) {
+    parts.push(`from ${filters.vendors.join(", ")}`);
+  }
+  
+  if (parts.length > 0) {
+    title = `${parts.join(" ")} Products`;
+  }
+
   return [
-    { title: "Discover and purchase products from your favorite campus vendors with Campex" },
-    { name: "description", content: "Browse products from campus vendors"},
-    { name: "keywords", content: "campus, marketplace, products, vendors"}
-  ]
+    { title: `${title} | Campex Marketplace` },
+    { name: "description", content: `Browse ${title.toLowerCase()} from campus vendors on Campex` },
+    { name: "keywords", content: "campus, marketplace, products, vendors" }
+  ];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const { supabase, headers } = createSupabaseServerClient(request);
 
-  // Parse URL params
   const pageParam = Number(url.searchParams.get("page") ?? 1);
   const sortParam = url.searchParams.get(SORT_QUERY_KEY) ?? DEFAULT_SORT;
   const sort = isSortValue(sortParam) ? sortParam : DEFAULT_SORT;
   const filters = parseFiltersFromSearch(url.search);
 
-  // Build the base query
+  // Build query from the flattened view
   let query = supabase
-    .from('store_listings')
-    .select(`
-      id,
-      title,
-      price,
-      image_url,
-      created_at,
-      is_active,
-      category:categories(id, name),
-      store:stores(id, business_name)
-    `, { count: 'exact' })
+    .from('product_listing_view')
+    .select('*', { count: 'exact' })
     .eq('is_active', true);
 
-  // If the page is navigated to using search, apply search filter
+  // Apply search filter
   const searchQuery = url.searchParams.get("q")?.trim();
   if (searchQuery) {
     query = query.textSearch('search_vector', searchQuery, {
       type: 'websearch',
       config: 'english'
     });
+  }
+
+  // ✅ Now you can filter directly on flattened columns!
+  if (filters.universities.length > 0) {
+    query = query.in('university_name', filters.universities);
+  }
+
+  if (filters.categories.length > 0) {
+    query = query.in('category_name', filters.categories);
   }
 
   // Apply price filters
@@ -101,20 +128,17 @@ export async function loader({ request }: Route.LoaderArgs) {
       query = query.order('created_at', { ascending: false });
       break;
     case "popular":
-      // For now, order by created_at as popularity metric isn't implemented
       query = query.order('created_at', { ascending: false });
       break;
     default:
-      // relevance - default order
       query = query.order('created_at', { ascending: false });
   }
 
-  // Calculate pagination range (use pageParam initially, will be clamped after we get count)
+  // Pagination
   const requestedPage = Math.max(1, Number.isNaN(pageParam) ? 1 : pageParam);
   const from = (requestedPage - 1) * ITEMS_PER_PAGE;
   const to = from + ITEMS_PER_PAGE - 1;
 
-  // Fetch paginated products with count in a single query
   const { data: products, count: totalItems, error: productsError } = await query.range(from, to);
 
   if (productsError) {
@@ -125,33 +149,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
   const currentPage = Math.min(requestedPage, totalPages);
 
-  // Fetch filter options from database
-  const { data: universities, error: universitiesError } = await supabase
-    .from('universities')
-    .select('id, name')
-    .order('name');
-  
-  if (universitiesError) {
-    console.error('Error fetching universities for filters:', universitiesError);
-  }
-
-  const { data: categories, error: categoriesError } = await supabase
-    .from('categories')
-    .select('id, name')
-    .order('name');
-
-  if (categoriesError) {
-    console.error('Error fetching categories for filters:', categoriesError);
-  }
-
-  const { data: vendors, error: vendorsError } = await supabase
-    .from('stores')
-    .select('id, business_name')
-    .order('business_name');
-
-  if (vendorsError) {
-    console.error('Error fetching vendors for filters:', vendorsError);
-  }
+  // Fetch filter options
+  const [{ data: universities }, { data: categories }, { data: vendors }] = await Promise.all([
+    supabase.from('universities').select('id, name').order('name'),
+    supabase.from('categories').select('id, name').order('name'),
+    supabase.from('stores').select('id, business_name').order('business_name'),
+  ]);
 
   return data({
     products: products ?? [],
@@ -392,11 +395,11 @@ export const IndexPage = ({ loaderData }: Route.ComponentProps) => {
                       {products.map((product) => (
                         <ProductCard 
                           key={product.id} 
-                          id={product.id} 
-                          name={product.title} 
-                          storeName={product.store?.business_name ?? 'Unknown Store'} 
+                          id={product.id ?? ''} 
+                          name={product.title ?? 'Untitled Product'} 
+                          storeName={product.store_name ?? 'Unknown Store'} 
                           price={product.price ?? 0} 
-                          imageUrl={product.image_url} 
+                          imageUrl={product.image_url ?? ''} 
                         />
                       ))}
                     </div>
