@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { Route } from './+types/_layout';
 
 import { Outlet, data } from 'react-router';
@@ -7,6 +7,7 @@ import DashboardTopBar from '~/components/dashboard/DashboardTopBar';
 import { redirect } from "react-router";
 import { createSupabaseServerClient } from '~/utils/supabase.server';
 import { requireAuth } from '~/utils/requireAuth.server';
+import { DashboardCommandMenu } from '~/components/dashboard/DashboardCommandMenu';
 
 export const meta = () => {
     return [
@@ -64,6 +65,21 @@ export const loader =  async ({request}: Route.LoaderArgs) => {
 
 export const VendorDashboardLayout = ({loaderData}: Route.ComponentProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isCommandMenuOpen, setIsCommandMenuOpen] = useState(false);
+
+  // Open command menu on Cmd+K or Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setIsCommandMenuOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex bg-muted">
@@ -75,11 +91,18 @@ export const VendorDashboardLayout = ({loaderData}: Route.ComponentProps) => {
         <DashboardTopBar 
           user={loaderData.user} 
           onMenuClick={() => setSidebarOpen(true)} 
+          onSearchClick={() => setIsCommandMenuOpen(true)}
         />
         <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>
+
+      {/* Command Menu */}
+      <DashboardCommandMenu 
+        isOpen={isCommandMenuOpen} 
+        onClose={() => setIsCommandMenuOpen(false)} 
+      />
     </div>
   )
 }
