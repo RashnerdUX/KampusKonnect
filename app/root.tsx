@@ -10,6 +10,23 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 
+export const meta: Route.MetaFunction = ({ location }) => {
+  const baseUrl = "https://www.shopwithcampex.com";
+  
+  // This creates a dynamic canonical link for every page automatically
+  const canonicalUrl = `${baseUrl}${location.pathname}${location.search}`;
+
+  return [
+    { title: "Campex | Your Campus Marketplace" },
+    { name: "description", content: "Buy and sell items within your university community." },
+    {
+      tagName: "link",
+      rel: "canonical",
+      href: canonicalUrl,
+    },
+  ];
+};
+
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {

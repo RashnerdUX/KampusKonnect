@@ -17,9 +17,22 @@ interface MarketplaceContext {
 
 export const meta = (_args: Route.MetaArgs) => {
   return [
-    { title: "Campus Marketplace - Campex" },
-    { name: "description", content: ""},
-    { name: "keywords", content: ""}
+    { title: "Nigeria's Biggest Campus Marketplace - Campex" },
+    { name: "description", content: "Buy and sell items within your university community seamlessly. Shop smarter with Campex - reduce discovery time, stress and delivery fees."},
+    { name: "keywords", content: "student, vendor, store, campus, university, items, stress-free"},
+
+    // For Social Media
+    // For LinkedIn, Whatsapp, Facebook
+    { property: "og:title", content: "Nigeria's biggest campus marketplace"},
+    { property: "og:description", content: "Discover and trade items within your University community"},
+    { property: "og:image", content: "https://slijaoqgxaewlqthtahj.supabase.co/storage/v1/object/public/assets/logo-green.png" },
+    { property: "og:type", content: "website" },
+
+    // For twitter
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Campex - Nigeria's No 1 Campus Marketplace" },
+    { name: "twitter:description", content: "Discover and trade items within your University community" },
+    { name: "twitter:image", content: "https://slijaoqgxaewlqthtahj.supabase.co/storage/v1/object/public/assets/logo-green.png"},
   ]
 }
 

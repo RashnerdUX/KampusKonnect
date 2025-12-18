@@ -1,6 +1,5 @@
 import React from 'react'
 import type { Route } from './+types/$productId'
-import type { Database } from '~/utils/database.types'
 import { Loader } from 'lucide-react';
 import { FaWhatsapp, FaRegHeart, FaStar } from "react-icons/fa6";
 import { createSupabaseServerClient } from '~/utils/supabase.server';
@@ -8,8 +7,6 @@ import { data, Form, Link } from 'react-router';
 import ProductCard from '~/components/marketplace/ProductCard';
 import RatingsTileSection from '~/components/marketplace/RatingsTile';
 import { ReviewCard } from '~/components/marketplace/ReviewCard';
-
-import { dummyReviews } from '~/components/marketplace/ReviewCard';
 
 export const meta = ({ loaderData }: Route.MetaArgs) => {
   
@@ -23,9 +20,22 @@ export const meta = ({ loaderData }: Route.MetaArgs) => {
   const { product } = loaderData
 
   return [
-    { title: `Buy ${product.title} - Campus Marketplace` },
-    { name: "description", content: product.description || "Here's an item being sold on Campus Marketplace" },
-    { name: "keywords", content: "campus marketplace, buy, sell, products, campus essentials" }
+    { title: `Buy ${product.title} - Campex Marketplace` },
+    { name: "description", content: `${product.description}. Available for ₦${product.price} only from ${product.store_name} at ${product.store_university}.` || "Here's an item being sold on Campex Marketplace" },
+    { name: "keywords", content: "campex, campus marketplace, buy, sell, products, campus essentials" },
+
+    // OG Social Media tags
+    // For Facebook, Whatsapp, LinkedIn
+    { property: "og:title", content: product.title},
+    { property: "og:description", content: `Only ₦${product.price} at ${product.store_name}`},
+    { property: "og:image", content: product.image_url || "https://campex-marketplace.s3.amazonaws.com/default-product-image.png" },
+    { property: "og:type", content: "product" },
+
+    // For twitter
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: product.title },
+    { name: "twitter:description", content: `Only ₦${product.price} at ${product.store_name}` },
+    { name: "twitter:image", content: product.image_url || "https://campex-marketplace.s3.amazonaws.com/default-product-image.png"},
   ]
 }
 

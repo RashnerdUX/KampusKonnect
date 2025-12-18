@@ -16,9 +16,24 @@ interface StoreCategory {
 export const meta = ({ loaderData }: Route.MetaArgs) => {
   const store = loaderData.store;
 
+  const universityName = store.user_profiles.universities?.name;
+
   return [
-    { title: `${store.business_name} - Campex Vendor Store` },
-    { name: 'description', content: `Browse products from ${store.business_name} on Campex Marketplace.` },
+    { title: `${store.business_name} - Shop at ${universityName}` },
+    { name: 'description', content: `Check out ${store.business_name} on Campex. Serving the ${universityName} community` },
+
+    // Social Media OG Tags
+    // For Facebook, LinkedIn, WhatsApp
+    { property: 'og:title', content: `${store.business_name} - Campex Vendor Store` },
+    { property: 'og:description', content: `${store.description}. Available on Campex`},
+    { property: 'og:image', content: store.logo_url || "https://slijaoqgxaewlqthtahj.supabase.co/storage/v1/object/public/assets/logo-green.png"},
+    { property: 'og:type', content: 'profile'},
+
+    // For twitter
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: store.business_name },
+    { name: "twitter:description", content: store.description },
+    { name: "twitter:image", content: store.logo_url || "https://slijaoqgxaewlqthtahj.supabase.co/storage/v1/object/public/assets/logo-green.png"},
   ]
 };
 
