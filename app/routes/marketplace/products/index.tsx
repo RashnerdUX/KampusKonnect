@@ -33,7 +33,7 @@ const isSortValue = (value: string): value is SortValue =>
   SORT_OPTIONS.some((option) => option.value === value);
 
 export const meta = ({ loaderData, location }: Route.MetaArgs) => {
-  const { filters } = loaderData || {};
+  const { filters, filterOptions } = loaderData || {};
   
   // Build dynamic title based on active filters
   let title = "All Products";
@@ -44,10 +44,16 @@ export const meta = ({ loaderData, location }: Route.MetaArgs) => {
   const searchQuery = params.get("q")?.trim();
   
   if (filters?.universities?.length) {
-    parts.push(filters.universities.join(", "));
+    parts.push(filterOptions.universities
+      .filter(u => filters.universities.includes(u.slug))
+      .map(u => u.name)
+      .join(", "));
   }
   if (filters?.categories?.length) {
-    parts.push(filters.categories.join(", "));
+    parts.push(filterOptions.categories
+      .filter(c => filters.categories.includes(c.slug))
+      .map(c => c.name)
+      .join(", "));
   }
   
   if (parts.length > 0) {
@@ -93,11 +99,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // ✅ Now you can filter directly on flattened columns!
   if (filters.universities.length > 0) {
-    query = query.in('university_name', filters.universities);
+    query = query.in('university_slug', filters.universities);
   }
 
   if (filters.categories.length > 0) {
-    query = query.in('category_name', filters.categories);
+    query = query.in('category_slug', filters.categories);
   }
 
   // Apply price filters
@@ -149,8 +155,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // Fetch filter options
   const [{ data: universities }, { data: categories }] = await Promise.all([
-    supabase.from('universities').select('id, name').order('name'),
-    supabase.from('categories').select('id, name').order('name'),
+    supabase.from('universities').select('id, name, slug').order('name'),
+    supabase.from('categories').select('id, name, slug').order('name'),
   ]);
 
   return data({
@@ -164,8 +170,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     filters,
     sort,
     filterOptions: {
-      universities: universities?.map(u => u.name) ?? [],
-      categories: categories?.map(c => c.name) ?? [],
+      universities: universities ?? [],
+      categories: categories ?? [],
     },
   }, { headers });
 }
