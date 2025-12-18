@@ -44,11 +44,23 @@ export const parseFiltersFromSearch = (search: string): Filters => {
   };
 };
 
+export type UniversityFilterProps = {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export type CategoriesFilterProps = {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export type FilterControlsProps = {
   filters: Filters;
   options: {
-    universities: string[];
-    categories: string[];
+    universities: UniversityFilterProps[];
+    categories: CategoriesFilterProps[];
     ratingOptions: { value: string; label: string }[];
   };
   onPriceChange: (field: "priceMin" | "priceMax", value: string) => void;
@@ -118,14 +130,14 @@ export const FilterControls = ({
         <p className="text-sm font-medium text-muted-foreground">Universities</p>
         <div className="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
           {options.universities.map((university) => (
-            <label key={university} className="flex items-center gap-2 text-sm">
+            <label key={university.slug} className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                checked={filters.universities.includes(university)}
-                onChange={() => onToggleMulti("universities", university)}
+                checked={filters.universities.includes(university.slug)}
+                onChange={() => onToggleMulti("universities", university.slug)}
                 className="size-4 rounded border-border"
               />
-              <span className="text-foreground/90">{university}</span>
+              <span className="text-foreground/90">{university.name}</span>
             </label>
           ))}
           {options.universities.length === 0 && (
@@ -139,14 +151,14 @@ export const FilterControls = ({
         <p className="text-sm font-medium text-muted-foreground">Categories</p>
         <div className="max-h-48 space-y-2 overflow-y-auto pr-1 scrollbar-thin">
           {options.categories.map((category) => (
-            <label key={category} className="flex items-center gap-2 text-sm">
+            <label key={category.slug} className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                checked={filters.categories.includes(category)}
-                onChange={() => onToggleMulti("categories", category)}
+                checked={filters.categories.includes(category.slug)}
+                onChange={() => onToggleMulti("categories", category.slug)}
                 className="size-4 rounded border-border"
               />
-              <span className="text-foreground/90">{category}</span>
+              <span className="text-foreground/90">{category.name}</span>
             </label>
           ))}
           {options.categories.length === 0 && (

@@ -59,6 +59,10 @@ export default [
   route("legal/cookies", "routes/legal/cookies.tsx"),
   route("sitemap", "routes/sitemap.tsx"),
 
+  // SEO Optimization
+  route("/robots.txt", "routes/seo.robots.txt.tsx"),
+  route("/sitemap.xml", "routes/seo.sitemap.xml.tsx"),
+
   // API Routes
   route("api/search", "routes/api.search.tsx"),
 

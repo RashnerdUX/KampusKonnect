@@ -10,6 +10,20 @@ const MAX_LIMIT = 100;
 const DEFAULT_FULL_TEXT_WEIGHT = 0.5;
 const DEFAULT_SEMANTIC_WEIGHT = 0.5;
 
+/**
+ * Escapes special LIKE/ILIKE pattern characters in user input
+ * to prevent wildcard injection attacks.
+ * 
+ * @param input - Raw user input string
+ * @returns Escaped string safe for use in LIKE patterns
+ */
+function escapeLikePattern(input: string): string {
+  return input
+    .replace(/\\/g, '\\\\')  // Escape backslashes first
+    .replace(/%/g, '\\%')     // Escape percent signs
+    .replace(/_/g, '\\_');    // Escape underscores
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   
@@ -39,8 +53,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   try {
     // Generate embedding for the search query
-    const embeddingResult = await generateEmbedding(query);
-    const queryEmbedding = embeddingResult.embedding;
+    let queryEmbedding: number[] | null = null;
+    try {
+      const embeddingResult = await generateEmbedding(query);
+        queryEmbedding = embeddingResult.embedding;
+    } catch (embeddingError) {
+      console.error('Embedding generation error:', embeddingError);
+    }
 
     // Calculate match count for hybrid search (fetch more than needed for filtering)
     const matchCount = limit * 5; // Fetch extra for post-filtering
@@ -169,6 +188,9 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   try {
+    // Escape special LIKE characters to prevent wildcard injection
+    const escapedQuery = escapeLikePattern(query.trim());
+    
     // Use simple text search for recommendations (faster, no embedding needed)
     const { data: recommendations, error } = await supabase
       .from('store_listings')
@@ -179,7 +201,7 @@ export async function action({ request }: Route.ActionArgs) {
         image_url,
         category:categories(name)
       `)
-      .ilike('title', `%${query}%`)
+      .ilike('title', `%${escapedQuery}%`)
       .eq('is_active', true)
       .gt('stock_quantity', 0)
       .limit(limit);

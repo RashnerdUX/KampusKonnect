@@ -8,9 +8,10 @@ import ThemeToggle from '../ThemeToggle'
 interface DashboardTopBarProps {
     user: User;
     onMenuClick: () => void;
+    onSearchClick: () => void;
 }
 
-export const DashboardTopBar = ({ user, onMenuClick }: DashboardTopBarProps) => {
+export const DashboardTopBar = ({ user, onMenuClick, onSearchClick }: DashboardTopBarProps) => {
     const { username, full_name } = user.user_metadata ?? {}
     const displayName = full_name || username || user.email
 
@@ -54,7 +55,7 @@ export const DashboardTopBar = ({ user, onMenuClick }: DashboardTopBarProps) => 
           {/* The Actions */}
           <div className="flex flex-1 items-center gap-3 justify-end">
             {/* Search bar - hidden on lg, visible on xl */}
-            <DashboardSearchBar className="hidden xl:flex max-w-xs 2xl:max-w-md" />
+            <DashboardSearchBar className="hidden xl:flex max-w-xs 2xl:max-w-md" onClick={onSearchClick} />
             
             <div className="flex items-center gap-2 bg-foreground/5 rounded-full p-1.5 xl:p-2">
               <button type="button" className="rounded-full border border-border p-1.5 xl:p-2 text-foreground/70 transition hover:bg-background hover:text-foreground">
