@@ -12,18 +12,38 @@ import "./app.css";
 
 export const meta: Route.MetaFunction = ({ location }) => {
   const baseUrl = "https://www.shopwithcampex.com";
+  const defaultDescription = "Buy and sell items within your university community with Campex Marketplace.";
   
   // This creates a dynamic canonical link for every page automatically
   const canonicalUrl = `${baseUrl}${location.pathname}${location.search}`;
 
   return [
+    // Main Meta Tags
     { title: "Campex | Your Campus Marketplace" },
-    { name: "description", content: "Buy and sell items within your university community." },
+    { name: "description", content: defaultDescription },
     {
       tagName: "link",
       rel: "canonical",
       href: canonicalUrl,
     },
+
+    // Social Media OG Tags
+    // Facebook, WhatsApp, LinkedIn
+    { property: "og:type", content: "website" },
+    { property: "og:site_name", content: "Shop With CampEx" },
+    { property: "og:title", content: "Shop With CampEx" },
+    { property: "og:description", content: defaultDescription },
+    { property: "og:image", content: "https://slijaoqgxaewlqthtahj.supabase.co/storage/v1/object/public/assets/logo-green.png" },
+    { property: "og:url", content: canonicalUrl },
+
+    // Twitter
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Shop With CampEx" },
+    { name: "twitter:description", content: defaultDescription },
+    { name: "twitter:image", content: "https://slijaoqgxaewlqthtahj.supabase.co/storage/v1/object/public/assets/logo-green.png" },
+
+    // Mobile / Branding
+    { name: "theme-color", content: "#019b01" },
   ];
 };
 
