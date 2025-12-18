@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Route } from './+types/seo.sitemap.xml';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
-import path from 'path';
 
 interface SitemapUrl {
   path: string;
@@ -81,20 +80,19 @@ export const loader = async(_args: Route.LoaderArgs) => {
 
   // Define the sitemap structure
   let sitemap = `
-    <?xml version="1.0" encoding="UTF-8"?>
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-      ${allRoutes.map((route)=> 
-        `
-          <url>
-            <loc>${baseUrl}${route.path}</loc>
-            <lastmod>${route.lastMod || presentDay}</lastmod>
-            <changefreq>${route.changefreq}</changefreq>
-            <priority>${route.priority}</priority>
-          </url>
-        `).join('')}
-      }
-    </urlset>
-    `.trim();
+  <?xml version="1.0" encoding="UTF-8"?>
+  <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  ${allRoutes.map((route)=> 
+  `
+  <url>
+  <loc>${baseUrl}${route.path}</loc>
+  <lastmod>${route.lastMod || presentDay}</lastmod>
+  <changefreq>${route.changefreq}</changefreq>
+  <priority>${route.priority}</priority>
+  </url>
+  `).join('')}
+  </urlset>
+  `.trim();
 
   // return the sitemap data
   return new Response(

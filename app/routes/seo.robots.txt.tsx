@@ -7,16 +7,14 @@ export const loader = async(_args: Route.LoaderArgs) => {
 
   // Define the robots.txt content
   const robotsTxt = `
-    User-agent: Googlebot
-    Disallow: /nogooglebot/
-
-    User-agent: *
-    Disallow: /private/
-    Disallow: /api/
-    Allow: /
-
-    Sitemap: ${baseUrl}/sitemap.xml
-  `
+User-agent: Googlebot
+Disallow: /nogooglebot/
+User-agent: *
+Disallow: /private/
+Disallow: /api/
+Allow: /
+Sitemap: ${baseUrl}/sitemap.xml
+  `.trim();
 
   return new Response(
     robotsTxt,
