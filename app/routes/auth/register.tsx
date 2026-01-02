@@ -67,7 +67,8 @@ export async function action({ request} : Route.ActionArgs) {
         return { error: error.message };
     }
 
-  return redirect('/onboarding/check-email');
+    // TODO: Change this once we figure out why confirmation emails from Supabase keep failing
+  return redirect('/onboarding/role');
 }
 
 export default function Register({actionData}: Route.ComponentProps){

@@ -29,13 +29,18 @@ export async function loader({ request }: Route.LoaderArgs) {
     // Check if user has completed onboarding
     const { data: profile } = await supabase
       .from('user_profiles')
-      .select('onboarding_complete')
+      .select('onboarding_complete, role')
       .eq('id', user.id)
       .single()
 
 
     if (!profile || !profile.onboarding_complete) {
-      return redirect('/onboarding/role', { headers })
+      return redirect('/onboarding/role', { headers });
+    }
+
+    // If user has completed onboarding and is a vendor, redirect to vendor dashboard
+    if (!profile || profile.role === "vendor") {
+      return redirect('/vendor', {headers});
     }
     
     return redirect('/marketplace', { headers })
