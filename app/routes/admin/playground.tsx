@@ -1,4 +1,4 @@
-import type { Route } from "./+types/playground";
+import type { Route } from "../+types/playground";
 import { createSupabaseServerClient } from "~/utils/supabase.server";
 import { Form, data, redirect, useNavigation } from "react-router";
 import ThemeToggle from "~/components/ThemeToggle";
@@ -63,7 +63,6 @@ export const meta = (_args: Route.MetaArgs) => {
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
-
   // Playground will only be accessible to admins
   const { supabase, headers } = createSupabaseServerClient(request);
 

@@ -67,5 +67,6 @@ export default [
   route("api/search", "routes/api.search.tsx"),
 
   // For testing and experimentation
-  route("playground", "routes/playground.tsx"),
+  route("playground", "routes/admin/playground.tsx"),
+  route("test-503", "routes/admin/test-503.tsx"),
 ] satisfies RouteConfig;

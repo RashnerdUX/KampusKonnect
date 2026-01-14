@@ -5,10 +5,14 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteError,
 } from "react-router";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import NotFound from "./components/error/NotFound";
+import ServiceUnavailable from "./components/error/ServiceUnavailable";
+import NetworkError from "./components/error/NetworkError";
 
 export const meta: Route.MetaFunction = ({ location }) => {
   const baseUrl = "https://www.shopwithcampex.com";
@@ -112,32 +116,71 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
-  let stack: string | undefined;
+
+  const isLikelyNetworkError = (err: unknown): boolean => {
+    if (!(err instanceof Error)) return false;
+
+    // We'll use the error message to check if the user is offline
+    const msg = err.message.toLowerCase();
+
+    return (
+      msg.includes("fetch") ||
+      msg.includes("network") ||
+      msg.includes("offline") ||
+      msg.includes("connection") ||
+      msg.includes("timeout") ||
+      !navigator.onLine
+    );
+  }
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
-    stack = error.stack;
+    switch (error.status) {
+      case 404:
+        return <NotFound />
+      case 503:
+        return <ServiceUnavailable />
+    
+      default:
+          return (
+          <div className="flex min-h-dvh items-center justify-center p-4 text-center">
+            <div>
+              <h1 className="text-6xl font-bold">{error.status}</h1>
+              <p className="mt-4 text-xl">{error.statusText || "Something went wrong"}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-6 rounded bg-primary px-6 py-3 text-primary-foreground"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        );
+    }
+  }
+
+  // For unexpected errors
+  if (import.meta.env.DEV && error instanceof Error) {
+    console.error(error);
+  }
+
+  // Check for network errors
+  if (isLikelyNetworkError(error)){
+    return <NetworkError onRetry={()=> window.location.reload()} />
   }
 
   return (
-    <main className="flex min-h-dvh items-center justify-center p-4">
-      <div className="max-w-md text-center">
-        <h1 className="mb-4 text-6xl font-bold text-foreground">{message}</h1>
-        <p className="mb-6 text-lg text-foreground/70">{details}</p>
-        {stack && (
-          <pre className="overflow-auto rounded-lg bg-muted p-4 text-left text-sm">
-            <code>{stack}</code>
-          </pre>
-        )}
+    <div className="flex min-h-dvh items-center justify-center p-4 text-center">
+      <div className="max-w-md">
+        <h1 className="text-5xl font-bold text-destructive">Oops!</h1>
+        <p className="mt-4 text-lg">Something broke on our end.</p>
+        <p className="mt-2 text-muted-foreground">Our team has been notified.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-8 rounded-lg bg-primary px-6 py-3 text-primary-foreground"
+        >
+          Reload page
+        </button>
       </div>
-    </main>
+    </div>
   );
 }
