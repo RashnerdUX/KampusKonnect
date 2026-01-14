@@ -28,6 +28,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
   }
 
   // Delete existing interests (in case user goes back and resubmits)
+  console.log("Clearing old selected interests to allow users select new ones")
   const { error: deleteError } = await supabase
     .from('user_interests')
     .delete()
@@ -39,6 +40,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
     }
 
   // Insert new interests
+  console.log("Storing the interests for the user")
   const { error: insertError } = await supabase
     .from('user_interests')
     .insert(
@@ -139,6 +141,8 @@ export default function StudentInterests({ loaderData }: Route.ComponentProps) {
 
   if (navigation.state === 'submitting' && !isSubmitting) {
     setIsSubmitting(true);
+  } else if (navigation.state === "idle" && isSubmitting) {
+    setIsSubmitting(false);
   }
 
   const toggleCategory = (id: string) => {

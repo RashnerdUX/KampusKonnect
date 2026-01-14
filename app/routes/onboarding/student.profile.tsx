@@ -83,6 +83,8 @@ export default function StudentProfile({loaderData}:Route.ComponentProps) {
 
   if (navigation.state === 'submitting' && !isSubmitting) {
     setIsSubmitting(true);
+  } else if (navigation.state === "idle" && isSubmitting) {
+    setIsSubmitting(false);
   }
 
 

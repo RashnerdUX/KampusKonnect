@@ -67,14 +67,26 @@ export async function action({ request} : Route.ActionArgs) {
         return { error: error.message };
     }
 
+    const user = data.user;
+
+    if (user?.confirmed_at){
+      return redirect('/login');
+    }
+
     // TODO: Change this once we figure out why confirmation emails from Supabase keep failing
-  return redirect('/onboarding/role');
+  return redirect('/onboarding/check-email');
 }
 
 export default function Register({actionData}: Route.ComponentProps){
 
-  const [isGoogleSignIn, setIsGoogleSignIn] = useState<Boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<Boolean>(false);
+  const [isGoogleSignIn, setIsGoogleSignIn] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [hasUserCheckedTerms, setHasUserCheckedTerms] = useState<boolean>(true);
+
+  const hasUserCheckedTermsandConditions = () => {
+    console.log("User has checked Terms and Conditions");
+    setHasUserCheckedTerms(false);
+  }
 
   const registerWithGoogle = async () => {
    const success = await handleGoogleLogin();
@@ -88,6 +100,8 @@ export default function Register({actionData}: Route.ComponentProps){
   const navigation = useNavigation();
   if (navigation.state === 'submitting' && !isSubmitting || isGoogleSignIn) {
     setIsSubmitting(true);
+  } else if (navigation.state === "idle" && isSubmitting ) {
+    setIsSubmitting(false);
   }
 
   return (
@@ -118,8 +132,8 @@ export default function Register({actionData}: Route.ComponentProps){
 
                         {/* Check Terms & Conditions */}
                         <div className="flex items-center gap-3 pt-2">
-                          <input className="h-4 w-4 rounded border-border text-primary focus:ring-primary" id="terms" name='terms' type="checkbox"/>
-                          <label className="text-sm text-foreground/80" htmlFor="terms">I agree with the <a className="font-medium text-foreground/80 hover:text-primary hover:underline" href="/legal/terms" target="_blank">Terms &amp; Condition</a></label>
+                          <input className="h-4 w-4 rounded border-border text-primary focus:ring-primary" id="terms" name='terms' type="checkbox" disabled={hasUserCheckedTerms} />
+                          <label className="text-sm text-foreground/80" htmlFor="terms">I agree with the <a className="font-medium text-foreground/80 hover:text-primary hover:underline" href="/legal/terms" target="_blank" onClick={hasUserCheckedTermsandConditions}>Terms &amp; Condition</a></label>
                         </div>
                         <button type="submit" className={`auth-button ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
                           {isSubmitting && <ButtonSpinner />}

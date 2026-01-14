@@ -86,6 +86,8 @@ export default function VendorProfile({loaderData}: Route.ComponentProps) {
 
   if (navigation.state === 'submitting' && !isSubmitting) {
     setIsSubmitting(true);
+  } else if (navigation.state === "idle" && isSubmitting) {
+    setIsSubmitting(false);
   }
 
     const { userEmail, firstName, surname, universities } = loaderData;

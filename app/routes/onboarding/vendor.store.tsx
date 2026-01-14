@@ -173,6 +173,8 @@ export default function VendorStore({loaderData, actionData}: Route.ComponentPro
 
   if (navigation.state === 'submitting' && !isSubmitting) {
     setIsSubmitting(true);
+  } else if (navigation.state === "idle" && isSubmitting) {
+    setIsSubmitting(false);
   }
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null)

@@ -80,6 +80,8 @@ export default function Login({actionData}:Route.ComponentProps) {
   const navigation = useNavigation();
   if (navigation.state === 'submitting' && !isSubmitting || isGoogleSignIn) {
     setIsSubmitting(true);
+  } else if (navigation.state === "idle" && isSubmitting ) {
+    setIsSubmitting(false);
   }
 
   return (
