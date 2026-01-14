@@ -16,7 +16,7 @@ interface StoreCategory {
 export const meta = ({ loaderData }: Route.MetaArgs) => {
   const store = loaderData.store;
 
-  const universityName = store?.user_profiles?.universities?.name || 'Nigerian University';
+  const universityName = store.university_name || 'Nigerian University';
 
   return [
     { title: `${store.business_name} - Shop at ${universityName}` },
@@ -48,13 +48,9 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 
   // Fetch store details with category and user profile (for university)
   const { data: store, error: storeError } = await supabase
-    .from('stores')
-    .select(`
-      *,
-      store_categories(id, name),
-      user_profiles(university_id, universities(id, name, short_code))
-    `)
-    .eq('id', storeId)
+    .from('store_with_details')
+    .select('*')
+    .eq('store_id', storeId)
     .maybeSingle();
 
   if (storeError || !store) {
@@ -175,8 +171,7 @@ export const VendorStore = ({ loaderData }: Route.ComponentProps) => {
   };
 
   // Extract university info
-  const university = store.user_profiles?.universities;
-  const universityName = university?.short_code || university?.name || 'Unknown';
+  const universityName = store.university_short_code || 'Unknown';
 
   // Calculate rating stars
   const rating = store.rating ?? 0;
@@ -204,7 +199,7 @@ export const VendorStore = ({ loaderData }: Route.ComponentProps) => {
               <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden border-4 border-background shadow-md bg-muted">
                 <img
                   src={store.logo_url || '/images/store-placeholder.png'}
-                  alt={store.business_name}
+                  alt={store.business_name || "Unknown"}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -225,7 +220,7 @@ export const VendorStore = ({ loaderData }: Route.ComponentProps) => {
               </div>
               
               <p className="text-muted-foreground mb-4">
-                {store.description || store.store_categories?.name || 'Campus Vendor'}
+                {store.description || store.store_category || 'Campus Vendor'}
               </p>
 
               {/* Stats Row */}
@@ -355,7 +350,7 @@ export const VendorStore = ({ loaderData }: Route.ComponentProps) => {
                       key={product.id}
                       id={product.id}
                       name={product.title}
-                      storeName={store.business_name}
+                      storeName={store.business_name || "Unknown"}
                       price={product.price}
                       imageUrl={product.image_url}
                       rating={store.rating ?? undefined}
