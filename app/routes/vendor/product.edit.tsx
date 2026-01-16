@@ -211,6 +211,8 @@ export const EditProduct = ({ loaderData, actionData }: Route.ComponentProps) =>
 
   if (navigation.state === 'submitting' && !isSubmitting) {
     setIsSubmitting(true)
+  } else if (navigation.state === "idle" && isSubmitting ) {
+    setIsSubmitting(false);
   }
 
   const blobUrlRef = useRef<string | null>(null)
