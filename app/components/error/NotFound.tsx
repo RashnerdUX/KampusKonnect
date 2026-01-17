@@ -1,6 +1,6 @@
 import React from 'react'
 import { FaArrowLeft } from 'react-icons/fa6';
-import Navbar from '../navbar';
+import Navbar from '../NavBar';
 
 export const NotFound = () => {
   return (

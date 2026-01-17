@@ -15,9 +15,9 @@ export const Footer = () => {
 
     const campexLinks = [
         { text: "Home", url: "/" },
-        { text: "About Us", url: "/" },
-        { text: "Contact", url: "/" },
-        { text: "Blog", url: "/" },
+        { text: "About Us", url: "/about" },
+        { text: "Contact", url: "/contact-us" },
+        { text: "Blog", url: "/blog" },
     ];
 
     const studentLinks = [

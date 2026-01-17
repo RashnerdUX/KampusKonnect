@@ -2,8 +2,11 @@ import { type RouteConfig, index, route, layout } from "@react-router/dev/routes
 
 export default [
   // Landing Page
-  index("routes/landingpage.tsx"),
-  route("join-waitlist/success", "routes/waitlist_success.tsx"),
+  index("routes/landing/landingpage.tsx"),
+  route("join-waitlist/success", "routes/landing/waitlist_success.tsx"),
+  route("about", "routes/landing/about.tsx"),
+  route("blog", "routes/landing/blog.tsx"),
+  route("contact-us", "routes/landing/contact-us.tsx"),
 
   // Authentication
   route("login", "routes/auth/login.tsx"),
@@ -41,6 +44,11 @@ export default [
       index("routes/marketplace/vendors/index.tsx"),
       route(":vendorId", "routes/marketplace/vendors/vendor.$id.tsx"),
     ]),
+
+    // Additional marketplace pages
+    route("search-page", "routes/marketplace/search-page.tsx"),
+    route("profile", "routes/marketplace/profile.tsx"),
+    route("wishlist", "routes/marketplace/wishlist.tsx"),
   ]),
 
   // Vendor Dashboard Routes
@@ -64,7 +72,7 @@ export default [
   route("/sitemap.xml", "routes/seo.sitemap.xml.tsx"),
 
   // API Routes
-  route("api/search", "routes/api.search.tsx"),
+  route("api/search", "routes/api/api.search.tsx"),
 
   // For testing and experimentation
   route("playground", "routes/admin/playground.tsx"),

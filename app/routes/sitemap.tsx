@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Route } from './+types/sitemap';
 import { Link } from 'react-router';
-import Navbar from '~/components/navbar';
+import Navbar from '~/components/NavBar';
 import Footer from '~/components/Footer';
 import { ChevronRight, Home, ShoppingBag, Store, User, FileText, Shield, Cookie, Map, LogIn, UserPlus, Settings, HelpCircle } from 'lucide-react';
 

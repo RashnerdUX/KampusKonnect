@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Route } from './+types/cookies';
-import Navbar from '~/components/navbar';
+import Navbar from '~/components/NavBar';
 import Footer from '~/components/Footer';
 
 export const meta = (_args: Route.MetaArgs) => {

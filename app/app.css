@@ -224,6 +224,17 @@ body {
   pointer-events: auto;
 }
 
+/* For the about page */
+.impact-stat-container {
+  @apply flex flex-col gap-2 items-center justify-center;
+}
+.impact-stat-title {
+  @apply text-6xl font-display font-bold;
+}
+.impact-stat-subtitle {
+  @apply text-2xl text-foreground/80;
+}
+
 /* Hero Illustration Animations */
 @keyframes float-slow {
   0%, 100% {

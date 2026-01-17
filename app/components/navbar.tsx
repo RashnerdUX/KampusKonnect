@@ -33,6 +33,7 @@ export const Navbar = () => {
             <NavLink to="/marketplace" className="navlink">Marketplace</NavLink>
             <NavLink to="/about" className="navlink">About</NavLink>
             <NavLink to="/blog" className="navlink">Blog</NavLink>
+            <NavLink to="/contact-us" className="navlink">Contact</NavLink>
           </div>
           <div className="space-x-4 flex justify-center items-center">
               <Link to='/login' className="bg-transparent border-2 border-foreground text-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 md:w-auto rounded-full transition-colors">
@@ -72,6 +73,7 @@ export const Navbar = () => {
                   <NavLink to="/marketplace" className="navlink" onClick={closeMobileMenu}>Marketplace</NavLink>
                   <NavLink to="/about" className="navlink" onClick={closeMobileMenu}>About</NavLink>
                   <NavLink to="/blog" className="navlink" onClick={closeMobileMenu}>Blog</NavLink>
+                  <NavLink to="/contact-us" className="navlink" onClick={closeMobileMenu}>Contact</NavLink>
                 </div>
                 <div className='mt-auto w-full flex flex-col space-y-2'>
                   <Link to={'/login'} className="bg-transparent border-2 border-foreground text-primary-foreground font-medium text-base px-4 py-2 rounded-full transition-colors flex items-center justify-center" onClick={() => {closeMobileMenu();}}>

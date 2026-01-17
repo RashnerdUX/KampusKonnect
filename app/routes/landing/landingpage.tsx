@@ -1,10 +1,10 @@
 import React, {useEffect} from 'react'
-import type { Route } from '../+types/landingpage';
+import type { Route } from './+types/landingpage';
 import { FaArrowRightLong } from "react-icons/fa6";
 import { Form, useNavigate } from 'react-router';
 
 // Component for the landing page
-import Navbar from '~/components/navbar';
+import Navbar from '~/components/NavBar';
 import WaitlistSuccessCard from '~/components/WaitlistSuccessCard';
 import Footer from '~/components/Footer';
 import BenefitCard from '~/components/landingpage/BenefitCard';
