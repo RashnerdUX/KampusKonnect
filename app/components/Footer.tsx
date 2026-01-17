@@ -21,10 +21,10 @@ export const Footer = () => {
     ];
 
     const studentLinks = [
-        { text: "Browse Products", url: "/" },
+        { text: "Browse Products", url: "/marketplace/products" },
         { text: "How It Works", url: "/" },
-        { text: "Student FAQs", url: "/" },
-        { text: "Support", url: "/" },
+        { text: "Student FAQs", url: "/support#faq" },
+        { text: "Support", url: "/support" },
     ];
 
     const vendorLinks = [

@@ -7,6 +7,7 @@ export default [
   route("about", "routes/landing/about.tsx"),
   route("blog", "routes/landing/blog.tsx"),
   route("contact-us", "routes/landing/contact-us.tsx"),
+  route("support", "routes/landing/support.tsx"),
 
   // Authentication
   route("login", "routes/auth/login.tsx"),

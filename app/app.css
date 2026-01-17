@@ -229,10 +229,10 @@ body {
   @apply flex flex-col gap-2 items-center justify-center;
 }
 .impact-stat-title {
-  @apply text-6xl font-display font-bold;
+  @apply text-4xl lg:text-6xl font-display font-bold;
 }
 .impact-stat-subtitle {
-  @apply text-2xl text-foreground/80;
+  @apply text-lg lg:text-2xl text-foreground/80;
 }
 
 /* Hero Illustration Animations */

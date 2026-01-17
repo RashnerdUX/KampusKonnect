@@ -59,8 +59,8 @@ const AboutUs = ({loaderData}: Route.ComponentProps) => {
             {/* Hero section */}
             <section className='bg-gradient-to-b from-background via-muted to-primary/30 py-16 lg:py-24'>
                 <div className='max-w-4xl mx-auto px-4 text-center'>
-                    <h1 className='text-5xl lg:text-6xl font-bold mb-4'>About Campex</h1>
-                    <p className='text-lg lg:text-xl text-muted-foreground'>Connecting Students with Campus Essentials</p>
+                    <h1 className='text-4xl lg:text-6xl font-bold mb-4'>About Campex</h1>
+                    <p className='text-sm lg:text-xl text-muted-foreground'>Connecting Students with Campus Essentials</p>
                 </div>
             </section>
 
@@ -101,7 +101,7 @@ const AboutUs = ({loaderData}: Route.ComponentProps) => {
                     </div>
 
                     {/* Impact Stats */}
-                    <div className="grid grid-cols-2 gap-y-0 gap-x-4 text-center p-6">
+                    <div className="grid grid-cols-2 gap-y-4 lg:gap-y-0 gap-x-4 text-center p-6">
                         <div className='impact-stat-container'>
                             <h2 className="impact-stat-title">{activeStudents}</h2>
                             <p className="impact-stat-subtitle">Active Students</p>
@@ -130,8 +130,8 @@ const AboutUs = ({loaderData}: Route.ComponentProps) => {
                         <h1 className="text-5xl font-bold text-foreground">Meet the Team</h1>
                     </div>
 
-                    <div className='lg:ml-12 w-[480px]'>
-                        <p className="text-lg text-muted-foreground mb-4">
+                    <div className='lg:ml-12 w-auto lg:w-[480px]'>
+                        <p className="text-lg text-muted-foreground mb-4 text-wrap">
                             Behind Campex is a passionate team of individuals dedicated to making a difference in the lives of students. Our diverse team brings together expertise in technology, e-commerce, and customer service, all united by a shared commitment to our mission.
                         </p>
                     </div>
