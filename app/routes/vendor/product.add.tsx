@@ -5,6 +5,7 @@ import { FaCloudArrowUp } from 'react-icons/fa6'
 import { createSupabaseServerClient } from '~/utils/supabase.server'
 import { compressImageFile } from '~/hooks/useImageCompression'
 import ButtonSpinner from '~/components/ButtonSpinner'
+import { RiAiGenerate2 } from "react-icons/ri";
 
 export const meta = (_args: Route.MetaArgs) => {
   return [
@@ -179,6 +180,10 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
   const [isCompressing, setIsCompressing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // For AI generation
+  const [isGeneratingWithAI, setIsGeneratingWithAI] = useState<boolean>(false)
+  const [generatedDescription, setGeneratedDescription] = useState<string>("")
+
   if (navigation.state === 'submitting' && !isSubmitting) {
     setIsSubmitting(true)
   } else if (navigation.state === "idle" && isSubmitting ) {
@@ -187,6 +192,33 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
 
   const blobUrlRef = useRef<string | null>(null)
   const submit = useSubmit()
+
+  const generateProductDescriptionWithAI = async (imageFile: File) => {
+    const url = "https://slijaoqgxaewlqthtahj.supabase.co/functions/v1/generate-product-descriptions";
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    try {
+      setIsGeneratingWithAI(true);
+      const response = await fetch(
+        url,
+        {
+          method: "POST",
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: formData
+        }
+      );
+
+      const data = await response.json();
+      setGeneratedDescription(data.description);
+    } catch (error) {
+      console.error("There was an error generating a description for this product")
+    } finally {
+      setIsGeneratingWithAI(false);
+    }
+  }
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
@@ -325,14 +357,30 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label htmlFor="productDescription" className="font-medium text-foreground">
+                <div className='flex justify-between items-center'>
+                  <label htmlFor="productDescription" className="font-medium text-foreground">
                   Product Description
-                </label>
+                  </label>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      console.log("Generate with AI button clicked!");
+                      if(compressedFile) {
+                        console.log("Generating AI description")
+                        generateProductDescriptionWithAI(compressedFile)
+                      };
+                    }}
+                    className='flex gap-1 items-center border border-foreground py-0.5 px-3 rounded-2xl hover:bg-foreground/10 focus:bg-foreground/10'
+                  >
+                    {isGeneratingWithAI ? <ButtonSpinner /> : <RiAiGenerate2  size={22} className='text-foreground'/>}
+                    <span className='hidden md:block'>{isGeneratingWithAI ? "Generating...":"Generate with AI"}</span>
+                  </button>
+                </div>
                 <textarea
                   id="productDescription"
                   name="productDescription"
                   className="input-field min-h-[100px] bg-foreground/5"
-                  placeholder="Enter the product description"
+                  placeholder={isGeneratingWithAI ? "Thinking..." : "Enter the product description"}
                   value={productDescription}
                   onChange={(e) => setProductDescription(e.target.value)}
                   required
