@@ -1,6 +1,6 @@
 // API route for hybrid product search
 import { data } from 'react-router';
-import type { Route } from './+types/api.search';
+import type { Route } from '../+types/api.search';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
 import { generateEmbedding } from '~/utils/embeddings.server';
 import type { SearchParams, SearchResponse, SearchResultProduct } from '~/types/search.types';

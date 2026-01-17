@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react'
-import type { Route } from './+types/landingpage';
+import type { Route } from '../+types/landingpage';
 import { FaArrowRightLong } from "react-icons/fa6";
 import { Form, useNavigate } from 'react-router';
 
