@@ -1,9 +1,9 @@
-import React from 'react'
+import {useEffect, useState} from 'react'
 import type { Route } from './+types/$productId'
 import { Loader } from 'lucide-react';
-import { FaWhatsapp, FaRegHeart, FaStar } from "react-icons/fa6";
+import { FaWhatsapp, FaRegHeart, FaStar, FaHeart } from "react-icons/fa6";
 import { createSupabaseServerClient } from '~/utils/supabase.server';
-import { data, Form, Link } from 'react-router';
+import { data, Form, Link, redirect } from 'react-router';
 import ProductCard from '~/components/marketplace/ProductCard';
 import RatingsTileSection from '~/components/marketplace/RatingsTile';
 import { ReviewCard } from '~/components/marketplace/ReviewCard';
@@ -48,15 +48,24 @@ export async function loader({params, request}: Route.LoaderArgs) {
 
     const { supabase, headers } = createSupabaseServerClient(request);
 
-    // Fetch product details first (required for the page)
-    const { data: product, error: productError } = await supabase
+    const [product, wishlistCheck] = await Promise.all(
+      [
+        supabase
       .from('product_detail_view')
       .select('*')
       .eq('id', productId)
-      .single();
+      .single(),
 
-    if (productError || !product) {
-      console.error('Error fetching product details:', productError);
+      supabase
+      .from('wishlists')
+      .select('*')
+      .eq('product_id', productId)
+      .maybeSingle(),
+      ]
+    )
+
+    if (product.error || !product) {
+      console.error('Error fetching product details:', product.error);
       throw new Response("Product Not Found", { status: 404 });
     }
 
@@ -113,20 +122,75 @@ export async function loader({params, request}: Route.LoaderArgs) {
     }
 
     return data({
-      product,
+      product: product.data,
       relatedProducts: relatedProductsDataResult.data ?? [],
       reviewsSummary: reviewsSummary ?? null,
-      topProductReviews: topReviewsResult.data ?? []
+      topProductReviews: topReviewsResult.data ?? [],
+      isInWishlist: !!wishlistCheck.data
     }, { headers });
+}
+
+export async function action({ request, params }: Route.ActionArgs) {
+    const formData = await request.formData();
+    const actionType = formData.get('wishlist-button');
+    const productId = params.productId;
+    const { supabase, headers } = createSupabaseServerClient(request);
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw redirect('/login');
+    }
+
+    let error;
+
+    if (actionType === 'remove-from-wishlist') {
+      // Remove from wishlist if product is already in wishlist
+      ({ error } = await supabase
+        .from('wishlists')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('product_id', productId));
+      
+        console.log('Removed from wishlist');
+    } else if (actionType === 'add-to-wishlist') {
+      // Add to wishlist
+      ({ error } = await supabase
+        .from('wishlists')
+        .insert({
+          user_id: user.id,
+          product_id: productId,
+        }));
+
+        console.log('Added to wishlist');
+    }
+
+    if (error) {
+      console.error('Error adding to wishlist:', error);
+      return data({ success: false, message: 'Failed to add to wishlist. Please try again later.' }, { headers });
+    }
+
+    return data({ success: true, message: 'Product added to wishlist.' }, { headers });
 }
 
 export function HydrateFallback(){
     return <Loader />;
 }
 
-const ProductPage = ({loaderData}: Route.ComponentProps) => {
-    
-  const { product, relatedProducts, reviewsSummary, topProductReviews } = loaderData;
+const ProductPage = ({loaderData, actionData}: Route.ComponentProps) => {
+  
+  const [isAddedToWishlist, setIsAddedToWishlist] = useState(false);
+  const { product, relatedProducts, reviewsSummary, topProductReviews, isInWishlist } = loaderData;
+
+  const { success, message } = actionData || {};
+
+  useEffect(() => {
+    if (isInWishlist) {
+      setIsAddedToWishlist(true);
+    } else if (!isInWishlist) {
+      setIsAddedToWishlist(false);
+    };
+  }, [actionData, isInWishlist]);
 
   const ratingsData = [
     { star: 5, count: reviewsSummary?.count_5 || 0, totalReviews: reviewsSummary?.total_reviews || 0 },
@@ -187,15 +251,27 @@ const ProductPage = ({loaderData}: Route.ComponentProps) => {
                   </a>
                   <Form method="post" className='w-full'>
                     {/* Add to Wishlist */}
-                    <button 
+                    { isAddedToWishlist ? (<button 
                       type="submit" 
-                      value={product.id ?? ""}
-                      disabled 
-                      className='px-6 py-3 border-2 border-foreground text-foreground rounded-full w-full flex gap-2 items-center justify-center'
+                      name="wishlist-button"
+                      value="remove-from-wishlist" 
+                      className='px-6 py-3 border-2 border-foreground text-foreground rounded-full w-full cursor-pointer transition-all duration-300'
                     >
-                      <FaRegHeart size={20} />
-                      Add to Wishlist
-                    </button>
+                      <div className='flex gap-2 items-center justify-center'>
+                        <FaHeart size={20} className='text-red-600 dark:text-red-800' />
+                        <span>Added to Wishlist</span>
+                      </div>
+                    </button>) : (<button 
+                      type="submit" 
+                      name="wishlist-button"
+                      value="add-to-wishlist"
+                      className='px-6 py-3 border-2 border-foreground text-foreground rounded-full w-full cursor-pointer transition-all duration-300'
+                    >
+                      <div className='flex gap-2 items-center justify-center'>
+                        <FaRegHeart size={20} />
+                        <span>Add to Wishlist</span>
+                      </div>
+                    </button>)}
                   </Form>
                 </div>
                 </div>
