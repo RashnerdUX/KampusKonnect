@@ -34,6 +34,8 @@ export const MarketPlaceNavbar = ({ user, categories = [] }: MarketPlaceNavbarPr
     const [isUserNameAvailable, setIsUserNameAvailable] = useState<boolean>(false)
     const [username, setUsername] = useState<string | null>(null);
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+    const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+    const [searchQuery, setSearchQuery] = useState<string>('');
     const navigate = useNavigate()
 
     const toggleSection = (section: string) => {
@@ -107,9 +109,42 @@ export const MarketPlaceNavbar = ({ user, categories = [] }: MarketPlaceNavbarPr
           </div>
           
           <div className='flex md:gap-4 lg:gap-6 items-center justify-center'>
-            <Link to={"/marketplace/search"}>
-              <FaSearch size={20} />
-            </Link>
+            <div className='relative'>
+                <input
+                  type='text'
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery.trim()) {
+                      navigate(`/marketplace/products?q=${encodeURIComponent(searchQuery)}`);
+                    }
+                  }}
+                  placeholder='Search products...'
+                  autoFocus
+                  className='pl-4 pr-10 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary w-64'
+                />
+                <button
+                  onClick={() => {
+                    if (searchQuery.trim()) {
+                      navigate(`/marketplace/products?q=${encodeURIComponent(searchQuery)}`);
+                    }
+                  }}
+                  className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground'
+                >
+                  {searchQuery.length>1 ? 
+                    <button
+                        onClick={() => {
+                          setIsSearchOpen(false);
+                          setSearchQuery('');
+                        }}
+                        className='ml-2 text-muted-foreground hover:text-foreground'
+                      >
+                        ✕
+                    </button>
+                    : <FaSearch size={16} /> 
+                  }
+                </button>
+              </div>
             <Link to={"/marketplace/wishlist"}>
               <FaCartFlatbed size={24} />
             </Link>

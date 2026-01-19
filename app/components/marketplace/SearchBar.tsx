@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, X, Loader2 } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { useNavigate, useFetcher } from 'react-router'
 import type { SearchRecommendation } from '~/types/search.types'
+import SearchResultTile from './SearchResultTile'
+import ButtonSpinner from '../ButtonSpinner'
 
 export interface CategoryOption {
   id: string;
@@ -27,7 +29,7 @@ interface SearchBarProps {
 }
 
 // Debounce hook
-function useDebounce<T>(value: T, delay: number): T {
+export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value)
 
   useEffect(() => {
@@ -199,51 +201,24 @@ export const SearchBar = ({
               >
                 {isLoadingRecommendations ? (
                   <div className="flex items-center justify-center p-4">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <ButtonSpinner />
                     <span className="ml-2 text-sm text-foreground/70">Searching...</span>
                   </div>
                 ) : recommendations.length > 0 ? (
                   <ul className="py-2">
                     {recommendations.map((item, index) => (
-                      <li key={item.id}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigate(`/marketplace/products/${item.id}`)
-                            setShowRecommendations(false)
-                          }}
-                          onMouseEnter={() => setSelectedIndex(index)}
-                          className={`w-full flex items-center gap-3 px-4 py-2 text-left transition-colors ${
-                            selectedIndex === index 
-                              ? 'bg-primary/10' 
-                              : 'hover:bg-foreground/5'
-                          }`}
-                        >
-                          {/* Product Image */}
-                          <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                            {item.image_url ? (
-                              <img 
-                                src={item.image_url} 
-                                alt={item.title}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-foreground/30">
-                                <Search size={16} />
-                              </div>
-                            )}
-                          </div>
-                          {/* Product Info */}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              {item.title}
-                            </p>
-                            <p className="text-xs text-foreground/60">
-                              {item.category_name || 'Product'} • ₦{item.price.toLocaleString()}
-                            </p>
-                          </div>
-                        </button>
-                      </li>
+                      <SearchResultTile 
+                        key={item.id} 
+                        searchresult={
+                          {
+                            item: item,
+                            index: index,
+                            selectedIndex: selectedIndex,
+                            setSelectedIndex: setSelectedIndex,
+                            setShowRecommendations: setShowRecommendations,
+                          }
+                        }
+                      />
                     ))}
                     {/* View all results button */}
                     <li className="border-t border-border mt-1 pt-1">
