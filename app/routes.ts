@@ -47,8 +47,9 @@ export default [
     ]),
 
     // Additional marketplace pages
-    route("search-page", "routes/marketplace/search-page.tsx"),
+    route("search", "routes/marketplace/mobilesearchpage.tsx"),
     route("profile", "routes/marketplace/profile.tsx"),
+    route("profile-edit", "routes/marketplace/profile-edit.tsx"),
     route("wishlist", "routes/marketplace/wishlist.tsx"),
   ]),
 
