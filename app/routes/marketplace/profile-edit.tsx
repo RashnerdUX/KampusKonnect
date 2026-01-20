@@ -125,8 +125,18 @@ export const action = async ({ request }: Route.ActionArgs) => {
   const avatarFile = formData.get('avatar') as File | null;
   console.log('Avatar file from form data:', avatarFile);
 
+
   const filePath = `${user.id}/avatar.png`;
   let avatarUrl = null;
+
+  // Delete previous avatar if exists
+  const { error: deleteAvatarError } = await supabase.storage
+    .from("avatars")
+    .remove([`${user.id}/avatar.png`]);
+  
+  if (deleteAvatarError) {
+    console.error('Error deleting previous avatar:', deleteAvatarError);
+  }
 
   if (avatarFile) {
     console.log('Uploading avatar file: ', avatarFile.name, avatarFile.size, avatarFile.type);
@@ -140,13 +150,8 @@ export const action = async ({ request }: Route.ActionArgs) => {
     }
 
     console.log('Avatar uploaded successfully.');
-    const { data } = await supabase.storage
-      .from('avatars')
-      .getPublicUrl(`avatars/${user.id}`);
-    
-    console.log('Avatar public URL:', data.publicUrl);
 
-    avatarUrl = data.publicUrl;
+    avatarUrl = filePath;
   }
 
   try {

@@ -18,8 +18,14 @@ export interface Category {
   emoji?: string | null;
 }
 
+export interface UserProfile {
+  id: string;
+  username: string;
+  avatar_url: string;
+} 
+
 interface MarketPlaceNavbarProps { 
-  user: User | null;
+  user: UserProfile | null;
   categories?: Category[];
 }
 
@@ -32,6 +38,7 @@ export interface desktopLinks {
 export const MarketPlaceNavbar = ({ user, categories = [] }: MarketPlaceNavbarProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
     const [isUserNameAvailable, setIsUserNameAvailable] = useState<boolean>(false)
+    const [isUserAvatarAvailable, setIsUserAvatarAvailable] = useState<boolean>(false)
     const [username, setUsername] = useState<string | null>(null);
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
     const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
@@ -55,9 +62,10 @@ export const MarketPlaceNavbar = ({ user, categories = [] }: MarketPlaceNavbarPr
 
     useEffect(() => {
       if (!user) return;
-      const username = user.user_metadata?.username || null;
+      const username = user.username || null;
       setUsername(username);
       setIsUserNameAvailable(!!username);
+      setIsUserAvatarAvailable(!!user.avatar_url);
     }, [user])
 
     // Build category children from prop
@@ -150,7 +158,7 @@ export const MarketPlaceNavbar = ({ user, categories = [] }: MarketPlaceNavbarPr
             </Link>
             {isUserNameAvailable ? (
               <Link to={"/marketplace/profile"} className='flex gap-2 items-center'>
-                <BsPersonCheck size={24} />
+                {isUserAvatarAvailable ? <img src={user?.avatar_url} alt={username || 'User Avatar'} className='w-8 h-8 rounded-full object-cover' /> : <BsPersonCheck size={24} />}
                 <span className='text-foreground/90 text-lg font-bold'> Hi, {username}</span>
               </Link>
             ) : (
@@ -179,7 +187,11 @@ export const MarketPlaceNavbar = ({ user, categories = [] }: MarketPlaceNavbarPr
               <FaCartFlatbed size={24} />
             </Link>
             <Link to={"/marketplace/profile"}>
-              {isUserNameAvailable ? <BsPersonCheck size={24} /> : <BsPerson size={24} />}
+              {isUserNameAvailable ? 
+                <div>
+                  {isUserAvatarAvailable ? <img src={user?.avatar_url} alt={username || 'User Avatar'} className='w-8 h-8 rounded-full object-cover' /> : <BsPerson size={24} />}
+                </div>
+                : <BsPerson size={24} />}
             </Link>
           </div>
         </div>

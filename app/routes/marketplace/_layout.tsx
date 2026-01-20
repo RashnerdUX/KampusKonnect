@@ -17,6 +17,29 @@ export async function loader({ request }: Route.LoaderArgs) {
   
   // Fetch categories and universities for navigation/search
   const { supabase } = createSupabaseServerClient(request);
+
+  const user_id = user?.id ?? "0";
+  let username = "Guest";
+  let avatar_url = "/images/default-avatar.png";
+
+  if (user) {
+    const { data: user_profile, error } = await supabase
+      .from('user_profiles')
+      .select('username, avatar_url')
+      .eq('id',user_id)
+      .single()
+    
+    // Get signed url for avatar if exists
+    const { data: avatarData} = await supabase
+      .storage
+      .from('avatars')
+      .createSignedUrl(user_profile?.avatar_url || '', 3600);
+
+    if (!error && user_profile) {
+      username = user_profile.username || "Guest";
+      avatar_url = avatarData?.signedUrl || "/images/default-avatar.png";  
+    }
+  }
   
   const [categoriesResult, universitiesResult] = await Promise.all([
     supabase
@@ -26,11 +49,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     supabase
       .from('universities')
       .select('id, name, short_code')
-      .order('name', { ascending: true })
+      .order('name', { ascending: true }),
   ]);
   
   return { 
-    user, 
+    user: {
+      id: user_id,
+      username,
+      avatar_url
+    }, 
     categories: categoriesResult.data as Category[] ?? [], 
     universities: universitiesResult.data as University[] ?? [],
     headers: headers 
