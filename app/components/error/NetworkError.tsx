@@ -1,4 +1,4 @@
-import Navbar from '../NavBar';
+import Navbar from "../NavBar";
 
 const NetworkError = ({ onRetry }: { onRetry: () => void }) => {
   return (
