@@ -51,6 +51,13 @@ export default [
     route("profile", "routes/marketplace/profile.tsx"),
     route("profile-edit", "routes/marketplace/profile-edit.tsx"),
     route("wishlist", "routes/marketplace/wishlist.tsx"),
+    route("notifications", "routes/marketplace/notifications.tsx"),
+    route("orders", "routes/marketplace/orders.tsx"),
+    route("reviews", "routes/marketplace/reviews.tsx"),
+    route("settings", "routes/marketplace/settings.tsx"),
+    route("support", "routes/marketplace/support.tsx"),
+    route("vouchers", "routes/marketplace/vouchers.tsx"),
+    route("wallet", "routes/marketplace/wallet.tsx"),
   ]),
 
   // Vendor Dashboard Routes
