@@ -156,7 +156,7 @@ export const MarketPlaceNavbar = ({ user, categories = [] }: MarketPlaceNavbarPr
             <Link to={"/marketplace/wishlist"}>
               <FaCartFlatbed size={24} />
             </Link>
-            {isUserNameAvailable ? (
+            {isUserNameAvailable && username === "Guest" ? (
               <Link to={"/marketplace/profile"} className='flex gap-2 items-center'>
                 {isUserAvatarAvailable ? <img src={user?.avatar_url} alt={username || 'User Avatar'} className='w-8 h-8 rounded-full object-cover' /> : <BsPersonCheck size={24} />}
                 <span className='text-foreground/90 text-lg font-bold'> Hi, {username}</span>

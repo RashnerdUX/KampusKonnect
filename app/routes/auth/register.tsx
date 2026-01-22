@@ -28,6 +28,18 @@ export const loader = async ({request}: Route.LoaderArgs) => {
 }
 
 export async function action({ request} : Route.ActionArgs) {
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!serviceKey) {
+    console.error("Missing Supabase service role key in environment variables.");
+    return { error: "Internal server error. Please try again later." };
+  }
+
+  // Create the client with Service Role Key for Admin privileges
+  const {supabase} = createSupabaseServerClient(request, serviceKey);
+
+
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
@@ -36,6 +48,26 @@ export async function action({ request} : Route.ActionArgs) {
   const first_name = formData.get("first_name");
   const username = formData.get("username");
   const agreeToTerms = formData.get("terms")
+
+  // Check if user is signing up from a different route
+  const whatsappUrl = formData.get("redirectTo") as string;
+
+  if (whatsappUrl){
+    console.log("Registering user from a different route other than Register")
+
+    const { data, error } = await supabase.auth.signUp({ 
+        email: String(email), 
+        password: String(password),
+    });
+
+    if (error) {
+        console.error("Error during registration:", error);
+        return { error: error.message };
+    }
+
+    console.log("User is registered. Redirecting to WhatsApp")
+    return redirect(whatsappUrl);
+  }
 
   // Check to make sure user is entering same password
   if (password !== confirm_password){
@@ -49,15 +81,7 @@ export async function action({ request} : Route.ActionArgs) {
 
   //Import supabase client
   // TODO: Try registering without service key and see if it has been fixed on Supabase's end
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
-  if (!serviceKey) {
-    console.error("Missing Supabase service role key in environment variables.");
-    return { error: "Internal server error. Please try again later." };
-  }
-
-  const {supabase} = createSupabaseServerClient(request, serviceKey);
-    //   Sign up with Supabase
+  //   Sign up with Supabase
     console.log("Registering user:", email);
     const { data, error } = await supabase.auth.signUp({ 
         email: String(email), 

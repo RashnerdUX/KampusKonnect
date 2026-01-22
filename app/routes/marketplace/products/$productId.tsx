@@ -3,10 +3,11 @@ import type { Route } from './+types/$productId'
 import { Loader } from 'lucide-react';
 import { FaWhatsapp, FaRegHeart, FaStar, FaHeart } from "react-icons/fa6";
 import { createSupabaseServerClient } from '~/utils/supabase.server';
-import { data, Form, Link, redirect } from 'react-router';
+import { data, Form, Link, redirect, useRouteLoaderData } from 'react-router';
 import ProductCard from '~/components/marketplace/ProductCard';
 import RatingsTileSection from '~/components/marketplace/RatingsTile';
 import { ReviewCard } from '~/components/marketplace/ReviewCard';
+import RegistrationModal from '~/components/auth/RegistrationModal';
 
 export const meta = ({ loaderData }: Route.MetaArgs) => {
   
@@ -180,9 +181,16 @@ export function HydrateFallback(){
 const ProductPage = ({loaderData, actionData}: Route.ComponentProps) => {
   
   const [isAddedToWishlist, setIsAddedToWishlist] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { product, relatedProducts, reviewsSummary, topProductReviews, isInWishlist } = loaderData;
 
   const { success, message } = actionData || {};
+
+  // Get the user from the layout route
+  const { user } = useRouteLoaderData("market-layout");
+
+  // Set the Vendor Contact URL
+  const whatsappUrl = `https://wa.me/${product.store_whatsapp_number}?text=I'm%20interested%20in%20buying%20the%20${encodeURIComponent(product.title ?? "this product")}%20that%20you%20have%20listed%20on%20Campex%20Marketplace.`;
 
   useEffect(() => {
     if (isInWishlist) {
@@ -192,7 +200,21 @@ const ProductPage = ({loaderData, actionData}: Route.ComponentProps) => {
     };
   }, [actionData, isInWishlist]);
 
-  const ratingsData = [
+  const handleContactVendorClick = () => {
+    console.log("Contact Vendor clicked")
+
+    if (!user) {
+      // Show the modal if not logged in
+      console.log("User not logged in")
+      setShowAuthModal(true);
+    } else {
+      // User is logged in, send them to WhatsApp
+      console.log("User logged in. Going to Whatsapp")
+      window.location.href = whatsappUrl;
+    }
+  };
+
+    const ratingsData = [
     { star: 5, count: reviewsSummary?.count_5 || 0, totalReviews: reviewsSummary?.total_reviews || 0 },
     { star: 4, count: reviewsSummary?.count_4 || 0, totalReviews: reviewsSummary?.total_reviews || 0 },
     { star: 3, count: reviewsSummary?.count_3 || 0, totalReviews: reviewsSummary?.total_reviews || 0 },
@@ -204,6 +226,14 @@ const ProductPage = ({loaderData, actionData}: Route.ComponentProps) => {
     <main>
       <section id='product-detail' className="lg:max-h-[90vh]">
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+
+          {/* Render Modal conditionally */}
+          {showAuthModal && (
+            <RegistrationModal 
+              onClose={() => setShowAuthModal(false)} 
+              redirectLink={whatsappUrl} 
+            />
+          )}
 
           {/* Main Product Details */}
           <div>
@@ -240,15 +270,14 @@ const ProductPage = ({loaderData, actionData}: Route.ComponentProps) => {
                     <p className='text-xl md:text-2xl lg:text-3xl font-normal text-foreground'>₦ {(product.price ?? 0)}</p>
                   </div>
                   <div className='flex flex-col gap-2 items-center w-full'>
-                  <a 
-                    href={`https://wa.me/${product.store_whatsapp_number}?text=I'm%20interested%20in%20buying%20the%20${encodeURIComponent(product.title ?? "this product")}%20that%20you%20have%20listed%20on%20Campex%20Marketplace.`} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className='px-6 py-3 bg-primary text-primary-foreground rounded-full w-full flex gap-2 items-center justify-center'
+                  <button 
+                    type='button'
+                    onClick={handleContactVendorClick}
+                    className='cursor-pointer px-6 py-3 bg-primary text-primary-foreground rounded-full w-full flex gap-2 items-center justify-center'
                   >
                     <FaWhatsapp size={20} />
                     Contact Seller
-                  </a>
+                  </button>
                   <Form method="post" className='w-full'>
                     {/* Add to Wishlist */}
                     { isAddedToWishlist ? (<button 
