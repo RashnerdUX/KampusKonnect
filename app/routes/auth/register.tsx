@@ -2,12 +2,12 @@ import React, {useState} from 'react'
 import type { Route } from './+types/register';
 import { Form, Link, redirect, useNavigation } from 'react-router';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
-
 import AuthFormDivider from '~/components/utility/AuthFormDivider';
 import ImageCarousel from '~/components/auth/ImageCarousel';
 import { handleGoogleLogin } from '~/utils/social_login';
 import ThemeToggle from '~/components/ThemeToggle';
 import { ButtonSpinner } from '~/components/ButtonSpinner';
+import { getOptionalAuth } from '~/utils/optionalAuth.server';
 
 
 export const meta = ({}: Route.MetaArgs) => {
@@ -16,6 +16,16 @@ export const meta = ({}: Route.MetaArgs) => {
     { name: "description", content: "Create a Campex account to connect with campus vendors near you." }
   ];
 };
+
+export const loader = async ({request}: Route.LoaderArgs) => {
+  // Check if user is already signed in and redirect to marketplace
+
+  const { user } = await getOptionalAuth(request);
+
+  if (user){
+    return redirect("/marketplace")
+  }
+}
 
 export async function action({ request} : Route.ActionArgs) {
   const formData = await request.formData();

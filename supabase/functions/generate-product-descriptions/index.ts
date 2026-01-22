@@ -4,7 +4,7 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2'
+import { InferenceClient } from 'https://esm.sh/@huggingface/inference@latest'
 
 console.log("Hello from Edge Functions!")
 
@@ -15,6 +15,14 @@ const corsHeaders = {
 
 Deno.serve(async (req: Request) => {
   console.log("Working on product descriptions")
+
+    // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { 
+      headers: corsHeaders,
+      status: 200 
+    })
+  }
 
   const hfToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN')
 
@@ -29,17 +37,9 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  console.log("There is an hugging face access token")
+  console.log("Going ahead with the HF token provided...")
 
-  const hf = new HfInference(hfToken)
-
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { 
-      headers: corsHeaders,
-      status: 200 
-    })
-  }
+  const client = new InferenceClient(hfToken)
   
   // Reject any other request that isn't POST
   if (req.method !== "POST"){
@@ -53,8 +53,15 @@ Deno.serve(async (req: Request) => {
   const formData = await req.formData();
   const imageFile = formData.get('image') as File;
 
-  let imageBytes: Uint8Array;
+  // Get additional information to imporve product copy
+  const category =
+    (formData.get("category") as string) ?? "General product"
+  const audience =
+    (formData.get("audience") as string) ?? "General consumers"
+  const tone =
+    (formData.get("tone") as string) ?? "Clear and professional"
 
+  // Confirm the availability of the Image file
   if (!imageFile) {
     return new Response(
       "No image provided in the response",
@@ -62,25 +69,71 @@ Deno.serve(async (req: Request) => {
     )
   };
 
-  console.log("Image File: ", imageFile.name, imageFile.type, imageFile.size);
+  console.log("Here's the Image File: ", imageFile.name, imageFile.type, imageFile.size);
 
-  const arrayBuffer = await imageFile.arrayBuffer();
-  imageBytes = new Uint8Array(arrayBuffer);
-
-  console.log("Image has been obtained for the HF AI");
+  console.log("Image has been obtained for the HF Client. Proceeding...");
 
   // Create text from the image
   console.log("Calling Hugging Face API...");
 
   try {
-    // Create the blob
 
-    const description = await hf.imageToText(
+    // First use Salesforce Model to describe image
+    const visionResult = await client.imageToText(
       {
-        data: imageBytes,
-        model: 'Qwen/Qwen2.5-VL-7B-Instruct',
+        model: "nlpconnect/vit-gpt2-image-captioning",
+        data: imageFile,
       }
     );
+
+    console.log("Salesforce result received!", visionResult);
+
+    const visionDescription = typeof visionResult === "string" ? visionResult : visionResult?.generated_text ?? "";
+
+    if (!visionDescription) {
+      throw new Error("Failed to retrieve the generated visual description of the product");
+    };
+
+    // Next, refine the description with Qwen VL model
+
+    const descriptionInfo = await client.chat.completions.create({
+      model: "Qwen/Qwen2.5-7B-Instruct",
+      messages: [
+        {
+          role: "system",
+          content: `
+You are an ecommerce copywriter.
+
+Rules:
+- Write accurate descriptions based ONLY on provided visual attributes
+- Do not invent features, materials, or brands
+- Do not exaggerate or use hype
+- Use a neutral, professional tone
+- 2–3 sentences maximum
+          `.trim(),
+        },
+        {
+          role: "user",
+          content: `
+Product category: ${category}
+Target audience: ${audience}
+Tone: ${tone}
+
+Visible attributes from image:
+${visualFacts}
+
+Write a short ecommerce product description.
+          `.trim(),
+        },
+      ],
+      max_tokens: 120,
+    });
+
+    const description = descriptionInfo.choices?.[0]?.message?.content ?? "";
+
+    if(!description){
+      throw new Error("Failed to generate product description");
+    };
 
     console.log("HF response:", description);
 
@@ -94,7 +147,9 @@ Deno.serve(async (req: Request) => {
     console.error("Error stack:", error.stack);
 
     return new Response(
-      JSON.stringify({}),
+      JSON.stringify({
+        error: `Failed to generate product description. Here's the error: {error.message}`,
+      }),
       {headers: { "Content-Type": "application/json"}, status: 500}
     )
   };

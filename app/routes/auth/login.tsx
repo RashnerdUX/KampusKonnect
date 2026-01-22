@@ -2,6 +2,7 @@ import React, {useState}  from 'react'
 import type { Route } from './+types/login';
 import { createSupabaseServerClient } from '~/utils/supabase.server';
 import { redirect, Form, Link, data, useNavigation } from 'react-router';
+import { getOptionalAuth } from '~/utils/optionalAuth.server';
 
 // Component imports
 import AuthFormDivider from '~/components/utility/AuthFormDivider';
@@ -61,6 +62,16 @@ export async function action({ request} : Route.ActionArgs) {
     }
 
   return redirect("/marketplace", { headers });
+}
+
+export const loader = async ({request}: Route.LoaderArgs) => {
+  // Check if user is already signed in and redirect to marketplace
+
+  const { user } = await getOptionalAuth(request);
+
+  if (user){
+    return redirect("/marketplace")
+  }
 }
 
 export default function Login({actionData}:Route.ComponentProps) {

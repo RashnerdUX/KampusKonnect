@@ -431,12 +431,12 @@ export const VendorProfile = ({ loaderData }: Route.ComponentProps) => {
             <FaExternalLinkAlt className="h-3 w-3" /> Preview Store
           </Link>
           {!store.verified && (
-            <button
-              type="button"
+            <Link
+              to={"/vendor/profile/verify"}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
             >
               Verify Store
-            </button>
+            </Link>
           )}
         </div>
       </div>

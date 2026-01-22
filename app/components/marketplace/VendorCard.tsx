@@ -55,14 +55,14 @@ export const VendorCard = ({id, name, whatsappNumber, tagline, university, logoU
                         </span>
                     </div>
                 </div>
-                <a 
-                    href={`https://wa.me/${whatsappNumber}?text=Hello%2C%20I%27d%20like%20to%20inquire%20about%20your%20store's%20products%20and%20services.`} 
+                <Link 
+                    to={`/marketplace/vendors/${id}`} 
                     className='flex items-center gap-2 py-2 px-4 rounded-full bg-[#25D366] text-white w-full justify-center hover:bg-[#1ebe5d] transition-colors'
                     onClick={(e) => e.stopPropagation()}
                     
                 >
-                    <FaWhatsapp /> Contact Vendor 
-                </a>
+                    View Vendor 
+                </Link>
             </div>
         </div>
     </Link>

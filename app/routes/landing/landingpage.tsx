@@ -100,7 +100,7 @@ export const LandingPage = ({actionData}: Route.ComponentProps) => {
               </div>
               <div>
                 <a className='bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors flex items-center' href='/register'>
-                  Get Started
+                  Explore Marketplace
                   <FaArrowRightLong className='inline-block ml-4 text-primary-foreground' />
                 </a>
               </div>

@@ -40,7 +40,7 @@ export const Navbar = () => {
                 Log In
               </Link>
               <Link to="/register" className="bg-primary text-primary-foreground font-medium text-base md:text-[16px] px-4 py-2 md:px-[40px] md:py-4 rounded-full transition-colors md:w-auto">
-                Get Started
+                Explore Marketplace
               </Link>
           </div>
         </div>

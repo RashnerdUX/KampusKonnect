@@ -66,7 +66,8 @@ export default [
     route("products", "routes/vendor/products.tsx"),
     route("products/add", "routes/vendor/product.add.tsx"),
     route("products/:productId/edit", "routes/vendor/product.edit.tsx"),
-    route("profile", "routes/vendor/profile.tsx"),
+    route("profile", "routes/vendor/profile.tsx", {id: "VendorProfile"}),
+    route("profile/verify", "routes/vendor/store.verification.tsx"),
     route("settings", "routes/vendor/settings.tsx"),
   ]),
 

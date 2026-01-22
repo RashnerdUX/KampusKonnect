@@ -212,6 +212,10 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
       );
 
       const data = await response.json();
+      // A debug statement
+      if (data.error){
+        setGeneratedDescription(data.error);
+      }
       setGeneratedDescription(data.description);
     } catch (error) {
       console.error("There was an error generating a description for this product")
@@ -381,7 +385,8 @@ export const AddProduct = ({ loaderData }: Route.ComponentProps) => {
                   name="productDescription"
                   className="input-field min-h-[100px] bg-foreground/5"
                   placeholder={isGeneratingWithAI ? "Thinking..." : "Enter the product description"}
-                  value={productDescription}
+                  value={
+                    generatedDescription.length>0 ? generatedDescription : productDescription}
                   onChange={(e) => setProductDescription(e.target.value)}
                   required
                 />
